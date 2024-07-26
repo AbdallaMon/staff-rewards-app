@@ -9,7 +9,7 @@ export default function DeleteModal({
                                         handleClose,
                                         item,
                                         setData,
-                                        href
+                                        href,setTotal
                                     }) {
 const {setLoading}=useToastContext()
 
@@ -17,10 +17,12 @@ const {setLoading}=useToastContext()
 
             const result = await handleRequestSubmit({}, setLoading, `${href}/${item.id}`, false, "Deleting...", null, "DELETE");
 
-            if (result) {
+            if (result.status===200) {
                 setData((prevData) =>
-                      prevData.filter((dataItem) => dataItem.data.id !== item.id)
+                      prevData.filter((dataItem) => dataItem.id !== item.id)
                 );
+                setTotal((prev)=>prev-1)
+                handleClose();
             }
 
     };

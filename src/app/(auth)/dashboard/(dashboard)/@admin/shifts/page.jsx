@@ -1,13 +1,10 @@
 "use client"
-import {BasicTabs} from "@/app/UiComponents/DataViewer/BasicTabs";
 import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import CreateModal from "@/app/UiComponents/Models/CreateModal";
-import {useState} from "react";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
 
 export default function Shifts() {
-    const { data, loading, setData, page, setPage, limit, setLimit, total } = useDataFetcher("admin/shifts", false);
-
+    const { data, loading, setData, page, setPage, limit, setLimit, total,setTotal } = useDataFetcher("admin/shifts", false);
     const inputs = [
         { data: { id: "name", type: "text", label: "Name" } , pattern: {
                 required: {
@@ -23,7 +20,7 @@ export default function Shifts() {
                 message: "Please enter a duration for the shift",
             },
             pattern:{
-                value: /[1-9]/gi,
+                value:/^[1-9]\d*$/,
                 message: "Min value is 1"
             }
         }
@@ -42,9 +39,10 @@ export default function Shifts() {
               setData={setData}
               label={"New Shift"}
               inputs={inputs}
-              href="/api/admin/shifts"
+              href="admin/shifts"
               extraProps={{ formTitle: "Create New Shift", btnText: "Submit" }}
               sendAsFiles={true}
+              setTotal={setTotal}
         />
         <AdminTable
               withEdit={true}
@@ -56,11 +54,12 @@ export default function Shifts() {
               limit={limit}
               setLimit={setLimit}
               total={total}
+              setTotal={setTotal}
               inputs={inputs}
               setData={setData}
               loading={loading}
-              editHref={"/api/admin/shifts"}
-              deleteHref={"/api/admin/shifts"}
+              editHref={"admin/shifts"}
+              deleteHref={"admin/shifts"}
         />
     </div>;
 }

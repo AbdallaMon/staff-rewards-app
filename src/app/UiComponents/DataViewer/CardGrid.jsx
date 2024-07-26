@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     Box,
     Button,
@@ -14,7 +14,8 @@ import {
     TableHead,
     TableRow,
     Typography,
-    Backdrop
+    Backdrop,
+    Paper
 } from '@mui/material';
 import EditModal from "@/app/UiComponents/Models/EditModal";
 import DeleteModal from "@/app/UiComponents/Models/DeleteModal";
@@ -35,7 +36,8 @@ export default function AdminTable({
                                        withDelete,
                                        deleteHref,
                                        extraComponent: ExtraComponent,
-                                       extraComponentProps
+                                       extraComponentProps,
+                                       setTotal,checkChanges
                                    }) {
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -69,7 +71,6 @@ export default function AdminTable({
         const newLimit = parseInt(event.target.value, 10);
         setLimit(newLimit);
 
-        // Calculate the new page number to stay within bounds
         const newPage = Math.min(page, Math.ceil(total / newLimit));
         setPage(newPage);
     };
@@ -82,15 +83,17 @@ export default function AdminTable({
 
     return (
           <Box sx={{ padding: '16px' }}>
-              <TableContainer>
+              <TableContainer component={Paper}>
                   <Table>
                       <TableHead>
                           <TableRow>
                               {columns.map((column) => (
-                                    <TableCell key={column.name}>{column.label}</TableCell>
+                                    <TableCell key={column.name} sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
+                                        {column.label}
+                                    </TableCell>
                               ))}
-                              {withEdit && <TableCell>Edit</TableCell>}
-                              {withDelete && <TableCell>Delete</TableCell>}
+                              {withEdit && <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Edit</TableCell>}
+                              {withDelete && <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Delete</TableCell>}
                           </TableRow>
                       </TableHead>
                       <TableBody>
@@ -107,6 +110,7 @@ export default function AdminTable({
                                                     variant="contained"
                                                     color="primary"
                                                     onClick={() => handleEditOpen(item)}
+                                                    sx={{ textTransform: 'none' }}
                                               >
                                                   Edit
                                               </Button>
@@ -118,6 +122,7 @@ export default function AdminTable({
                                                     variant="contained"
                                                     color="secondary"
                                                     onClick={() => handleDeleteOpen(item)}
+                                                    sx={{ textTransform: 'none' }}
                                               >
                                                   Delete
                                               </Button>
@@ -168,6 +173,7 @@ export default function AdminTable({
                           inputs={inputs}
                           setData={setData}
                           href={editHref}
+                          checkChanges={checkChanges}
                     />
               )}
               {selectedItem && withDelete && (
@@ -177,6 +183,7 @@ export default function AdminTable({
                           item={selectedItem}
                           setData={setData}
                           href={deleteHref}
+                          setTotal={setTotal}
                     />
               )}
               <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loading}>
@@ -184,4 +191,4 @@ export default function AdminTable({
               </Backdrop>
           </Box>
     );
-};
+}

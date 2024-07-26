@@ -1,11 +1,10 @@
 import React, {useEffect, useState} from 'react';
-import {Alert, Backdrop, Box, Fade, Modal, Snackbar} from '@mui/material';
-import CircularProgress from '@mui/material/CircularProgress';
+import {Box, Fade, Modal} from '@mui/material';
 import {Form} from "@/app/UiComponents/FormComponents/Forms/Form";
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 
-const EditModal = ({open, handleClose, item, inputs, setData, href}) => {
+const EditModal = ({ open, handleClose, item, inputs, setData, href, checkChanges = false }) => {
     const [options, setOptions] = useState({});
 const {setLoading}=useToastContext()
     useEffect(() => {
@@ -21,8 +20,18 @@ const {setLoading}=useToastContext()
     }, [inputs, item]);
 
     const onSubmit = async (formData) => {
-            const result = await handleRequestSubmit(formData, setLoading, `${href}/${item.id}`, false, "Updating...",null,"PUT");
-            if (result) {
+        let dataToSubmit = formData;
+        if (checkChanges) {
+            dataToSubmit = {};
+            for (let key in formData) {
+                if (formData[key] !== item[key]) {
+                    dataToSubmit[key] = formData[key];
+                }
+            }
+        }
+
+        const result = await handleRequestSubmit(dataToSubmit, setLoading, `${href}/${item.id}`, false, "Updating...",null,"PUT");
+            if (result.status===200) {
                 setData((prevData) => prevData.map((dataItem) => dataItem.id === result.data.id ? result.data : dataItem));
                 handleClose();
             }

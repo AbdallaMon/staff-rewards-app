@@ -16,7 +16,7 @@ const CreateModal = ({
   label,
   inputs,
   href,
-  extraProps,handleSubmit
+  extraProps,handleSubmit,setTotal
 }) => {
   const [open, setOpen] = useState(false);
   const {setLoading}=useToastContext()
@@ -26,7 +26,6 @@ const CreateModal = ({
   const handleClose = () => setOpen(false);
 
   const onSubmit = async (formData) => {
-    setLoading(true);
     if(extraProps.extraId){
       href=`${href}?extraId=${extraProps.extraId}`
     }
@@ -34,11 +33,13 @@ const CreateModal = ({
 
 
 const result=await handleRequestSubmit(formData, setLoading, `${href}`, false, "Creating...");
-      if (result) {
+      if (result.status===200) {
         if(handleSubmit){
             handleSubmit(result.data);
         }else{
         setData((prevData) => [...prevData, result.data]);
+          setTotal((prev)=>prev+1)
+          handleClose();
         }
       }
 
@@ -46,16 +47,17 @@ const result=await handleRequestSubmit(formData, setLoading, `${href}`, false, "
 
   return (
     <>
-      <div className={"px-2 mb-1"}>
-        <Button variant="contained" color="secondary" onClick={handleOpen}>
+      <div className={"px-2 mb-1 mt-2"}>
+        <Button variant="contained" color="secondary" onClick={handleOpen }>
           {label}
         </Button>
       </div>
       <Modal
         open={open}
         onClose={handleClose}
-        closeAfterTransition
-
+        sx={{
+          z : 999,
+        }}
       >
         <Fade in={open}>
           <Box sx={{ ...modalStyle }}>
@@ -64,9 +66,7 @@ const result=await handleRequestSubmit(formData, setLoading, `${href}`, false, "
               inputs={inputs}
               {...extraProps}
             >
-
             </Form>
-
           </Box>
         </Fade>
       </Modal>

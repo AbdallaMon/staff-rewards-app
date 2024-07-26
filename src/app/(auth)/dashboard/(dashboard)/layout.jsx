@@ -8,7 +8,6 @@ import {
   Failed,
   Success,
 } from "@/app/UiComponents/ToastUpdate/ToastUpdate";
-import {BasicTabs} from "@/app/UiComponents/DataViewer/BasicTabs";
 
 export default function Layout({ center, admin, staff }) {
   const [res, setRes] = useState(null);
@@ -20,7 +19,6 @@ export default function Layout({ center, admin, staff }) {
       const toastId = toast.loading("Checking your authentication...");
       const response = await fetch(`/api/auth/state`, { cache: "no-store" });
       const result = await response.json();
-      console.log(result)
       if (result.auth === false) {
         router.push("/login");
         toast.update(toastId, Failed("Not Authenticated. Redirecting..."));

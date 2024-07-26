@@ -22,34 +22,35 @@ model User {
   bankName     String?
   ibanBank     String?
   isActive     Boolean   @default(true)
+  rating             Float?
   dutyId       Int?
   duty         Duty?     @relation(fields: [dutyId], references: [id])
   attendance   Attendance[]
-  ratings      Rating[]
+  centerAdmin  Center?   @relation("CenterAdmin")
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   deletedAt    DateTime?
   resetPasswordToken  String?  @unique
   resetPasswordExpires DateTime?
   emailConfirmed     Boolean  @default(false)
-  }
-
+}
 model Center {
   id             Int           @id @default(autoincrement())
   name           String
   centerId       String        @unique
   zone           String
   email          String
-  password       String
   supervisorEmail String
   employees      User[]        @relation("CenterEmployees")
   centerShifts   CenterShift[]
-  ratings        Rating[]
   attendance     Attendance[]
+  adminUserId    Int?          @unique
+  centerAdmin    User?         @relation(fields: [adminUserId], references: [id], name: "CenterAdmin")
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   deletedAt      DateTime?
 }
+
 
 model Shift {
   id            Int           @id @default(autoincrement())
@@ -79,6 +80,7 @@ model Duty {
   id           Int           @id @default(autoincrement())
   name         String
   rewards      DutyReward[]
+  amount       Float
   users        User[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -90,6 +92,7 @@ model DutyReward {
   dutyId       Int
   shiftId      Int
   amount       Float
+  isPaid       Boolean       @default(false)
   date         DateTime      @default(now())
   duty         Duty          @relation(fields: [dutyId], references: [id])
   shift        Shift         @relation(fields: [shiftId], references: [id])
@@ -129,20 +132,6 @@ model ShiftSchedule {
   date         DateTime
   shiftType    ShiftType
   centerShift  CenterShift   @relation(fields: [centerShiftId], references: [id])
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  deletedAt    DateTime?
-}
-
-model Rating {
-  id           Int           @id @default(autoincrement())
-  centerId     Int
-  userId       Int
-  value        Int           // Rating value (e.g., 1 to 5)
-  comments     String?
-  date         DateTime      @default(now())
-  center       Center        @relation(fields: [centerId], references: [id])
-  user         User          @relation(fields: [userId], references: [id])
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   deletedAt    DateTime?
