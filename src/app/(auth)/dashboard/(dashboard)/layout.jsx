@@ -20,6 +20,7 @@ export default function Layout({ center, admin, staff }) {
       const toastId = toast.loading("Checking your authentication...");
       const response = await fetch(`/api/auth/state`, { cache: "no-store" });
       const result = await response.json();
+      console.log(result)
       if (result.auth === false) {
         router.push("/login");
         toast.update(toastId, Failed("Not Authenticated. Redirecting..."));

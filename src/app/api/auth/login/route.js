@@ -32,8 +32,9 @@ export async function POST(request) {
       });
     }
 
-    const token = jwt.sign({ userId: user.id }, SECRET_KEY);
-
+    const token = jwt.sign({ userId: user.id, userRole: user.role }, SECRET_KEY, {
+      expiresIn: '4h',
+    });
     cookieStore.set({
       name: "token",
       value: token,

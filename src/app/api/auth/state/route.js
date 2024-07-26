@@ -12,26 +12,12 @@ export async function GET() {
   try {
     const decoded = jwt.verify(token, SECRET_KEY);
     if (decoded) {
-      const user = await prisma.user.findUnique({
-        where: {
-          id: decoded.userId,
-        },
-      });
-      if (!user) {
-        return Response.json({
-          message: "User not found",
-          auth: false,
-        });
+      const { userId, userRole } = decoded;
+      const user = {
+        id: userId,
+        role: userRole,
       }
-      if (!user.emailConfirmed) {
-        return Response.json({
-          message: "User not confirmed",
-          auth: true,
-          role: user.role,
-          user,
-          emailConfirmed: false,
-        });
-      }
+
       return Response.json({
         message: "User authenticated and confirmed",
         user,
@@ -39,6 +25,8 @@ export async function GET() {
         role: user.role,
         emailConfirmed: true,
       });
+    }else{
+        throw new Error("Invalid token");
     }
   } catch (error) {
     console.log(error);
