@@ -8,7 +8,7 @@ export async function handleRequestSubmit(
   path,
   isFileUpload = false,
   toastMessage = "Sending...",
-  setRedirect,
+  setRedirect,method="POST"
 ) {
   const toastId = toast.loading(toastMessage);
   const body = isFileUpload ? data : JSON.stringify(data);
@@ -17,7 +17,7 @@ export async function handleRequestSubmit(
   const id = toastId;
   try {
     const request = await fetch(url+"/api/" + path, {
-      method: "POST",
+      method: method,
       body,
       headers: headers,
     });
