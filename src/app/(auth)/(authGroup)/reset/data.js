@@ -6,35 +6,36 @@ export const resetInputs = [
       name: "email",
       label: "Email",
     },
+
     pattern: {
       required: {
         value: true,
-        message: "الرجاء إدخال البريد الإلكتروني",
+        message: "Please enter your email",
       },
       pattern: {
         value: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
-        message: "الرجاء إدخال بريد إلكتروني صحيح",
+        message: "Please enter a valid email",
       },
     },
   },
 ];
+
 export const resetPasswordInputs = [
   {
     data: {
       id: "password",
       type: "password",
-      label: "كلمة المرور",
+      label: "Password",
       name: "password",
     },
     pattern: {
       required: {
         value: true,
-        message: "الرجاء إدخال البريد الإلكتروني",
+        message: "Please enter your password",
       },
       pattern: {
         value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/,
-        message:
-          "يجب أن تحتوي كلمة المرور على حرف كبير وحرف صغير ورقم وأن تكون 8 أحرف على الأقل",
+        message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and be at least 8 characters long",
       },
     },
   },
@@ -42,18 +43,18 @@ export const resetPasswordInputs = [
     data: {
       id: "confirmPassword",
       type: "password",
-      label: "تأكيد كلمة المرور",
+      label: "Confirm Password",
       name: "confirmPassword",
     },
     pattern: {
       required: {
         value: true,
-        message: " يجب تأكيد كلمة المرور",
+        message: "Please confirm your password",
       },
       validate: {
         matchesPreviousPassword: (value) => {
           const password = document.getElementById("password").value;
-          return password === value || "كلمة المرور غير متطابقة";
+          return password === value || "Passwords do not match";
         },
       },
     },

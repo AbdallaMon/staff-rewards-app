@@ -1,4 +1,4 @@
-import { setAuthState } from "../../lib/redux/slices/authSlice";
+import {setAuthState} from "@/lib/redux/slices/authSlice";
 
 export default async function handleAuthState(
   dispatch,

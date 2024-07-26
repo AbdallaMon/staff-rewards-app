@@ -9,7 +9,7 @@ import {
   Success,
 } from "@/app/UiComponents/ToastUpdate/ToastUpdate";
 
-export default function Layout({ children, admin, student }) {
+export default function Layout({ center, admin, staff }) {
   const [res, setRes] = useState(null);
 
   const router = useRouter();
@@ -39,7 +39,7 @@ export default function Layout({ children, admin, student }) {
 
   return (
     <HandleAuth>
-      {role === "ADMIN" ? admin : role === "STUDENT" ? student : null}{" "}
+      {role === "ADMIN" ? admin : role === "STAFF" ? staff :role==="CENTER"?center : null}{" "}
     </HandleAuth>
   );
 }

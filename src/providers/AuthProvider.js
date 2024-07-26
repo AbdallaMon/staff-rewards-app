@@ -1,8 +1,8 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
-import { apiUrl } from "../Urls/urls";
 import { useDispatch, useSelector } from "react-redux";
 import handleAuthState from "../helpers/functions/handleAuthState";
+import {url} from "@/app/constants";
 
 export const AuthContext = createContext(null);
 export default function AuthProvider({ children }) {
@@ -11,7 +11,7 @@ export default function AuthProvider({ children }) {
   const [redirect, setRedirect] = useState(false);
   useEffect(() => {
     async function fetchData() {
-      const response = await fetch(`${apiUrl}auth/state`);
+      const response = await fetch(`${url}/api/auth/state`);
       const data = await response.json();
 
       await handleAuthState(

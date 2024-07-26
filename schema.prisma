@@ -1,0 +1,166 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  email        String?   @unique
+  password     String?
+  role         UserRole
+  name         String?
+  emiratesId   String?
+  zone         String?
+  gender       Gender?
+  phone        String?
+  centerId     Int?
+  center       Center?   @relation(fields: [centerId], references: [id], name: "CenterEmployees")
+  bankName     String?
+  ibanBank     String?
+  isActive     Boolean   @default(true)
+  dutyId       Int?
+  duty         Duty?     @relation(fields: [dutyId], references: [id])
+  attendance   Attendance[]
+  ratings      Rating[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+  resetPasswordToken  String?  @unique
+  resetPasswordExpires DateTime?
+  emailConfirmed     Boolean  @default(false)
+  }
+
+model Center {
+  id             Int           @id @default(autoincrement())
+  name           String
+  centerId       String        @unique
+  zone           String
+  email          String
+  password       String
+  supervisorEmail String
+  employees      User[]        @relation("CenterEmployees")
+  centerShifts   CenterShift[]
+  ratings        Rating[]
+  attendance     Attendance[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+}
+
+model Shift {
+  id            Int           @id @default(autoincrement())
+  name          String
+  duration      Int           // Duration in hours
+  rewards       DutyReward[]
+  centerShifts  CenterShift[]
+  attendance    Attendance[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
+}
+
+model CenterShift {
+  id           Int           @id @default(autoincrement())
+  centerId     Int
+  shiftId      Int
+  center       Center        @relation(fields: [centerId], references: [id])
+  shift        Shift         @relation(fields: [shiftId], references: [id])
+  schedule     ShiftSchedule[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+}
+
+model Duty {
+  id           Int           @id @default(autoincrement())
+  name         String
+  rewards      DutyReward[]
+  users        User[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+}
+
+model DutyReward {
+  id           Int           @id @default(autoincrement())
+  dutyId       Int
+  shiftId      Int
+  amount       Float
+  date         DateTime      @default(now())
+  duty         Duty          @relation(fields: [dutyId], references: [id])
+  shift        Shift         @relation(fields: [shiftId], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+}
+
+model Attendance {
+  id           Int           @id @default(autoincrement())
+  userId       Int
+  centerId     Int
+  shiftId      Int
+  date         DateTime
+  examTypeId   Int
+  user         User          @relation(fields: [userId], references: [id])
+  center       Center        @relation(fields: [centerId], references: [id])
+  shift        Shift         @relation(fields: [shiftId], references: [id])
+  examType     ExamType      @relation(fields: [examTypeId], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+}
+
+model ExamType {
+  id           Int           @id @default(autoincrement())
+  name         String
+  attendance   Attendance[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+}
+
+model ShiftSchedule {
+  id           Int           @id @default(autoincrement())
+  centerShiftId Int
+  date         DateTime
+  shiftType    ShiftType
+  centerShift  CenterShift   @relation(fields: [centerShiftId], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+}
+
+model Rating {
+  id           Int           @id @default(autoincrement())
+  centerId     Int
+  userId       Int
+  value        Int           // Rating value (e.g., 1 to 5)
+  comments     String?
+  date         DateTime      @default(now())
+  center       Center        @relation(fields: [centerId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum ShiftType {
+  HOURS_3
+  HOURS_5
+}
+
+enum UserRole {
+  ADMIN
+  EMPLOYEE
+  CENTER
+  FINANCIAL_AUDITOR
+}

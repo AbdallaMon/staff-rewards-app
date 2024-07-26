@@ -1,6 +1,6 @@
 import { toast } from "react-toastify";
 import { Failed, Success } from "@/app/UiComponents/ToastUpdate/ToastUpdate";
-import { apiUrl } from "@/Urls/urls";
+import {url} from "@/app/constants";
 
 export async function handleRequestSubmit(
   data,
@@ -16,7 +16,7 @@ export async function handleRequestSubmit(
   setLoading(true);
   const id = toastId;
   try {
-    const request = await fetch(apiUrl + path, {
+    const request = await fetch(url+"/api/" + path, {
       method: "POST",
       body,
       headers: headers,

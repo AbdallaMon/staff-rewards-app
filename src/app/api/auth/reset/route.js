@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import prisma from "../../../../lib/pirsma/prisma";
 import { sendEmail } from "../../utlis/sendMail";
-import { pageUrl } from "../../../../Urls/urls";
+import {url} from "@/app/constants";
 
 export async function POST(request) {
   let body = await request.json();
@@ -30,7 +30,7 @@ export async function POST(request) {
       },
     });
 
-    const resetLink = `${pageUrl}/reset?token=${token}`;
+    const resetLink = `${url}/reset?token=${token}`;
     const emailSubject = "Password Reset Request";
     const emailText = `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\nPlease click on the following link, or paste this into your browser to complete the process within one hour of receiving it:\n\n${resetLink}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.\n`;
 

@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
 import prisma from "../../../../lib/pirsma/prisma";
-import { pageUrl } from "../../../../Urls/urls";
 import { sendEmail } from "../../utlis/sendMail";
 import crypto from "crypto";
+import {url} from "@/app/constants";
 
 export async function POST(request) {
   let body = await request.json();
@@ -22,16 +22,7 @@ export async function POST(request) {
       },
     });
 
-    // await prisma.user.update({
-    //   where: {
-    //     email: body.email,
-    //   },
-    //   data: {
-    //     confirmationToken: token,
-    //     confirmationExpires: new Date(Date.now() + 3600000), // 1 hour
-    //   },
-    // });
-    const confirmLink = `${pageUrl}/confirm?token=${token}`;
+    const confirmLink = `${url}/confirm?token=${token}`;
     const emailSubject = "Email Confirmation Request";
     const emailText = `You are receiving this because you (or someone else) have requested the confirmation of the email for your account.\n\nPlease click on the following link, or paste this into your browser to complete the process within one hour of receiving it:\n\n${confirmLink}\n\nIf you did not request this, please ignore this email and your email will remain unconfirmed.\n`;
 

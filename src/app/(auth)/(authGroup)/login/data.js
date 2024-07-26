@@ -3,17 +3,20 @@ export const loginInputs = [
     data: {
       id: "email",
       type: "email",
-      label: "البريد الإلكتروني",
+      label: "Email",
       name: "email",
+    },
+    sx:{
+      mb:1.5
     },
     pattern: {
       required: {
         value: true,
-        message: "الرجاء إدخال البريد الإلكتروني",
+        message: "Please enter your email",
       },
       pattern: {
         value: /\w+@[a-z]+\.[a-z]{2,}/gi,
-        message: "الرجاء إدخال بريد إلكتروني صحيح",
+        message: "Please enter a valid email",
       },
     },
   },
@@ -21,13 +24,16 @@ export const loginInputs = [
     data: {
       id: "password",
       type: "password",
-      label: "كلمة المرور",
+      label: "Password",
       name: "password",
+    },
+    sx:{
+      mb:1.5
     },
     pattern: {
       required: {
         value: true,
-        message: "الرجاء إدخال كلمة المرور",
+        message: "Please enter your password",
       },
     },
   },
