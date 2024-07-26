@@ -6,20 +6,21 @@ import ToastProvider from "@/providers/ToastLoadingProvider";
 import ReduxProvider from "@/providers/ReduxProvider";
 import MUIContextProvider from "@/providers/MUIContext";
 import Navbar from "@/app/UiComponents/Navbar/MuiNavbar";
+import {Suspense} from "react";
 
 const inter = League_Spartan({ subsets: ["latin"] });
 
 
-export default function RootLayout({ children }) {
+export default  function RootLayout({ children }) {
   return (
-        <html lang="ar" >
+        <html lang="en" >
         <body className={inter.className}>
         <MUIContextProvider>
-
           <ReduxProvider>
             <ToastProvider>
               <AuthProvider>
                   <Navbar />
+
                 {children}
               </AuthProvider>
             </ToastProvider>

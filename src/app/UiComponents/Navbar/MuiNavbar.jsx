@@ -1,9 +1,9 @@
 "use client"
-import { AppBar, Toolbar, Box, Typography, IconButton, Menu, MenuItem } from "@mui/material";
+import {AppBar, Toolbar, Box, Typography, IconButton, Menu, MenuItem, Container, Button} from "@mui/material";
 import { useSelector } from "react-redux";
 import Link from "next/link";
 import { useState } from "react";
-import { FaHome, FaSignOutAlt, FaUserCircle, FaBars } from "react-icons/fa";
+import { FaHome, FaUserCircle } from "react-icons/fa";
 import LogoutButton from "@/app/UiComponents/Buttons/LogoutBtn";
 
 export default function Navbar() {
@@ -13,19 +13,16 @@ export default function Navbar() {
     const handleMenu = (event) => {
         setAnchorEl(event.currentTarget);
     };
-
     const handleClose = () => {
         setAnchorEl(null);
     };
 
-    const handleLogout = () => {
-        // Implement logout functionality here
-        handleClose();
-    };
 
     return (
           <Box sx={{ flexGrow: 1 }}>
-              <AppBar position="static">
+              <AppBar position="absolute">
+                  <Container  maxWidth="xl">
+
                   <Toolbar>
 
                       <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
@@ -74,11 +71,15 @@ export default function Navbar() {
                                 </Menu>
                             </div>
                       ) : (
-                            <Link href="/login" >
+                            <Button variant="contained"  color={"tertiary"}>
+
+                            <Link href="/login" className={"flex"}>
                                     Login
                             </Link>
+                            </Button>
                       )}
                   </Toolbar>
+                  </Container>
               </AppBar>
           </Box>
     );

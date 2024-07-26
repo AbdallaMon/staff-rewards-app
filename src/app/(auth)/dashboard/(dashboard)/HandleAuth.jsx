@@ -8,7 +8,7 @@ export default function HandleAuth({ children }) {
 
   return (
     <>
-      <div className={"min-h-screen bg-white"}>
+      <div className={"min-h-screen bg-white py-20"}>
           <div className={""}>{children}</div>
       </div>
     </>
