@@ -10,7 +10,7 @@ export default function SelectField({
 }) {
   const selectData = select.data;
   const options = selectData.options;
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(selectData.defaultValue||"");
 
   const handleChange = (event) => {
     setValue(event.target.value);

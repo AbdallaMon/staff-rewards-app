@@ -59,7 +59,13 @@ const {setLoading}=useToastContext()
                                 onSubmit={onSubmit}
                                 inputs={prefilledInputs.map(input => ({
                                     ...input,
-                                    options: options[input.data.id] || [],
+                                    data: {
+                                        ...input.data,
+                                        // options: options[input.data.id],
+                                        defaultValue :input.data.parentId? item[input.data.parentId]?.id : item[input.data.id]
+                                    }
+
+
                                 }))}
                                 formTitle={`Edit ${item.title||item.name||item.id}`}
                                 btnText="Save Changes"

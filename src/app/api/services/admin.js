@@ -267,24 +267,44 @@ export async function fetchEmployees(page = 1, limit = 10) {
     try {
         const [employees, total] = await prisma.$transaction([
             prisma.user.findMany({
-                where: { role: 'EMPLOYEE' , emailConfirmed: true },
+                where: { role: 'EMPLOYEE', emailConfirmed: true },
                 skip: offset,
                 take: limit,
-                include: {
-                    center: true,
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    emiratesId: true,
+                    rating: true,
+                    center: {
+                        select: {
+                            name: true,
+                            id: true,
+                        },
+                    },
+                    duty: {
+                        select: {
+                            name: true,
+                            id: true,
+                        },
+                    },
                     attendance: {
-                        include: {
+                        select: {
                             shift: {
-                                include: {
-                                    rewards: true,
-                                }
-                            }
-                        }
-                    }
+                                select: {
+                                    rewards: {
+                                        select: {
+                                            amount: true,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
                 orderBy: { createdAt: 'desc' },
             }),
-            prisma.user.count({ where: { role: 'EMPLOYEE' } })
+            prisma.user.count({ where: { role: 'EMPLOYEE', emailConfirmed: true } })
         ]);
 
         const employeesWithRewards = employees.map(employee => {
@@ -292,7 +312,7 @@ export async function fetchEmployees(page = 1, limit = 10) {
                 return acc + attendance.shift.rewards.reduce((shiftAcc, reward) => {
                     return shiftAcc + reward.amount;
                 }, 0);
-            }, 0);
+            }, 0) || 0;
 
             return {
                 ...employee,
@@ -309,7 +329,7 @@ export async function fetchEmployees(page = 1, limit = 10) {
             message: "Employees fetched successfully",
         };
     } catch (error) {
-        return { status: 500, message: `Error fetching employees: ${error.message}` };
+        return handlePrismaError(error);
     }
 }
 export async function fetchUnconfirmedUsers(page = 1, limit = 10) {
@@ -359,6 +379,72 @@ export async function confirmUserEmail(userId, password) {
         );
 
         return { status: 200, data: updatedUser, message: "User email confirmed and password sent successfully" };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+export async function EditEmploy(employId,data){
+    if(data.centerId){
+        data.centerId=parseInt(data.centerId,10);
+    }
+    if(data.dutyId){
+        data.dutyId=parseInt(data.dutyId,10);
+    }
+    try {
+        const updatedEmploy = await prisma.user.update({
+            where: { id: parseInt(employId, 10) },
+            data: {
+                ...data
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                emiratesId: true,
+                rating: true,
+                center: {
+                    select: {
+                        name: true,
+                        id: true,
+                    },
+                },
+                duty: {
+                    select: {
+                        name: true,
+                        id: true,
+                    },
+                },
+                attendance: {
+                    select: {
+                        shift: {
+                            select: {
+                                rewards: {
+                                    select: {
+                                        amount: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+
+        });
+        const totalRewards = updatedEmploy.attendance?.reduce((acc, attendance) => {
+            return acc + attendance.shift.rewards.reduce((shiftAcc, reward) => {
+                return shiftAcc + reward.amount;
+            }, 0);
+        }
+            , 0) || 0;
+        return {
+            status: 200,
+            data: {
+                ...updatedEmploy,
+                totalRewards
+            },
+            message: "Employee updated successfully"
+        }
+
     } catch (error) {
         return handlePrismaError(error);
     }

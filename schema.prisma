@@ -22,7 +22,7 @@ model User {
   bankName     String?
   ibanBank     String?
   isActive     Boolean   @default(true)
-  rating             Float?
+  rating             Float?   @default(0)
   dutyId       Int?
   duty         Duty?     @relation(fields: [dutyId], references: [id])
   attendance   Attendance[]
