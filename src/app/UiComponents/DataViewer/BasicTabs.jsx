@@ -43,15 +43,15 @@ function a11yProps(index) {
 }
 
 const adminLinks = [
-    { label: "Centers", href: "/admin" },
-    { label: "Shifts", href: "/admin/shifts" },
-    { label: "Roles", href: "/admin/roles" },
-    { label: "Staff", href: "/admin/staff" },
+    { label: "Centers", href: "/dashboard" },
+    { label: "Shifts", href: "/dashboard/shifts" },
+    { label: "Roles", href: "/dashboard/roles" },
+    { label: "Staff", href: "/dashboard/staff" },
 ];
 
 const reportLinks = [
-    { label: "Centers", href: "/reports" },
-    { label: "Rewards", href: "/reports/rewards" },
+    { label: "Centers", href: "/dashboard" },
+    { label: "Rewards", href: "/dashboard/rewards" },
 ];
 
 export function BasicTabs({ section }) {
@@ -100,7 +100,7 @@ export function BasicTabs({ section }) {
                         )}
                   >
                       {tabs.map((tab, index) => (
-                            <Link key={tab.href} href={tab.href} passHref>
+                            <Link key={tab.href} href={tab.href} >
                                 <Tab
                                       label={tab.label}
                                       {...a11yProps(index)}

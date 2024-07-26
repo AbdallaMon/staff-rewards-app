@@ -18,7 +18,6 @@ import {
 } from '@mui/material';
 import EditModal from "@/app/UiComponents/Models/EditModal";
 import DeleteModal from "@/app/UiComponents/Models/DeleteModal";
-import { colors } from "@/app/constants";
 
 export default function AdminTable({
                                        data,

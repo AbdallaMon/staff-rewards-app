@@ -8,6 +8,7 @@ import {
   Failed,
   Success,
 } from "@/app/UiComponents/ToastUpdate/ToastUpdate";
+import {BasicTabs} from "@/app/UiComponents/DataViewer/BasicTabs";
 
 export default function Layout({ center, admin, staff }) {
   const [res, setRes] = useState(null);
@@ -39,6 +40,7 @@ export default function Layout({ center, admin, staff }) {
 
   return (
     <HandleAuth>
+
       {role === "ADMIN" ? admin : role === "STAFF" ? staff :role==="CENTER"?center : null}{" "}
     </HandleAuth>
   );

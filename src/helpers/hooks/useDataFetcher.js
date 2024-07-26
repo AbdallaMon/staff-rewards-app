@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { getData } from "@/helpers/functions/getData";
-import { initialPageLimit } from "@/constants/constants";
+import {initialPageLimit} from "@/app/constants";
 
 export default function useDataFetcher(url, noArr, initialFilters = {}) {
     const [data, setData] = useState(noArr ? null : []);
@@ -16,7 +16,6 @@ export default function useDataFetcher(url, noArr, initialFilters = {}) {
     const [printMode, setPrintMode] = useState(false);
     const [render, setRender] = useState(false);
     const [others, setOthers] = useState(""); //add this line
-console.log(url,"url")
     useEffect(() => {
         async function fetchData() {
             if (printMode) return;
