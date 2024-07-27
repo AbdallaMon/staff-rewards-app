@@ -4,10 +4,13 @@ import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
 import {useEffect, useState} from "react";
 import UserDetailDrawer from "@/app/UiComponents/DataViewer/UserDetailsDrawer";
-import {Button} from "@mui/material";
+import {Button, FormControl, InputLabel, MenuItem, Select} from "@mui/material";
+import {useRouter, useSearchParams} from "next/navigation";
+import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
+import Link from "next/link";
 
 export default function STAFF() {
-    const { data, loading, setData, page, setPage, limit, setLimit, total, setTotal } = useDataFetcher("admin/employees", false);
+    const { data, loading, setData, page, setPage, limit, setLimit, total, setTotal ,setFilters} = useDataFetcher("admin/employees", false);
     const columns = [
         { name: "name", label: "Name" },
         { name: "email", label: "Email" },
@@ -17,7 +20,10 @@ export default function STAFF() {
         { name: "totalRewards", label: "Total Rewards" },
         { name: "duty.name", label: "Duty" },
     ];
-
+    const [centers, setCenters] = useState([]);
+    const searchParams = useSearchParams();
+    const selectedCenter = searchParams.get('centerId');
+    const router = useRouter();
     const defaultInputs = [
         { data: { id: "centerId",parentId:"center", type: "SelectField", label: "Center",    options: [], loading: true, }},
         { data: { id: "dutyId", parentId:"duty",type: "SelectField", label: "Duty" , options: [], loading: true, }}
@@ -26,10 +32,16 @@ export default function STAFF() {
     const [loadingInputs, setLoadingInputs] = useState(true);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedUserId, setSelectedUserId] = useState(null);
-
+const [centerLoading,setCenterLoading] = useState(true);
+useEffect(()=>{
+    setFilters({centerId:selectedCenter});
+},[selectedCenter])
     async function fetchCenters() {
+        setCenterLoading(true);
         const response = await fetch("/api/index?id=center");
         const result = await response.json();
+        setCenters(result.data || []);
+        setCenterLoading(false);
         const newInputs = [...inputs];
         newInputs[0].data.options = result.data?.map((item) => ({
             value: item.name,
@@ -37,11 +49,11 @@ export default function STAFF() {
         }));
         newInputs[0].data.loading = false;
         setInputs(newInputs);
+
     }
     async function fetchDuties() {
         const response = await fetch("/api/index?id=duty");
         const result = await response.json();
-
         const newInputs = [...inputs];
         newInputs[1].data.options = result.data?.map((item) => ({
             value: item.name,
@@ -63,9 +75,20 @@ export default function STAFF() {
         setSelectedUserId(userId);
         setDrawerOpen(true);
     };
-
+    const handleCenterChange = (event) => {
+        const centerId = event.target.value;
+        const params = new URLSearchParams(searchParams);
+        if (centerId) {
+            params.set('centerId', centerId);
+        } else {
+            params.delete('centerId');
+        }
+        router.push(`?${params.toString()}`);
+    };
     return (
           <div>
+
+         <FilterSelect options={centers} label={"Centers"} onChange={handleCenterChange} loading={centerLoading} value={selectedCenter} />
               <AdminTable
                     withEdit={!loadingInputs}
                     withDelete={false}
@@ -90,6 +113,8 @@ export default function STAFF() {
                     userId={selectedUserId}
                     open={drawerOpen}
                     onClose={() => setDrawerOpen(false)}
+                    renderExtraButtons
+                    setData={setData}
               />
           </div>
     );

@@ -44,8 +44,8 @@ function a11yProps(index) {
 
 const adminLinks = [
     { label: "Centers", href: "/dashboard" },
-    { label: "Shifts", href: "/dashboard/shifts" },
-    { label: "Duties", href: "/dashboard/duties" },
+    { label: "Configure", href: "/dashboard/configure" },
+
     { label: "Staff", href: "/dashboard/staff" },
     {label: "Staff requests", href: "/dashboard/staff-requests"},
 ];

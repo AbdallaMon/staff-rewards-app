@@ -35,7 +35,6 @@ model User {
   duty                 Duty?     @relation(fields: [dutyId], references: [id])
   attendance           Attendance[]
   centerAdmin          Center?   @relation("CenterAdmin")
-  examType             ExamType?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
   deletedAt            DateTime?

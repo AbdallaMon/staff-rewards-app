@@ -2,6 +2,8 @@
 import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import CreateModal from "@/app/UiComponents/Models/CreateModal";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
+import Link from "next/link";
+import {Button} from "@mui/material";
 
 export default function Shifts() {
     const { data, loading, setData, page, setPage, limit, setLimit, total,setTotal } = useDataFetcher("admin/shifts", false);
@@ -35,12 +37,20 @@ export default function Shifts() {
     ];
 
     return <div>
+        <div className={"flex gap-5 my-2 bg-bgSecondary w-fit py-2 px-2"}>
+            <Link href={"/dashboard/configure/duties"}>
+                <Button variant="outlined">Configure Duties</Button>
+            </Link>
+            <Link href={"/dashboard/configure/calender"}>
+                <Button variant="outlined">Configure calender</Button>
+            </Link>
+        </div>
         <CreateModal
               setData={setData}
               label={"New Shift"}
               inputs={inputs}
               href="admin/shifts"
-              extraProps={{ formTitle: "Create New Shift", btnText: "Submit" }}
+              extraProps={{formTitle: "Create New Shift", btnText: "Submit"}}
               sendAsFiles={true}
               setTotal={setTotal}
         />

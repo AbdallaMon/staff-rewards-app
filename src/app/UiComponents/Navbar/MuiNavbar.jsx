@@ -38,11 +38,12 @@ export default function Navbar() {
                                       aria-label="account of current user"
                                       aria-controls="menu-appbar"
                                       aria-haspopup="true"
-                                      onClick={handleMenu}
+                                      onClick={(event)=>handleMenu(event)}
                                       color="inherit"
                                 >
                                     <FaUserCircle />
                                 </IconButton>
+                                {anchorEl&&
                                 <Menu
                                       id="menu-appbar"
                                       anchorEl={anchorEl}
@@ -68,7 +69,7 @@ export default function Navbar() {
 
                                     <LogoutButton />
                                     </MenuItem>
-                                </Menu>
+                                </Menu>}
                             </div>
                       ) : (
                             <Button variant="contained"  color={"tertiary"}>

@@ -239,24 +239,7 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
                                                             }
                                                         }
                                                     },
-                                                    {
-                                                        data: {
-                                                            id: "examType",
-                                                            type: "SelectField",
-                                                            label: "Exam Type",
-                                                            options: [{id: "TEACHER", value: "Teacher"}, {
-                                                                id: "STUDENT",
-                                                                value: "Student"
-                                                            }],
-                                                            loading: false
-                                                        },
-                                                        pattern: {
-                                                            required: {
-                                                                value: true,
-                                                                message: "Please select an exam type"
-                                                            }
-                                                        }
-                                                    }
+
                                                 ]}
                                                 label="Approve"
                                                 extraProps={{formTitle: "Approve User", btnText: "Approve"}}
