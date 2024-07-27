@@ -50,17 +50,9 @@ export async function fetchUsersByCenterId(centerId, page = 1, limit = 10, filte
                             id: true,
                         },
                     },
-                    attendance: {
+                    dutyRewards: {
                         select: {
-                            shift: {
-                                select: {
-                                    rewards: {
-                                        select: {
-                                            amount: true,
-                                        },
-                                    },
-                                },
-                            },
+                            amount: true,
                         },
                     },
                 },
@@ -69,12 +61,7 @@ export async function fetchUsersByCenterId(centerId, page = 1, limit = 10, filte
         ]);
 
         const employeesWithRewards = employees.map(employee => {
-            const totalRewards = employee.attendance?.reduce((acc, attendance) => {
-                return acc + attendance.shift.rewards.reduce((shiftAcc, reward) => {
-                    return shiftAcc + reward.amount;
-                }, 0);
-            }, 0) || 0;
-
+            const totalRewards = employee.dutyRewards?.reduce((acc, reward) => acc + reward.amount, 0) || 0;
             return {
                 ...employee,
                 totalRewards
@@ -163,27 +150,15 @@ export async function updateEmployeeRating(userId, newRating) {
                         id: true,
                     },
                 },
-                attendance: {
+                dutyRewards: {
                     select: {
-                        shift: {
-                            select: {
-                                rewards: {
-                                    select: {
-                                        amount: true,
-                                    },
-                                },
-                            },
-                        },
+                        amount: true,
                     },
                 },
             },
         });
 
-        const totalRewards = updatedEmployee.attendance?.reduce((acc, attendance) => {
-            return acc + attendance.shift.rewards.reduce((shiftAcc, reward) => {
-                return shiftAcc + reward.amount;
-            }, 0);
-        }, 0) || 0;
+        const totalRewards = updatedEmployee.dutyRewards?.reduce((acc, reward) => acc + reward.amount, 0) || 0;
 
         updatedEmployee.totalRewards = totalRewards;
 
@@ -216,15 +191,15 @@ export async function createAttendanceRecord({ userId, shiftIds, duty, date, cen
                       data: {
                           amount: duty.amount,
                           date: new Date(date),
-                          user:{
-                                connect:{
-                                    id:+userId
-                                }
+                          user: {
+                              connect: {
+                                  id: +userId
+                              }
                           },
                           attendance: {
-                                connect: {
-                                    id: attendance.id,
-                                },
+                              connect: {
+                                  id: attendance.id,
+                              },
                           },
                           shift: {
                               connect: {

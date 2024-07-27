@@ -7,6 +7,8 @@ import {
     Modal,
     Checkbox,
     Typography,
+    Snackbar,
+    Alert,
 } from "@mui/material";
 import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
 import { handleRequestSubmit } from "@/helpers/functions/handleSubmit";
@@ -19,6 +21,10 @@ const ShiftAssignmentModal = ({ shifts, setData, label, href, extraProps, item }
     const { setLoading } = useToastContext();
     const [filters, setFilters] = useState({});
     const selectedUserId = filters.userId;
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarSeverity, setSnackbarSeverity] = useState("error");
+
     const handleOpen = () => setOpen(true);
     const handleClose = () => {
         setOpen(false);
@@ -36,7 +42,16 @@ const ShiftAssignmentModal = ({ shifts, setData, label, href, extraProps, item }
 
     const onSubmit = async () => {
         if (!selectedUserId || selectedShifts.length === 0) {
-            alert("Please select a user and at least one shift.");
+            setSnackbarMessage("Please select a user and at least one shift.");
+            setSnackbarSeverity("error");
+            setSnackbarOpen(true);
+            return;
+        }
+
+        if (!filters.duty) {
+            setSnackbarMessage("This user is not assigned to a role currently. Contact the administrator.");
+            setSnackbarSeverity("error");
+            setSnackbarOpen(true);
             return;
         }
 
@@ -53,7 +68,18 @@ const ShiftAssignmentModal = ({ shifts, setData, label, href, extraProps, item }
                 setData((prevData) => [...prevData, result.data]);
             }
             handleClose();
+            setSnackbarMessage("Shifts assigned successfully.");
+            setSnackbarSeverity("success");
+            setSnackbarOpen(true);
+        } else {
+            setSnackbarMessage(result.message || "An error occurred. Please try again.");
+            setSnackbarSeverity("error");
+            setSnackbarOpen(true);
         }
+    };
+
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
     };
 
     return (
@@ -94,6 +120,15 @@ const ShiftAssignmentModal = ({ shifts, setData, label, href, extraProps, item }
                       </Box>
                   </Fade>
               </Modal>
+              <Snackbar
+                    open={snackbarOpen}
+                    autoHideDuration={6000}
+                    onClose={handleSnackbarClose}
+              >
+                  <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                      {snackbarMessage}
+                  </Alert>
+              </Snackbar>
           </>
     );
 };

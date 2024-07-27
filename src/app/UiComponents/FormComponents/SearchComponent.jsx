@@ -59,6 +59,9 @@ const SearchComponent = ({ apiEndpoint, setFilters, inputLabel, renderKeys, main
                     getOptionLabel={(option) => renderKeys.map((key) => option[key]).join(" - ")}
                     loading={loading}
                     value={selectedItem}
+                    sx={{
+                        minWidth: 300,
+                    }}
                     onChange={handleSelect}
                     onInputChange={(event, newInputValue) => {
                         setSearchTerm(newInputValue);
@@ -75,11 +78,7 @@ const SearchComponent = ({ apiEndpoint, setFilters, inputLabel, renderKeys, main
                                           <>
                                               {loading ? <CircularProgress color="inherit" size={20} /> : null}
                                               {params.InputProps.endAdornment}
-                                              {selectedItem && (
-                                                    <IconButton onClick={handleReset}>
-                                                        <FaTimes />
-                                                    </IconButton>
-                                              )}
+
                                           </>
                                     ),
                                 }}

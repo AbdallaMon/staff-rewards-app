@@ -56,7 +56,7 @@ const reportLinks = [
 ];
 
 const staffLinks = [
-    { label: "Staff", href: "/dashboard/staff" },
+    { label: "Staff", href: "/dashboard" },
     { label: "Attendance", href: "/dashboard/attendance" },
     { label: "Calendar", href: "/dashboard/calendar" },
 ];

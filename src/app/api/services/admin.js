@@ -5,7 +5,7 @@ import { url } from "@/app/constants";
 
 // Helper function to handle Prisma errors
 function handlePrismaError(error) {
-        console.log(error,"error")
+    console.log(error, "error");
     if (error.code === 'P2002') {
         const target = error.meta.target;
         return { status: 409, message: `Unique constraint failed on the field: ${target}` };
@@ -22,10 +22,9 @@ export async function fetchShifts(page = 1, limit = 10) {
                 skip: offset,
                 take: limit,
                 orderBy: { createdAt: 'desc' },
+                where: { archived: false }
             }),
-            prisma.shift.count(
-                {where : {archived:false}}
-            ),
+            prisma.shift.count({ where: { archived: false } }),
         ]);
         return {
             status: 200,
@@ -79,6 +78,7 @@ export async function deleteShift(id) {
         return handlePrismaError(error);
     }
 }
+
 export async function archiveShift(id) {
     try {
         const archivedShift = await prisma.shift.update({
@@ -90,6 +90,7 @@ export async function archiveShift(id) {
         return handlePrismaError(error);
     }
 }
+
 ///// Duties //////
 export async function fetchDuties(page = 1, limit = 10) {
     const offset = (page - 1) * limit;
@@ -99,11 +100,9 @@ export async function fetchDuties(page = 1, limit = 10) {
                 skip: offset,
                 take: limit,
                 orderBy: { createdAt: 'desc' },
-                where : {archived:false}
+                where: { archived: false }
             }),
-            prisma.duty.count(
-                {where : {archived:false}}
-            ),
+            prisma.duty.count({ where: { archived: false } }),
         ]);
         return {
             status: 200,
@@ -157,6 +156,7 @@ export async function deleteDuty(id) {
         return handlePrismaError(error);
     }
 }
+
 export async function archiveDuty(id) {
     try {
         const archivedDuty = await prisma.duty.update({
@@ -168,6 +168,7 @@ export async function archiveDuty(id) {
         return handlePrismaError(error);
     }
 }
+
 // Center
 
 export async function createCenter(data) {
@@ -308,17 +309,17 @@ export async function deleteCenter(id) {
     }
 }
 
-export async function fetchEmployees(page = 1, limit = 10,employRequests=false,rejected=false,centerId) {
+export async function fetchEmployees(page = 1, limit = 10, employRequests = false, rejected = false, centerId) {
     const offset = (page - 1) * limit;
     let requestStatus = employRequests ? "PENDING" : "APPROVED";
-    if(rejected){
-        requestStatus="REJECTED";
+    if (rejected) {
+        requestStatus = "REJECTED";
     }
     const where = {
         role: 'EMPLOYEE',
         accountStatus: requestStatus,
         centerId: centerId ? parseInt(centerId, 10) : undefined,
-    }
+    };
     try {
         const [employees, total] = await prisma.$transaction([
             prisma.user.findMany({
@@ -344,31 +345,19 @@ export async function fetchEmployees(page = 1, limit = 10,employRequests=false,r
                             id: true,
                         },
                     },
-                    attendance: {
+                    dutyRewards: {
                         select: {
-                            shift: {
-                                select: {
-                                    rewards: {
-                                        select: {
-                                            amount: true,
-                                        },
-                                    },
-                                },
-                            },
+                            amount: true,
                         },
                     },
                 },
                 orderBy: { createdAt: 'desc' },
             }),
-            prisma.user.count({ where: { role: 'EMPLOYEE', accountStatus: requestStatus} })
+            prisma.user.count({ where: { role: 'EMPLOYEE', accountStatus: requestStatus } })
         ]);
 
         const employeesWithRewards = employees.map(employee => {
-            const totalRewards = employee.attendance?.reduce((acc, attendance) => {
-                return acc + attendance.shift.rewards.reduce((shiftAcc, reward) => {
-                    return shiftAcc + reward.amount;
-                }, 0);
-            }, 0) || 0;
+            const totalRewards = employee.dutyRewards?.reduce((acc, reward) => acc + reward.amount, 0) || 0;
 
             return {
                 ...employee,
@@ -388,6 +377,7 @@ export async function fetchEmployees(page = 1, limit = 10,employRequests=false,r
         return handlePrismaError(error);
     }
 }
+
 export async function fetchUnconfirmedUsers(page = 1, limit = 10) {
     const offset = (page - 1) * limit;
     try {
@@ -417,13 +407,12 @@ export async function fetchUnconfirmedUsers(page = 1, limit = 10) {
     }
 }
 
-
-export async function EditEmploy(employId,data){
-    if(data.centerId){
-        data.centerId=parseInt(data.centerId,10);
+export async function EditEmploy(employId, data) {
+    if (data.centerId) {
+        data.centerId = parseInt(data.centerId, 10);
     }
-    if(data.dutyId){
-        data.dutyId=parseInt(data.dutyId,10);
+    if (data.dutyId) {
+        data.dutyId = parseInt(data.dutyId, 10);
     }
     try {
         const updatedEmploy = await prisma.user.update({
@@ -449,28 +438,15 @@ export async function EditEmploy(employId,data){
                         id: true,
                     },
                 },
-                attendance: {
+                dutyRewards: {
                     select: {
-                        shift: {
-                            select: {
-                                rewards: {
-                                    select: {
-                                        amount: true,
-                                    },
-                                },
-                            },
-                        },
+                        amount: true,
                     },
                 },
             },
-
         });
-        const totalRewards = updatedEmploy.attendance?.reduce((acc, attendance) => {
-            return acc + attendance.shift.rewards.reduce((shiftAcc, reward) => {
-                return shiftAcc + reward.amount;
-            }, 0);
-        }
-            , 0) || 0;
+        const totalRewards = updatedEmploy.dutyRewards?.reduce((acc, reward) => acc + reward.amount, 0) || 0;
+
         return {
             status: 200,
             data: {
@@ -492,12 +468,7 @@ export async function getUserById(id) {
             include: {
                 center: true,
                 duty: true,
-                attendance: {
-                    include: {
-                        shift: true,
-                        center: true
-                    }
-                }
+                dutyRewards: true,
             }
         });
 
@@ -511,7 +482,7 @@ export async function getUserById(id) {
     }
 }
 
-///// employes requests /////
+///// employees requests /////
 
 export const approveUser = async (userId, { password, examType }) => {
     try {
@@ -563,6 +534,7 @@ export const rejectUser = async (userId, { reason }) => {
         return handlePrismaError(error);
     }
 };
+
 export const uncompletedUser = async (userId, { checks, comments }) => {
     try {
         const user = await prisma.user.update({
@@ -585,7 +557,7 @@ export const uncompletedUser = async (userId, { checks, comments }) => {
     }
 };
 
-///// calender //////
+///// calendar //////
 export async function fetchCalendars(page = 1, limit = 10, filters = {}) {
     const offset = (page - 1) * limit;
     const where = {};
@@ -609,7 +581,7 @@ export async function fetchCalendars(page = 1, limit = 10, filters = {}) {
             lte: endDate,
         };
     }
-console.log(where,"where")
+
     try {
         const [calendars, total] = await prisma.$transaction([
             prisma.calendar.findMany({
@@ -664,6 +636,7 @@ export async function editCalendar(id, data) {
         return handlePrismaError(error);
     }
 }
+
 // Delete a calendar entry
 export async function deleteCalendar(id) {
     try {

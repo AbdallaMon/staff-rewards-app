@@ -26,7 +26,6 @@ export async function getIndexedData(index, query, filters, centerId) {
         if (query) {
             where.emiratesId = { contains: query };
             where.accountStatus = "APPROVED";
-
         }
         if (centerId) {
             where.centerId = centerId;
