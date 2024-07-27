@@ -282,16 +282,21 @@ export async function deleteCenter(id) {
     }
 }
 
-export async function fetchEmployees(page = 1, limit = 10,employRequests=false,rejected=false) {
+export async function fetchEmployees(page = 1, limit = 10,employRequests=false,rejected=false,centerId) {
     const offset = (page - 1) * limit;
     let requestStatus = employRequests ? "PENDING" : "APPROVED";
     if(rejected){
         requestStatus="REJECTED";
     }
+    const where = {
+        role: 'EMPLOYEE',
+        accountStatus: requestStatus,
+        centerId: centerId ? parseInt(centerId, 10) : undefined,
+    }
     try {
         const [employees, total] = await prisma.$transaction([
             prisma.user.findMany({
-                where: { role: 'EMPLOYEE', accountStatus: requestStatus },
+                where: where,
                 skip: offset,
                 take: limit,
                 select: {
