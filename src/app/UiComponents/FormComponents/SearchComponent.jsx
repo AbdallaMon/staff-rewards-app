@@ -1,16 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { TextField, Box, List, ListItem, ListItemText, CircularProgress, Typography, IconButton, InputAdornment, ClickAwayListener } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import {TextField, Box, CircularProgress, IconButton} from "@mui/material";
+import Autocomplete from '@mui/material/Autocomplete';
 import debounce from "lodash.debounce";
-import { FaTimes } from "react-icons/fa";
+import {FaTimes} from "react-icons/fa";
 
 const SearchComponent = ({ apiEndpoint, setFilters, inputLabel, renderKeys, mainKey }) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
-    const [open, setOpen] = useState(false);
 
     const fetchSearchResults = async (query) => {
         setLoading(true);
@@ -30,77 +30,63 @@ const SearchComponent = ({ apiEndpoint, setFilters, inputLabel, renderKeys, main
     useEffect(() => {
         if (searchTerm) {
             debouncedFetchSearchResults(searchTerm);
-            setOpen(true);
         } else {
             setSearchResults([]);
-            setOpen(false);
         }
     }, [searchTerm]);
 
-    const handleSelect = (item) => {
-        setSelectedItem(item);
-        setSearchTerm(item[mainKey] || "");
-        setFilters((prevFilters) => ({ ...prevFilters, userId: item.id ,duty:item.duty}));
-        setSearchResults([]);
-        setOpen(false);
+    const handleSelect = (event, newValue) => {
+        setSelectedItem(newValue);
+        if (newValue) {
+            setSearchTerm(newValue[mainKey] || "");
+            setFilters((prevFilters) => ({ ...prevFilters, userId: newValue.id, duty: newValue.duty }));
+        } else {
+            setSearchTerm("");
+            setFilters((prevFilters) => ({ ...prevFilters, userId: null }));
+        }
     };
 
     const handleReset = () => {
         setSelectedItem(null);
-        setFilters((prevFilters) => ({ ...prevFilters, userId: null }));
         setSearchTerm("");
-        setOpen(false);
-    };
-
-    const handleClickAway = () => {
-        setOpen(false);
+        setFilters((prevFilters) => ({ ...prevFilters, userId: null }));
     };
 
     return (
-          <ClickAwayListener onClickAway={handleClickAway}>
-              <Box sx={{ position: "relative" }}>
-                  <TextField
-                        label={inputLabel}
-                        variant="outlined"
-                        fullWidth
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        InputProps={{
-                            endAdornment: (
-                                  <InputAdornment position="end">
-                                      {selectedItem && (
-                                            <IconButton onClick={handleReset}>
-                                                <FaTimes />
-                                            </IconButton>
-                                      )}
-                                  </InputAdornment>
-                            ),
-                        }}
-                        onClick={() => setOpen(true)}
-                  />
-                  {loading && (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                            <CircularProgress />
-                        </Box>
-                  )}
-                  {!loading && searchResults?.length === 0 && searchTerm && (
-                        <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
-                            No data found
-                        </Typography>
-                  )}
-                  {open && searchResults?.length > 0 && (
-                        <List sx={{ position: "absolute", width: "100%", bgcolor: "background.paper", zIndex: 1, maxHeight: 200, overflowY: 'auto' }}>
-                            {searchResults.map((item) => (
-                                  <ListItem button key={item.id} onClick={() => handleSelect(item)}>
-                                      <ListItemText
-                                            primary={renderKeys.map((key) => item[key]).join(" - ")}
-                                      />
-                                  </ListItem>
-                            ))}
-                        </List>
-                  )}
-              </Box>
-          </ClickAwayListener>
+          <Box sx={{ position: "relative" }}>
+              <Autocomplete
+                    options={searchResults}
+                    getOptionLabel={(option) => renderKeys.map((key) => option[key]).join(" - ")}
+                    loading={loading}
+                    value={selectedItem}
+                    onChange={handleSelect}
+                    onInputChange={(event, newInputValue) => {
+                        setSearchTerm(newInputValue);
+                    }}
+                    renderInput={(params) => (
+                          <TextField
+                                {...params}
+                                label={inputLabel}
+                                variant="outlined"
+                                fullWidth
+                                InputProps={{
+                                    ...params.InputProps,
+                                    endAdornment: (
+                                          <>
+                                              {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                                              {params.InputProps.endAdornment}
+                                              {selectedItem && (
+                                                    <IconButton onClick={handleReset}>
+                                                        <FaTimes />
+                                                    </IconButton>
+                                              )}
+                                          </>
+                                    ),
+                                }}
+                          />
+                    )}
+              />
+          </Box>
     );
 };
 
