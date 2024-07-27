@@ -67,7 +67,7 @@ useEffect(()=>{
               onInput={() => setType(true)}
               variant={variant}
               error={Boolean(errors[inputData.id])}
-              helperText={errors[inputData.id]?.message}
+              helperText={errors[inputData.id]?.message?errors[inputData.id]?.message:inputData.helperText}
               inputProps={{
                 onBlur: () => {
                   handleBlur()

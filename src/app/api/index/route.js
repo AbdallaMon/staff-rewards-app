@@ -3,6 +3,8 @@ import prisma from "@/lib/pirsma/prisma";
 const modelMap = {
     duty: prisma.duty,
     center: prisma.center,
+    shift : prisma.shift,
+    user: prisma.user,
     // Add other models as needed
 };
 
@@ -14,7 +16,10 @@ export async function getIndexedData(index, filters) {
     }
 
     const where = filters ? filters : {};
-
+    // archived: index==="duty"||index==="shift"?false:undefined,
+    if(index==="duty"||index==="shift"){
+        where.archived=false;
+    }
     try {
         const data = await model.findMany({
             where,
@@ -23,7 +28,6 @@ export async function getIndexedData(index, filters) {
                 name: true,
             },
         });
-        console.log(data, "data");
         return { data,status: 200 };
     } catch (error) {
         console.error(`Error fetching data from ${index}:`, error);

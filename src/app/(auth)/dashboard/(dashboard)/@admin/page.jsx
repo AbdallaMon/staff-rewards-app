@@ -3,6 +3,7 @@
 import CreateModal from "@/app/UiComponents/Models/CreateModal";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
 import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
+import {emiratesOptions} from "@/app/constants";
 
 export default function Centers() {
   const { data, loading, setData, page, setPage, limit, setLimit, total, setTotal } = useDataFetcher("admin/centers", false);
@@ -22,13 +23,13 @@ export default function Centers() {
         }
       }
     },
-    { data: { id: "zone", type: "text", label: "Zone" }, pattern: {
-        required: {
-          value: true,
-          message: "Please enter a zone",
-        }
-      }
-    },
+      { data: { id: "zone", type: "SelectField", label: "Zone", options: emiratesOptions, loading: false }, pattern: {
+              required: {
+                  value: true,
+                  message: "Please select a zone",
+              }
+          }
+      },
     { data: { id: "email", type: "email", label: "Email" }, pattern: {
         required: {
           value: true,
@@ -40,10 +41,15 @@ export default function Centers() {
         }
       }
     },
-    { data: { id: "password", type: "password", label: "Password" }, pattern: {
+    { data: { id: "password", type: "password", label: "Password",helperText:"Password must contain at least 8 characters, including at least one letter and one number"
+        }, pattern: {
         required: {
           value: true,
           message: "Please enter a password",
+        },
+        pattern: {
+            value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
+            message: "Password must contain at least 8 characters, including at least one letter and one number",
         }
       }
     },

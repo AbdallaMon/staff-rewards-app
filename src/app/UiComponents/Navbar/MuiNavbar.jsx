@@ -20,7 +20,9 @@ export default function Navbar() {
 
     return (
           <Box sx={{ flexGrow: 1 }}>
-              <AppBar position="absolute">
+              <AppBar position="absolute" sx={{
+                  zIndex:10
+              }}>
                   <Container  maxWidth="xl">
 
                   <Toolbar>

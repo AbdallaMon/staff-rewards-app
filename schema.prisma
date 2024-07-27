@@ -10,19 +10,19 @@ generator client {
 model User {
   id                   Int       @id @default(autoincrement())
   email                String?   @unique
-  password             String?
+  password             String?   @db.VarChar(64)
   role                 UserRole
   name                 String?
-  emiratesId           String?
+  emiratesId           String?   @db.VarChar(15)
   emiratesIdPhoto      String?
-  zone                 String?
+  zone                 Emirates?
   gender               Gender?
   phone                String?
   centerId             Int?
   center               Center?   @relation(fields: [centerId], references: [id], name: "CenterEmployees")
   bankName             String?
   bankUserName         String?
-  ibanBank             String?   @unique
+  ibanBank             String?   @unique @db.VarChar(34)
   ibanBankPhoto        String?
   graduationName       String?
   graduationImage      String?
@@ -49,7 +49,7 @@ model Center {
   id             Int           @id @default(autoincrement())
   name           String
   centerId       String        @unique
-  zone           String
+  zone           Emirates?
   email          String
   supervisorEmail String
   employees      User[]        @relation("CenterEmployees")
@@ -69,6 +69,7 @@ model Shift {
   rewards       DutyReward[]
   centerShifts  CenterShift[]
   attendance    Attendance[]
+  archived      Boolean       @default(false)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @default(now())
   deletedAt     DateTime?
@@ -92,6 +93,7 @@ model Duty {
   rewards      DutyReward[]
   amount       Float
   users        User[]
+  archived      Boolean       @default(false)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @default(now())
   deletedAt    DateTime?
@@ -172,4 +174,14 @@ enum AccountStatus {
   UNCOMPLETED
   APPROVED
   REJECTED
+}
+
+enum Emirates {
+  ABU_DHABI
+  AJMAN
+  DUBAI
+  FUJAIRAH
+  RAS_AL_KHAIMAH
+  SHARJAH
+  UMM_AL_QUWAIN
 }

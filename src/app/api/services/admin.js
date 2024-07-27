@@ -5,6 +5,7 @@ import { url } from "@/app/constants";
 
 // Helper function to handle Prisma errors
 function handlePrismaError(error) {
+        console.log(error,"error")
     if (error.code === 'P2002') {
         const target = error.meta.target;
         return { status: 409, message: `Unique constraint failed on the field: ${target}` };
@@ -22,7 +23,9 @@ export async function fetchShifts(page = 1, limit = 10) {
                 take: limit,
                 orderBy: { createdAt: 'desc' },
             }),
-            prisma.shift.count(),
+            prisma.shift.count(
+                {where : {archived:false}}
+            ),
         ]);
         return {
             status: 200,
@@ -76,7 +79,17 @@ export async function deleteShift(id) {
         return handlePrismaError(error);
     }
 }
-
+export async function archiveShift(id) {
+    try {
+        const archivedShift = await prisma.shift.update({
+            where: { id: parseInt(id, 10) },
+            data: { archived: true },
+        });
+        return { status: 200, data: archivedShift, message: "Shift archived successfully" };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
 ///// Duties //////
 export async function fetchDuties(page = 1, limit = 10) {
     const offset = (page - 1) * limit;
@@ -86,8 +99,11 @@ export async function fetchDuties(page = 1, limit = 10) {
                 skip: offset,
                 take: limit,
                 orderBy: { createdAt: 'desc' },
+                where : {archived:false}
             }),
-            prisma.duty.count(),
+            prisma.duty.count(
+                {where : {archived:false}}
+            ),
         ]);
         return {
             status: 200,
@@ -141,7 +157,17 @@ export async function deleteDuty(id) {
         return handlePrismaError(error);
     }
 }
-
+export async function archiveDuty(id) {
+    try {
+        const archivedDuty = await prisma.duty.update({
+            where: { id: parseInt(id, 10) },
+            data: { archived: true },
+        });
+        return { status: 200, data: archivedDuty, message: "Duty archived successfully" };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
 // Center
 
 export async function createCenter(data) {
@@ -558,3 +584,94 @@ export const uncompletedUser = async (userId, { checks, comments }) => {
         return handlePrismaError(error);
     }
 };
+
+///// calender //////
+export async function fetchCalendars(page = 1, limit = 10, filters = {}) {
+    const offset = (page - 1) * limit;
+    const where = {};
+
+    if (filters.examType) {
+        where.examType = filters.examType;
+    }
+    if (filters.month && filters.year) {
+        const startDate = new Date(filters.year, filters.month - 1, 1);
+        const endDate = new Date(filters.year, filters.month, 0);
+        where.date = {
+            gte: startDate,
+            lte: endDate,
+        };
+    } else {
+        const now = new Date();
+        const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        where.date = {
+            gte: startDate,
+            lte: endDate,
+        };
+    }
+console.log(where,"where")
+    try {
+        const [calendars, total] = await prisma.$transaction([
+            prisma.calendar.findMany({
+                where,
+                skip: offset,
+                take: limit,
+                orderBy: { date: 'desc' },
+            }),
+            prisma.calendar.count({ where }),
+        ]);
+
+        return {
+            status: 200,
+            data: calendars,
+            total,
+            page,
+            limit,
+            message: "Calendars fetched successfully",
+        };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+// Create a new calendar entry
+export async function createCalendar(data) {
+    try {
+        const newCalendar = await prisma.calendar.create({
+            data: {
+                date: new Date(data.date),
+                examType: data.examType,
+            },
+        });
+        return { status: 200, data: newCalendar, message: "Calendar entry created successfully" };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+// Edit an existing calendar entry
+export async function editCalendar(id, data) {
+    try {
+        const updatedCalendar = await prisma.calendar.update({
+            where: { id: parseInt(id, 10) },
+            data: {
+                date: new Date(data.date),
+                examType: data.examType,
+            },
+        });
+        return { status: 200, data: updatedCalendar, message: "Calendar entry updated successfully" };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+// Delete a calendar entry
+export async function deleteCalendar(id) {
+    try {
+        const deletedCalendar = await prisma.calendar.delete({
+            where: { id: parseInt(id, 10) },
+        });
+        return { status: 200, data: deletedCalendar, message: "Calendar entry deleted successfully" };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}

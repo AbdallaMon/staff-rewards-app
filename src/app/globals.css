@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+.react-calendar {
+    width: 100% !important;
+    border: none;
+    min-width: 900px;
+}
+
+.react-calendar__tile--active {
+    background:transparent !important;
+}
+.react-calendar__tile{
+    min-height: 100px !important;
+}
+.calendar-tile {
+    height: 150px !important;
+}

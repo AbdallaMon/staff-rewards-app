@@ -35,9 +35,6 @@ export default function EmployeesRequest() {
         const result = await response.json();
         setCenters(result.data || []);
         setCenterLoading(false);
-
-
-
     }
     async function handleFetchSelectItem() {
         await fetchCenters();

@@ -35,7 +35,14 @@ export const       colors={
               bgcolor: "background.paper",
               boxShadow: 24,
               p: 4,
-
-
       }
+      export  const    emiratesOptions = [
+    { id: "ABU_DHABI", value: "Abu Dhabi" },
+    { id: "DUBAI", value: "Dubai" },
+    { id: "SHARJAH", value: "Sharjah" },
+    { id: "AJMAN", value: "Ajman" },
+    { id: "UMM_AL_QUWAIN", value: "Umm Al Quwain" },
+    { id: "RAK", value: "Ras Al Khaimah" },
+    { id: "FUJAIRAH", value: "Fujairah" }
+]
 export const url=process.env.NEXT_PUBLIC_URL;

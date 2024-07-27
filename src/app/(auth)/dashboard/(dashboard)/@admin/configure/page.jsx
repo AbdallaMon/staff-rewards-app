@@ -41,7 +41,7 @@ export default function Shifts() {
             <Link href={"/dashboard/configure/duties"}>
                 <Button variant="outlined">Configure Duties</Button>
             </Link>
-            <Link href={"/dashboard/configure/calender"}>
+            <Link href={"/dashboard/configure/calendar"}>
                 <Button variant="outlined">Configure calender</Button>
             </Link>
         </div>
@@ -56,7 +56,9 @@ export default function Shifts() {
         />
         <AdminTable
               withEdit={true}
+              withArchive={true}
               withDelete={true}
+              archiveHref={"admin/shifts"}
               data={data}
               columns={columns}
               page={page}

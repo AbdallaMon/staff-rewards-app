@@ -1,4 +1,4 @@
-import {deleteShift, editShift} from "@/app/api/services/admin";
+import { archiveShift, deleteShift, editShift} from "@/app/api/services/admin";
 
 export async function PUT(request,response){
     const {shiftId}=response.params;
@@ -9,5 +9,10 @@ export async function PUT(request,response){
 export async function DELETE(request,response){
     const {shiftId}=response.params;
     const data=await deleteShift(+shiftId);
+    return Response.json(data,{status:200});
+}
+export async function PATCH(request,response){
+    const {shiftId}=response.params;
+    const data=await archiveShift(+shiftId);
     return Response.json(data,{status:200});
 }

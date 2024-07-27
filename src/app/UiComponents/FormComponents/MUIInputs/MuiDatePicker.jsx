@@ -12,13 +12,15 @@ export function MuiDatePicker({ control, input, errors, watch, setValue }) {
     <FormControl
       fullWidth
       error={!!errors[inputData.id]}
-      sx={input.sx}
+      sx={{
+        mb: 2,...input.sx
+      }}
       className={"MUI" + inputData.id}
     >
       <Controller
         name={inputData.id}
         control={control}
-        defaultValue={input.value ? dayjs(input.value).locale("en-gb") : null}
+        defaultValue={inputData.defaultValue ? dayjs(inputData.defaultValue).locale("en-gb") : null}
         rules={{ required: input.pattern.required }}
         render={({ field: { onChange, value }, fieldState: { error } }) => (
           <DatePicker

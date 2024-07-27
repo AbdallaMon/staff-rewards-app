@@ -14,7 +14,8 @@ import {
     Divider,
     Modal,
     Button,
-    Container
+    Container,
+    Link
 } from '@mui/material';
 import { FaTimes } from 'react-icons/fa';
 import CreateModal from "@/app/UiComponents/Models/CreateModal";
@@ -28,7 +29,7 @@ const fetchUserById = async (userId) => {
 
 const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }) => {
     const [userData, setUserData] = useState(null);
-    const [loading, setLoading] =useState(true);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [imageModalOpen, setImageModalOpen] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
@@ -47,7 +48,7 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
                     setError(response.message);
                 }
                 setLoading(false);
-            }).catch((err) => {
+            }).catch(() => {
                 setError("An error occurred while fetching the user data.");
                 setLoading(false);
             });
@@ -82,11 +83,30 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
         onClose();
     };
 
+    const isPdf = (url) => url.toLowerCase().endsWith('.pdf');
+
+    const renderDocument = (label, value) => (
+          <ListItem>
+              <ListItemText primary={label} secondary={value?isPdf(value) ? "" : value :"N/A"} />
+              {value && (
+                    isPdf(value) ? (
+                          <Link href={value} target="_blank" sx={{ ml: 2 }}>
+                              PDF file. Click to open link.
+                          </Link>
+                    ) : (
+                          <Avatar
+                                src={value}
+                                sx={{ width: 80, height: 80, cursor: 'pointer', ml: 2 }}
+                                onClick={() => handleImageClick(value)}
+                          />
+                    )
+              )}
+          </ListItem>
+    );
+
     return (
           <>
-              <Drawer anchor="bottom" open={open} onClose={onClose} sx={{
-                  // zIndex: 1
-              }}>
+              <Drawer anchor="bottom" open={open} onClose={onClose} sx={{}}>
                   <Container maxWidth="xl" sx={{ p: 2, height: '100vh', overflow: 'auto', position: 'relative', zIndex: 1 }}>
                       <IconButton onClick={onClose} sx={{ position: 'absolute', right: 16, top: 16 }}>
                           <FaTimes />
@@ -126,6 +146,9 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
                                                 <ListItem>
                                                     <ListItemText primary="Center" secondary={userData.center?.name || "N/A"} />
                                                 </ListItem>
+                                                <ListItem>
+                                                    <ListItemText primary="Zone" secondary={userData.zone || "N/A"} />
+                                                </ListItem>
                                             </List>
                                         </Box>
                                         <Divider />
@@ -149,59 +172,15 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
                                     </Grid>
                                     <Grid item xs={12} md={6}>
                                         <List>
-                                            <ListItem>
-                                                <ListItemText primary="Emirates ID" secondary={userData.emiratesId || "N/A"} />
-                                                {userData.emiratesIdPhoto ? (
-                                                      <Avatar
-                                                            src={userData.emiratesIdPhoto}
-                                                            sx={{ width: 80, height: 80, cursor: 'pointer', ml: 2 }}
-                                                            onClick={() => handleImageClick(userData.emiratesIdPhoto)}
-                                                      />
-                                                ) : (
-                                                      <Typography>No Emirates ID Photo</Typography>
-                                                )}
-                                            </ListItem>
-                                            <ListItem>
-                                                <ListItemText primary="IBAN" secondary={userData.ibanBank || "N/A"} />
-                                                {userData.ibanBankPhoto ? (
-                                                      <Avatar
-                                                            src={userData.ibanBankPhoto}
-                                                            sx={{ width: 80, height: 80, cursor: 'pointer', ml: 2 }}
-                                                            onClick={() => handleImageClick(userData.ibanBankPhoto)}
-                                                      />
-                                                ) : (
-                                                      <Typography>No IBAN Photo</Typography>
-                                                )}
-                                            </ListItem>
-                                            <ListItem>
-                                                <ListItemText primary="Graduation Name" secondary={userData.graduationName || "N/A"} />
-                                                {userData.graduationImage ? (
-                                                      <Avatar
-                                                            src={userData.graduationImage}
-                                                            sx={{ width: 80, height: 80, cursor: 'pointer', ml: 2 }}
-                                                            onClick={() => handleImageClick(userData.graduationImage)}
-                                                      />
-                                                ) : (
-                                                      <Typography>No Graduation Image</Typography>
-                                                )}
-                                            </ListItem>
-                                            <ListItem>
-                                                <ListItemText primary="Passport Number" secondary={userData.passportNumber || "N/A"} />
-                                                {userData.passportPhoto ? (
-                                                      <Avatar
-                                                            src={userData.passportPhoto}
-                                                            sx={{ width: 80, height: 80, cursor: 'pointer', ml: 2 }}
-                                                            onClick={() => handleImageClick(userData.passportPhoto)}
-                                                      />
-                                                ) : (
-                                                      <Typography>No Passport Photo</Typography>
-                                                )}
-                                            </ListItem>
+                                            {renderDocument("Emirates ID", userData.emiratesIdPhoto)}
+                                            {renderDocument("IBAN", userData.ibanBankPhoto)}
+                                            {renderDocument("Graduation Name", userData.graduationImage)}
+                                            {renderDocument("Passport Number", userData.passportPhoto)}
                                         </List>
                                     </Grid>
                                 </Grid>
                                 {renderExtraButtons && (
-                                      <Box sx={{mt: 2, display: 'flex', justifyContent: 'center', gap: 4}}>
+                                      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', gap: 4 }}>
                                           <CreateModal
                                                 open={rejectModalOpen}
                                                 onClose={() => setRejectModalOpen(false)}
@@ -209,7 +188,7 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
                                                 title="Reject Reason"
                                                 inputs={[
                                                     {
-                                                        data: {id: "reason", type: "textarea", label: "Reason"},
+                                                        data: { id: "reason", type: "textarea", label: "Reason" },
                                                         pattern: {
                                                             required: {
                                                                 value: true,
@@ -219,7 +198,7 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
                                                     }
                                                 ]}
                                                 label="Reject"
-                                                extraProps={{formTitle: "Reject Reason", btnText: "Reject"}}
+                                                extraProps={{ formTitle: "Reject Reason", btnText: "Reject" }}
                                                 BtnColor="secondary"
                                                 href={`admin/employees/${userId}/reject`}
                                           />
@@ -231,29 +210,31 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
                                                 BtnColor="primary"
                                                 inputs={[
                                                     {
-                                                        data: {id: "password", type: "password", label: "Password"},
+                                                        data: { id: "password", type: "password", label: "Password" },
                                                         pattern: {
                                                             required: {
                                                                 value: true,
                                                                 message: "Please provide a password"
+                                                            },
+                                                            pattern: {
+                                                                value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/,
+                                                                message: "Password must be at least 8 characters long and include a number, a capital letter, and a lowercase letter."
                                                             }
                                                         }
                                                     },
-
                                                 ]}
                                                 label="Approve"
-                                                extraProps={{formTitle: "Approve User", btnText: "Approve"}}
+                                                extraProps={{ formTitle: "Approve User", btnText: "Approve" }}
                                                 href={`admin/employees/${userId}/approve`}
                                           />
                                           <div className={"px-2 mb-1 mt-2"}>
-
                                               <Button variant="contained" color="tertiary"
                                                       onClick={() => setUncompletedModalOpen(true)}>
                                                   Uncompleted
                                               </Button>
                                           </div>
                                       </Box>
-                                    )}
+                                )}
                             </Box>
                       )}
                   </Container>

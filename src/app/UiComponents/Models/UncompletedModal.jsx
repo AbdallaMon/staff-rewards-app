@@ -64,7 +64,7 @@ const UncompletedModal = ({ open, onClose, handleSubmit, title, href }) => {
                       <Typography variant="body1" gutterBottom>Select Uncompleted Fields:</Typography>
                       <Grid container spacing={2}>
                           {[
-                              "Name", "Email", "Phone", "Bank Name", "Bank User Name",
+                              "Name", "Email", "Phone","Zone","Center", "Bank Name", "Bank User Name",
                               "Emirates ID", "Graduation Name", "Passport Number",
                               "User Photo", "Emirates ID Photo", "IBAN Photo",
                               "Graduation Image", "Passport Photo"

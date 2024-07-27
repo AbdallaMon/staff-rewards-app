@@ -54,6 +54,7 @@ export function Form({
         >
           <Typography
             variant="h4"
+            color="primary"
             sx={{
               mb: 3,
               textAlign: "center",
@@ -62,7 +63,7 @@ export function Form({
           >
             {formTitle}
           </Typography>
-          <Typography variant="subtitle1" className="mb-4 font-bold">
+          <Typography variant="subtitle1" className="mb-4 font-bold ">
             {subTitle}
           </Typography>
           <div className="w-full">
