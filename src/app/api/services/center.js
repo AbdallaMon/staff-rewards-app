@@ -214,12 +214,28 @@ export async function createAttendanceRecord({ userId, shiftIds, duty, date, cen
                   // Create duty reward related to the attendance
                   const dutyReward = await prisma.dutyReward.create({
                       data: {
-                          userId: +userId,
-                          attendanceId: attendance.id,
-                          centerId: +centerId,
                           amount: duty.amount,
                           date: new Date(date),
-                          dutyId: +duty.id,
+                          user:{
+                                connect:{
+                                    id:+userId
+                                }
+                          },
+                          attendance: {
+                                connect: {
+                                    id: attendance.id,
+                                },
+                          },
+                          shift: {
+                              connect: {
+                                  id: +shiftId,
+                              },
+                          },
+                          duty: {
+                              connect: {
+                                  id: +duty.id,
+                              },
+                          },
                       },
                   });
 
