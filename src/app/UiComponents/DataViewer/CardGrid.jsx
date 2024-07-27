@@ -94,6 +94,7 @@ export default function AdminTable({
                               ))}
                               {withEdit && <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Edit</TableCell>}
                               {withDelete && <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Delete</TableCell>}
+                              {ExtraComponent && <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Extra</TableCell>}
                           </TableRow>
                       </TableHead>
                       <TableBody>
@@ -126,6 +127,15 @@ export default function AdminTable({
                                               >
                                                   Delete
                                               </Button>
+                                          </TableCell>
+                                    )}
+                                    {ExtraComponent && (
+                                          <TableCell>
+                                              <ExtraComponent
+                                                    item={item}
+                                                    setData={setData}
+                                                    {...extraComponentProps}
+                                              />
                                           </TableCell>
                                     )}
                                 </TableRow>

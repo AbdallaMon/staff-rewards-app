@@ -3,6 +3,7 @@ import {Alert, Backdrop, Box, Fade, Modal, Snackbar, Button, Typography} from "@
 import CircularProgress from "@mui/material/CircularProgress";
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
+import {simpleModalStyle} from "@/app/constants";
 
 export default function DeleteModal({
                                         open,
@@ -35,7 +36,7 @@ const {setLoading}=useToastContext()
                     closeAfterTransition
               >
                   <Fade in={open}>
-                      <Box sx={{ ...modalStyle }}>
+                      <Box sx={{ ...simpleModalStyle }}>
                           <Typography variant="h6" component="h2">
                               Are you sure you want to delete this item?
                           </Typography>
@@ -56,22 +57,3 @@ const {setLoading}=useToastContext()
     );
 };
 
-const modalStyle = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    maxHeight: "90%",
-    overflow: "auto",
-    width: {
-        xs: "100%",
-        sm: "80%",
-        md: "60%",
-    },
-    maxWidth: {
-        md: "600px",
-    },
-    bgcolor: "background.paper",
-    boxShadow: 24,
-    p: 4,
-};

@@ -3,6 +3,8 @@
 import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
 import {useEffect, useState} from "react";
+import UserDetailDrawer from "@/app/UiComponents/DataViewer/UserDetailsDrawer";
+import {Button} from "@mui/material";
 
 export default function STAFF() {
     const { data, loading, setData, page, setPage, limit, setLimit, total, setTotal } = useDataFetcher("admin/employees", false);
@@ -22,6 +24,9 @@ export default function STAFF() {
     ];
     const [inputs, setInputs] = useState(defaultInputs);
     const [loadingInputs, setLoadingInputs] = useState(true);
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [selectedUserId, setSelectedUserId] = useState(null);
+
     async function fetchCenters() {
         const response = await fetch("/api/index?id=center");
         const result = await response.json();
@@ -54,6 +59,10 @@ export default function STAFF() {
     useEffect(()=>{
         handleFetchSelectItem();
     },[])
+    const handleRowClick = (userId) => {
+        setSelectedUserId(userId);
+        setDrawerOpen(true);
+    };
 
     return (
           <div>
@@ -73,7 +82,14 @@ export default function STAFF() {
                     loading={loading}
                     deleteHref={null}
                     editHref={"admin/employees"}
-
+                    extraComponent={({ item }) => (
+                          <Button onClick={() => handleRowClick(item.id)}>View Details</Button>
+                    )}
+              />
+              <UserDetailDrawer
+                    userId={selectedUserId}
+                    open={drawerOpen}
+                    onClose={() => setDrawerOpen(false)}
               />
           </div>
     );

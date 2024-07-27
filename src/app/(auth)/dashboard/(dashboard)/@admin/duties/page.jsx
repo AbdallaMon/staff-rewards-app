@@ -19,7 +19,7 @@ export default function Duties() {
             }
         }
         ,
-        { data: { id: "amount", type: "number", label: "Amount" }, pattern: {
+        { data: { id: "amount", type: "number", label: "Reward amount" }, pattern: {
                 required: {
                     value: true,
                     message: "Please enter an amount for the duty",
@@ -34,7 +34,7 @@ export default function Duties() {
 
     const columns = [
         { name: "name", label: "Name" },
-        { name: "amount", label: "Amount" }
+        { name: "amount", label: "Reward amount" }
     ];
 
     return (

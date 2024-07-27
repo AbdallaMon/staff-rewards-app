@@ -10,13 +10,14 @@ import {
 import {Form} from "@/app/UiComponents/FormComponents/Forms/Form";
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
+import {simpleModalStyle} from "@/app/constants";
 
 const CreateModal = ({
   setData,
   label,
   inputs,
   href,
-  extraProps,handleSubmit,setTotal
+  extraProps,handleSubmit,setTotal,BtnColor="secondary"
 }) => {
   const [open, setOpen] = useState(false);
   const {setLoading}=useToastContext()
@@ -48,7 +49,7 @@ const result=await handleRequestSubmit(formData, setLoading, `${href}`, false, "
   return (
     <>
       <div className={"px-2 mb-1 mt-2"}>
-        <Button variant="contained" color="secondary" onClick={handleOpen }>
+        <Button variant="contained" color={BtnColor} onClick={handleOpen }>
           {label}
         </Button>
       </div>
@@ -60,7 +61,7 @@ const result=await handleRequestSubmit(formData, setLoading, `${href}`, false, "
         }}
       >
         <Fade in={open}>
-          <Box sx={{ ...modalStyle }}>
+          <Box sx={{ ...simpleModalStyle }}>
             <Form
               onSubmit={onSubmit}
               inputs={inputs}
@@ -74,23 +75,6 @@ const result=await handleRequestSubmit(formData, setLoading, `${href}`, false, "
   );
 };
 
-const modalStyle = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: {
-    xs: "100%",
-    sm: "80%",
-    md: "60%",
-  },
-  maxWidth: {
-    md: "600px",
-  },
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  p: 4,
-};
 
 export default CreateModal;
 

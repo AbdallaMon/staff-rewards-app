@@ -3,6 +3,7 @@ import {Box, Fade, Modal} from '@mui/material';
 import {Form} from "@/app/UiComponents/FormComponents/Forms/Form";
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
+import {simpleModalStyle} from "@/app/constants";
 
 const EditModal = ({ open, handleClose, item, inputs, setData, href, checkChanges = false }) => {
     const [options, setOptions] = useState({});
@@ -54,7 +55,7 @@ const {setLoading}=useToastContext()
 
               >
                   <Fade in={open}>
-                      <Box sx={{...modalStyle}}>
+                      <Box sx={{...simpleModalStyle}}>
                           <Form
                                 onSubmit={onSubmit}
                                 inputs={prefilledInputs.map(input => ({
@@ -80,24 +81,5 @@ const {setLoading}=useToastContext()
     );
 };
 
-const modalStyle = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    maxHeight: '90%',
-    overflow: "auto",
-    width: {
-        xs: '100%',
-        sm: '80%',
-        md: '60%',
-    },
-    maxWidth: {
-        md: '600px',
-    },
-    bgcolor: 'background.paper',
-    boxShadow: 24,
-    p: 4,
-};
 
 export default EditModal;

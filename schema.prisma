@@ -8,32 +8,44 @@ generator client {
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
-  email        String?   @unique
-  password     String?
-  role         UserRole
-  name         String?
-  emiratesId   String?
-  zone         String?
-  gender       Gender?
-  phone        String?
-  centerId     Int?
-  center       Center?   @relation(fields: [centerId], references: [id], name: "CenterEmployees")
-  bankName     String?
-  ibanBank     String?
-  isActive     Boolean   @default(true)
-  rating             Float?   @default(0)
-  dutyId       Int?
-  duty         Duty?     @relation(fields: [dutyId], references: [id])
-  attendance   Attendance[]
-  centerAdmin  Center?   @relation("CenterAdmin")
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  deletedAt    DateTime?
-  resetPasswordToken  String?  @unique
+  id                   Int       @id @default(autoincrement())
+  email                String?   @unique
+  password             String?
+  role                 UserRole
+  name                 String?
+  emiratesId           String?
+  emiratesIdPhoto      String?
+  zone                 String?
+  gender               Gender?
+  phone                String?
+  centerId             Int?
+  center               Center?   @relation(fields: [centerId], references: [id], name: "CenterEmployees")
+  bankName             String?
+  bankUserName         String?
+  ibanBank             String?   @unique
+  ibanBankPhoto        String?
+  graduationName       String?
+  graduationImage      String?
+  passportNumber       String?   @unique
+  passportPhoto        String?
+  photo                String?
+  isActive             Boolean   @default(true)
+  rating               Float?    @default(0)
+  dutyId               Int?
+  duty                 Duty?     @relation(fields: [dutyId], references: [id])
+  attendance           Attendance[]
+  centerAdmin          Center?   @relation("CenterAdmin")
+  examType             ExamType?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  deletedAt            DateTime?
+  resetPasswordToken   String?   @unique
   resetPasswordExpires DateTime?
-  emailConfirmed     Boolean  @default(false)
+  emailConfirmed       Boolean   @default(false)
+  accountStatus        AccountStatus @default(APPROVED)
+  rejectedReason       String?
 }
+
 model Center {
   id             Int           @id @default(autoincrement())
   name           String
@@ -51,7 +63,6 @@ model Center {
   deletedAt      DateTime?
 }
 
-
 model Shift {
   id            Int           @id @default(autoincrement())
   name          String
@@ -60,7 +71,7 @@ model Shift {
   centerShifts  CenterShift[]
   attendance    Attendance[]
   createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  updatedAt     DateTime      @default(now())
   deletedAt     DateTime?
 }
 
@@ -72,7 +83,7 @@ model CenterShift {
   shift        Shift         @relation(fields: [shiftId], references: [id])
   schedule     ShiftSchedule[]
   createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  updatedAt    DateTime      @default(now())
   deletedAt    DateTime?
 }
 
@@ -83,7 +94,7 @@ model Duty {
   amount       Float
   users        User[]
   createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  updatedAt    DateTime      @default(now())
   deletedAt    DateTime?
 }
 
@@ -97,7 +108,7 @@ model DutyReward {
   duty         Duty          @relation(fields: [dutyId], references: [id])
   shift        Shift         @relation(fields: [shiftId], references: [id])
   createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  updatedAt    DateTime      @default(now())
   deletedAt    DateTime?
 }
 
@@ -107,22 +118,11 @@ model Attendance {
   centerId     Int
   shiftId      Int
   date         DateTime
-  examTypeId   Int
   user         User          @relation(fields: [userId], references: [id])
   center       Center        @relation(fields: [centerId], references: [id])
   shift        Shift         @relation(fields: [shiftId], references: [id])
-  examType     ExamType      @relation(fields: [examTypeId], references: [id])
   createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  deletedAt    DateTime?
-}
-
-model ExamType {
-  id           Int           @id @default(autoincrement())
-  name         String
-  attendance   Attendance[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  updatedAt    DateTime      @default(now())
   deletedAt    DateTime?
 }
 
@@ -133,7 +133,16 @@ model ShiftSchedule {
   shiftType    ShiftType
   centerShift  CenterShift   @relation(fields: [centerShiftId], references: [id])
   createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  updatedAt    DateTime      @default(now())
+  deletedAt    DateTime?
+}
+
+model Calendar {
+  id           Int           @id @default(autoincrement())
+  date         DateTime
+  examType     ExamType
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now())
   deletedAt    DateTime?
 }
 
@@ -152,4 +161,16 @@ enum UserRole {
   EMPLOYEE
   CENTER
   FINANCIAL_AUDITOR
+}
+
+enum ExamType {
+  TEACHER
+  GRADUATE
+}
+
+enum AccountStatus {
+  PENDING
+  UNCOMPLETED
+  APPROVED
+  REJECTED
 }

@@ -143,6 +143,7 @@ export async function deleteDuty(id) {
 }
 
 // Center
+
 export async function createCenter(data) {
     const actualPassword = data.password;
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -171,11 +172,18 @@ export async function createCenter(data) {
             },
         });
 
-        // Send email to the supervisor with the password
+        const emailContent = `
+            <h1>Your Center Account Details</h1>
+            <p>Your account has been created successfully.</p>
+            <p><strong>Email:</strong> ${data.email}</p>
+            <p><strong>Password:</strong> ${actualPassword}</p>
+            <p><a href="${url}/login">Click here to login</a></p>
+        `;
+
         await sendEmail(
               data.supervisorEmail,
               "Your Center Account Details",
-              `Your account has been created successfully.\n\nEmail: ${data.email}\nPassword: ${actualPassword} \n\nYou can login at ${url}/login`
+              emailContent
         );
 
         return { status: 200, data: newCenter, message: "Center created successfully and email sent to supervisor." };
@@ -186,17 +194,21 @@ export async function createCenter(data) {
 
 export async function editCenter(id, data) {
     try {
-        console.log(data);
-    if(data.email){
-        const existingCenter = await prisma.center.findUnique({
-            where: { id: parseInt(id, 10) },
-        });
-    }
+        if (data.email) {
+            const existingCenter = await prisma.center.findUnique({
+                where: { id: parseInt(id, 10) },
+            });
+
+            if (!existingCenter) {
+                return { status: 404, message: "Center not found" };
+            }
+        }
+
         // Update the center
         const updatedCenter = await prisma.center.update({
             where: { id: parseInt(id, 10) },
             data: {
-            ...data
+                ...data
             },
         });
 
@@ -205,11 +217,19 @@ export async function editCenter(id, data) {
                 where: { id: updatedCenter.adminUserId },
                 data: { email: data.email },
             });
+
+            const emailContent = `
+                <h1>Your Center Account Email Updated</h1>
+                <p>The email for your center account has been updated.</p>
+                <p><strong>New Email:</strong> ${data.email}</p>
+                <p><a href="${url}/login">Click here to login</a></p>
+            `;
+
             // Send email to the supervisor with the new email
             await sendEmail(
                   updatedCenter.supervisorEmail,
                   "Your Center Account Email Updated",
-                  `The email for your center account has been updated.\n\nNew Email: ${data.email} \n\nYou can login at ${url}/login`
+                  emailContent
             );
         }
 
@@ -262,15 +282,20 @@ export async function deleteCenter(id) {
     }
 }
 
-export async function fetchEmployees(page = 1, limit = 10) {
+export async function fetchEmployees(page = 1, limit = 10,employRequests=false,rejected=false) {
     const offset = (page - 1) * limit;
+    let requestStatus = employRequests ? "PENDING" : "APPROVED";
+    if(rejected){
+        requestStatus="REJECTED";
+    }
     try {
         const [employees, total] = await prisma.$transaction([
             prisma.user.findMany({
-                where: { role: 'EMPLOYEE', emailConfirmed: true },
+                where: { role: 'EMPLOYEE', accountStatus: requestStatus },
                 skip: offset,
                 take: limit,
                 select: {
+                    rejectedReason: requestStatus === "REJECTED",
                     id: true,
                     name: true,
                     email: true,
@@ -304,7 +329,7 @@ export async function fetchEmployees(page = 1, limit = 10) {
                 },
                 orderBy: { createdAt: 'desc' },
             }),
-            prisma.user.count({ where: { role: 'EMPLOYEE', emailConfirmed: true } })
+            prisma.user.count({ where: { role: 'EMPLOYEE', accountStatus: requestStatus} })
         ]);
 
         const employeesWithRewards = employees.map(employee => {
@@ -361,28 +386,7 @@ export async function fetchUnconfirmedUsers(page = 1, limit = 10) {
     }
 }
 
-export async function confirmUserEmail(userId, password) {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    try {
-        const updatedUser = await prisma.user.update({
-            where: { id: parseInt(userId, 10) },
-            data: {
-                password: hashedPassword,
-                emailConfirmed: true
-            }
-        });
 
-        await sendEmail(
-              updatedUser.email,
-              "Your Account Details",
-              `Your account has been confirmed.\n\nEmail: ${updatedUser.email}\nPassword: ${password}\n\nYou can login at ${url}/login`
-        );
-
-        return { status: 200, data: updatedUser, message: "User email confirmed and password sent successfully" };
-    } catch (error) {
-        return handlePrismaError(error);
-    }
-}
 export async function EditEmploy(employId,data){
     if(data.centerId){
         data.centerId=parseInt(data.centerId,10);
@@ -449,3 +453,103 @@ export async function EditEmploy(employId,data){
         return handlePrismaError(error);
     }
 }
+
+export async function getUserById(id) {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: parseInt(id, 10) },
+            include: {
+                center: true,
+                duty: true,
+                attendance: {
+                    include: {
+                        shift: true,
+                        center: true
+                    }
+                }
+            }
+        });
+
+        if (!user) {
+            return { status: 404, message: "User not found" };
+        }
+
+        return { status: 200, data: user, message: "User fetched successfully" };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+///// employes requests /////
+
+export const approveUser = async (userId, { password, examType }) => {
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                password: hashedPassword,
+                examType,
+                accountStatus: 'APPROVED',
+            },
+        });
+
+        const emailContent = `
+      <h1>Account Approved</h1>
+      <p>Your account has been approved. You can log in with your email and the password provided.</p>
+      <p><strong>Email:</strong> ${user.email}</p>
+      <p><strong>Password:</strong> ${password}</p>
+      <p><a href="${url}/login">Click here to login</a></p>
+    `;
+
+        await sendEmail(user.email, 'Account Approved', emailContent);
+
+        return { status: 200, message: 'User approved successfully and a message sent to the user email ' };
+    } catch (error) {
+        console.error('Error approving user:', error);
+        return handlePrismaError(error);
+    }
+};
+
+export const rejectUser = async (userId, { reason }) => {
+    try {
+        const user = await prisma.user.update({
+            where: { id: userId },
+            data: { accountStatus: 'REJECTED', rejectedReason: reason },
+        });
+
+        const emailContent = `
+      <h1>Account Rejected</h1>
+      <p>Your account has been rejected for the following reason:</p>
+      <p>${reason}</p>
+    `;
+
+        await sendEmail(user.email, 'Account Rejected', emailContent);
+
+        return { status: 200, message: 'User rejected and a message with the reason sent to his email' };
+    } catch (error) {
+        console.error('Error rejecting user:', error);
+        return handlePrismaError(error);
+    }
+};
+export const uncompletedUser = async (userId, { checks, comments }) => {
+    try {
+        const user = await prisma.user.update({
+            where: { id: userId },
+            data: { accountStatus: 'UNCOMPLETED' },
+        });
+
+        let emailContent = '<h1>Account Registration Incomplete</h1><p>Your account registration is incomplete for the following reasons:</p><ul>';
+        checks.forEach((field) => {
+            emailContent += `<li><strong>${field}:</strong> ${comments[field] || 'No comment provided'}</li>`;
+        });
+        emailContent += `</ul><p><a href="${url}/signup/${userId}">Click here to complete your registration</a></p>`;
+
+        await sendEmail(user.email, 'Account Registration Incomplete', emailContent);
+
+        return { status: 200, message: 'User marked as uncompleted and a message with uncompleted details sent with link' };
+    } catch (error) {
+        console.error('Error marking user as uncompleted:', error);
+        return handlePrismaError(error);
+    }
+};

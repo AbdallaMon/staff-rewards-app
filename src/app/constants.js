@@ -16,4 +16,26 @@ export const       colors={
           bgTeritary: "#e9f8f5",
           heading: "#181818",
       }
+
+      export const simpleModalStyle = {
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              maxHeight: "90%",
+              overflow: "auto",
+              width: {
+                  xs: "95%",
+                  sm: "80%",
+                  md: "60%",
+              },
+              maxWidth: {
+                  md: "600px",
+              },
+              bgcolor: "background.paper",
+              boxShadow: 24,
+              p: 4,
+
+
+      }
 export const url=process.env.NEXT_PUBLIC_URL;

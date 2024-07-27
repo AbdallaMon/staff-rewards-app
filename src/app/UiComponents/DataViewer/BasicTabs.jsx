@@ -47,6 +47,7 @@ const adminLinks = [
     { label: "Shifts", href: "/dashboard/shifts" },
     { label: "Duties", href: "/dashboard/duties" },
     { label: "Staff", href: "/dashboard/staff" },
+    {label: "Staff requests", href: "/dashboard/staff-requests"},
 ];
 
 const reportLinks = [
