@@ -14,8 +14,13 @@ export async function POST(request) {
       where: {
         email: body.email,
       },
+      select:{
+        id:true,
+        role:true,
+        centerAdmin:true,
+        password:true,
+      }
     });
-
     if (!user) {
       return Response.json({
         status: 500,
@@ -32,7 +37,7 @@ export async function POST(request) {
       });
     }
 
-    const token = jwt.sign({ userId: user.id, userRole: user.role }, SECRET_KEY, {
+    const token = jwt.sign({ userId: user.id, userRole: user.role ,centerId:user.centerAdmin?.id}, SECRET_KEY, {
       expiresIn: '4h',
     });
     cookieStore.set({

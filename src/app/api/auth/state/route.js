@@ -1,6 +1,5 @@
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
-import prisma from "../../../../lib/pirsma/prisma";
 
 export async function GET() {
   const SECRET_KEY = process.env.SECRET_KEY;
@@ -16,6 +15,7 @@ export async function GET() {
       const user = {
         id: userId,
         role: userRole,
+        centerId:decoded.centerId
       }
 
       return Response.json({

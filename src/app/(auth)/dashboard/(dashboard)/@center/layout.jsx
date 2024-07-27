@@ -4,7 +4,7 @@ export default function Layout({children}){
 
     return(
           <>
-              <BasicTabs section="admin" />
+              <BasicTabs section="center" />
                 {children}
           </>
     )

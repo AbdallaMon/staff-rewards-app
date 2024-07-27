@@ -55,10 +55,15 @@ const reportLinks = [
     { label: "Rewards", href: "/dashboard/rewards" },
 ];
 
+const staffLinks = [
+    { label: "Staff", href: "/dashboard/staff" },
+    { label: "Attendance", href: "/dashboard/attendance" },
+    { label: "Calendar", href: "/dashboard/calendar" },
+];
 export function BasicTabs({ section }) {
     const currentPath = usePathname();
+    const tabs=section==="admin"?adminLinks:section==="report"?reportLinks:staffLinks;
 
-    const tabs = section === "reports" ? reportLinks : adminLinks;
     const currentIndex = tabs.findIndex((tab) => tab.href === currentPath);
     const [value, setValue] = React.useState(
           currentIndex !== -1 ? currentIndex : 0
