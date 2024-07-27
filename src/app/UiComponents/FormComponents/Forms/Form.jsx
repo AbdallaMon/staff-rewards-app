@@ -40,7 +40,7 @@ export function Form({
   const formRef = useRef();
   return (
     <Box
-      className="bg-white  rounded shadow-md my-4"
+      className=" my-4"
       sx={{
         p: { xs: 2, md: 4 },
       }}
