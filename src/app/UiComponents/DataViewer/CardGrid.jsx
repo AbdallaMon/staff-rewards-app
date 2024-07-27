@@ -39,7 +39,7 @@ export default function AdminTable({
                                        deleteHref,
                                        withArchive,
                                        archiveHref,
-                                       extraComponent: ExtraComponent,
+                                       extraComponent,
                                        extraComponentProps,
                                        setTotal,
                                        checkChanges,
@@ -48,6 +48,7 @@ export default function AdminTable({
                                        labelKey,
                                        editButtonText = "Edit" // Default value is "Edit"
                                    }) {
+    const ExtraComponent = extraComponent;
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [archiveOpen, setArchiveOpen] = useState(false);
@@ -118,6 +119,9 @@ export default function AdminTable({
                           onEdit={handleEditOpen}
                           onDelete={handleDeleteOpen}
                           onArchive={handleArchiveOpen}
+                          editButtonText={editButtonText}
+                          extraComponent={extraComponent}
+                          extraComponentProps={extraComponentProps}
                     />
               ) : (
                     <>

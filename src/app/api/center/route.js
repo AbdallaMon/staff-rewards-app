@@ -8,7 +8,7 @@ export async function GET(request) {
     const token = cookieStore.get("token")?.value;
 
     if (!token) {
-        return new Response(JSON.stringify({ auth: false, message: "Please sign in" }), { status: 401 });
+        return  Response.json({status:401,auth: false, message: "Please sign in again" }, { status: 401 });
     }
 
     try {

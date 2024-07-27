@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import Calendar from 'react-calendar';
-import { Box, Button, Typography, useTheme } from '@mui/material';
+import {Box, Button, TableCell, Typography, useTheme} from '@mui/material';
 import 'react-calendar/dist/Calendar.css';
 import { colors } from "@/app/constants";
 
@@ -15,7 +15,7 @@ const CalendarComponent = ({
                                onEdit,
                                onDelete,
                                onArchive,
-                               class_Name = ""
+                               class_Name = "",editButtonText,extraComponentProps,extraComponent:ExtraComponent,setData
                            }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -53,9 +53,18 @@ const CalendarComponent = ({
                                 {item[labelKey]}
                             </Typography>
                             <Box sx={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
-                                {withEdit && <Button size="small" variant="contained" onClick={() => onEdit(item)}>Edit</Button>}
+                                {withEdit && <Button size="small" variant="contained" onClick={() => onEdit(item)}>{editButtonText}</Button>}
                                 {withDelete && <Button size="small" variant="contained" color="secondary" onClick={() => onDelete(item)}>Delete</Button>}
                                 {withArchive && <Button size="small" variant="contained" color="warning" onClick={() => onArchive(item)}>Archive</Button>}
+                                {ExtraComponent && (
+                                      <>
+                                          <ExtraComponent
+                                                item={item}
+                                                setData={setData}
+                                                {...extraComponentProps}
+                                          />
+                                      </>
+                                )}
                             </Box>
                         </Box>
                   ))}

@@ -196,3 +196,43 @@ export async function updateEmployeeRating(userId, newRating) {
         return handlePrismaError(error);
     }
 }
+
+export async function createAttendanceRecord({ userId, shiftIds, duty, date, centerId }) {
+    try {
+        const attendanceRecords = await Promise.all(
+              shiftIds.map(async (shiftId) => {
+                  // Create attendance record
+                  const attendance = await prisma.attendance.create({
+                      data: {
+                          userId: +userId,
+                          shiftId: +shiftId,
+                          date: new Date(date),
+                          centerId: +centerId,
+                      },
+                  });
+
+                  // Create duty reward related to the attendance
+                  const dutyReward = await prisma.dutyReward.create({
+                      data: {
+                          userId: +userId,
+                          attendanceId: attendance.id,
+                          centerId: +centerId,
+                          amount: duty.amount,
+                          date: new Date(date),
+                          dutyId: +duty.id,
+                      },
+                  });
+
+                  return { attendance, dutyReward };
+              })
+        );
+
+        return {
+            status: 200,
+            data: attendanceRecords,
+            message: "Attendance and duty rewards created successfully",
+        };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}

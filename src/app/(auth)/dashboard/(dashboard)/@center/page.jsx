@@ -27,7 +27,7 @@ export default function STAFF() {
 
     return (
           <div>
-              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2, mb: 0,p:2 }}>
                   <SearchComponent
                         apiEndpoint="/api/index?id=user&centerId=true"
                         setFilters={setFilters}

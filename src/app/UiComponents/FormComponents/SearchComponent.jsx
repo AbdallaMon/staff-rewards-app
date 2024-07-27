@@ -40,7 +40,7 @@ const SearchComponent = ({ apiEndpoint, setFilters, inputLabel, renderKeys, main
     const handleSelect = (item) => {
         setSelectedItem(item);
         setSearchTerm(item[mainKey] || "");
-        setFilters((prevFilters) => ({ ...prevFilters, userId: item.id }));
+        setFilters((prevFilters) => ({ ...prevFilters, userId: item.id ,duty:item.duty}));
         setSearchResults([]);
         setOpen(false);
     };

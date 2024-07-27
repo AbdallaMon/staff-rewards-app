@@ -26,21 +26,27 @@ export async function getIndexedData(index, query, filters, centerId) {
         if (query) {
             where.emiratesId = { contains: query };
             where.accountStatus = "APPROVED";
+
         }
         if (centerId) {
             where.centerId = centerId;
         }
     }
-
+const select={
+        id:true,name:true
+}
+    if(index==="user"){
+        select.emiratesId=true
+        select.email=true
+        select.duty=true
+    }
+    if(index==="shift"){
+        select.duration=true
+    }
     try {
         const data = await model.findMany({
             where,
-            select: {
-                id: true,
-                emiratesId: index === "user" ? true : undefined,
-                email: index === "user" ? true : undefined,
-                name: true,
-            },
+            select:select,
         });
         return { data, status: 200 };
     } catch (error) {
