@@ -45,7 +45,8 @@ export default function AdminTable({
                                        checkChanges,
                                        isCalendar,
                                        setFilters,
-                                       labelKey
+                                       labelKey,
+                                       editButtonText = "Edit" // Default value is "Edit"
                                    }) {
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -129,7 +130,7 @@ export default function AdminTable({
                                                   {column.label}
                                               </TableCell>
                                         ))}
-                                        {withEdit && <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Edit</TableCell>}
+                                        {withEdit && <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>{editButtonText}</TableCell>}
                                         {withDelete && <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Delete</TableCell>}
                                         {withArchive && <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Archive</TableCell>}
                                         {ExtraComponent && <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Extra</TableCell>}
@@ -151,7 +152,7 @@ export default function AdminTable({
                                                               onClick={() => handleEditOpen(item)}
                                                               sx={{ textTransform: 'none' }}
                                                         >
-                                                            Edit
+                                                            {editButtonText}
                                                         </Button>
                                                     </TableCell>
                                               )}

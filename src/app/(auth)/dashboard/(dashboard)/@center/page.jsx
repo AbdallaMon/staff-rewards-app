@@ -1,9 +1,7 @@
 "use client";
-import {  Box } from "@mui/material";
-
+import { Box } from "@mui/material";
 import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
-
 import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
 
 export default function STAFF() {
@@ -17,7 +15,15 @@ export default function STAFF() {
         { name: "duty.name", label: "Duty" },
     ];
 
-
+    const inputs = [
+        {
+            data: { id: "rating", type: "text", label: "Rating" ,helperText:"rate the employee out of 10"},
+            pattern: {
+                required: { value: true, message: "Please enter a rating" },
+                pattern: { value: /^(?:10(?:\.0)?|[0-9](?:\.[0-9])?)$/, message: "Please enter a valid number between 0 and 10" }
+            }
+        }
+    ];
 
     return (
           <div>
@@ -26,13 +32,12 @@ export default function STAFF() {
                         apiEndpoint="/api/index?id=user&centerId=true"
                         setFilters={setFilters}
                         inputLabel="Search User By EmiratesId"
-                        renderKeys={["name","emiratesId", "email"]}
+                        renderKeys={["name", "emiratesId", "email"]}
                         mainKey="emiratesId"
                   />
-
               </Box>
               <AdminTable
-                    withEdit={false}
+                    withEdit={true}
                     withDelete={false}
                     data={data}
                     columns={columns}
@@ -44,7 +49,9 @@ export default function STAFF() {
                     setTotal={setTotal}
                     setData={setData}
                     loading={loading}
-                    deleteHref={null}
+                    editHref="center/employees"
+                    editButtonText="Edit Rating"
+                    inputs={inputs}
               />
           </div>
     );

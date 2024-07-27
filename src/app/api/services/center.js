@@ -1,15 +1,18 @@
 import prisma from "@/lib/pirsma/prisma";
+
 function handlePrismaError(error) {
-    console.log(error,"error")
+    console.log(error, "error");
     if (error.code === 'P2002') {
         const target = error.meta.target;
         return { status: 409, message: `Unique constraint failed on the field: ${target}` };
     }
     return { status: 500, message: `Database error: ${error.message}` };
 }
+
 export async function fetchUsersByCenterId(centerId, page = 1, limit = 10, filters = {}) {
     const offset = (page - 1) * limit;
     const where = { centerId };
+
     if (filters.userId) {
         where.id = +filters.userId;
     }
@@ -90,6 +93,7 @@ export async function fetchUsersByCenterId(centerId, page = 1, limit = 10, filte
         return handlePrismaError(error);
     }
 }
+
 export async function fetchAttendanceByCenterId(centerId, filters = {}) {
     const where = { centerId };
 
@@ -116,19 +120,79 @@ export async function fetchAttendanceByCenterId(centerId, filters = {}) {
         };
     }
 
-    const [attendanceRecords, total] = await prisma.$transaction([
-        prisma.attendance.findMany({
-            where,
-            orderBy: { date: 'desc' },
-        }),
-        prisma.attendance.count({ where }),
-    ]);
+    try {
+        const [attendanceRecords, total] = await prisma.$transaction([
+            prisma.attendance.findMany({
+                where,
+                orderBy: { date: 'desc' },
+            }),
+            prisma.attendance.count({ where }),
+        ]);
 
-    return {
-        status: 200,
-        data: attendanceRecords,
-        total,
-        message: "Attendance records fetched successfully"
-    };
+        return {
+            status: 200,
+            data: attendanceRecords,
+            total,
+            message: "Attendance records fetched successfully"
+        };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
 
+export async function updateEmployeeRating(userId, newRating) {
+    try {
+        const updatedEmployee = await prisma.user.update({
+            where: { id: userId },
+            data: { rating: +newRating },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                emiratesId: true,
+                rating: true,
+                center: {
+                    select: {
+                        name: true,
+                        id: true,
+                    },
+                },
+                duty: {
+                    select: {
+                        name: true,
+                        id: true,
+                    },
+                },
+                attendance: {
+                    select: {
+                        shift: {
+                            select: {
+                                rewards: {
+                                    select: {
+                                        amount: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        const totalRewards = updatedEmployee.attendance?.reduce((acc, attendance) => {
+            return acc + attendance.shift.rewards.reduce((shiftAcc, reward) => {
+                return shiftAcc + reward.amount;
+            }, 0);
+        }, 0) || 0;
+
+        updatedEmployee.totalRewards = totalRewards;
+
+        return {
+            status: 200,
+            data: updatedEmployee,
+            message: "Employee rating updated successfully"
+        };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
 }
