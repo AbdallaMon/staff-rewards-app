@@ -9,12 +9,14 @@ import LogoutButton from "@/app/UiComponents/Buttons/LogoutBtn";
 export default function Navbar() {
     const { isLoggedIn } = useSelector((state) => state.auth);
     const [anchorEl, setAnchorEl] = useState(null);
-
+const [open, setOpen] = useState(false);
     const handleMenu = (event) => {
         setAnchorEl(event.currentTarget);
+        setOpen(!open);
     };
     const handleClose = () => {
         setAnchorEl(null);
+        setOpen(false);
     };
 
 
@@ -45,7 +47,7 @@ export default function Navbar() {
                                 >
                                     <FaUserCircle />
                                 </IconButton>
-                                {anchorEl&&
+                                {anchorEl&& open&&
                                 <Menu
                                       id="menu-appbar"
                                       anchorEl={anchorEl}

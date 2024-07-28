@@ -166,6 +166,13 @@ export async function archiveDuty(id) {
 
 export async function createCenter(data) {
     const actualPassword = data.password;
+    if (data.password) {
+        // Validate password
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(data.password)) {
+            return { status: 400, message: "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, and one number." };
+        }
+    }
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     try {
@@ -214,28 +221,43 @@ export async function createCenter(data) {
 
 export async function editCenter(id, data) {
     try {
-        if (data.email) {
-            const existingCenter = await prisma.center.findUnique({
-                where: { id: parseInt(id, 10) },
-            });
-
-            if (!existingCenter) {
-                return { status: 404, message: "Center not found" };
+        if (data.password) {
+            // Validate password
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+            if (!passwordRegex.test(data.password)) {
+                return { status: 400, message: "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, and one number." };
             }
         }
+        const updates = { ...data };
+        const userUpdates={
+            email:data.email
+        }
+        // Handle password
+        if (data.password) {
+            userUpdates.password =await bcrypt.hash(data.password, 10);
+        }
+            delete updates.password;
 
-        // Update the center
+
         const updatedCenter = await prisma.center.update({
             where: { id: parseInt(id, 10) },
-            data: {
-                ...data
-            },
-        });
+            data: updates,
 
+        });
+if(!data.email){
+    delete userUpdates.email;
+}
+if(userUpdates.password){
+    await prisma.user.update({
+        where: { id: +updatedCenter.adminUserId},
+        data: userUpdates,
+    });
+    console.log("555555")
+}
         if (data.email) {
             await prisma.user.update({
-                where: { id: updatedCenter.adminUserId },
-                data: { email: data.email },
+                where: { id: +id},
+                data: userUpdates,
             });
 
             const emailContent = `
@@ -270,6 +292,8 @@ export async function fetchCenters(page = 1, limit = 10) {
             }),
             prisma.center.count(),
         ]);
+
+
         return {
             status: 200,
             data: centers,
@@ -286,9 +310,6 @@ export async function fetchCenters(page = 1, limit = 10) {
 export async function deleteCenter(id) {
     try {
 
-        // Delete the user (center admin)
-
-        // Delete the center
         const deletedCenter = await prisma.center.delete({
             where: { id: parseInt(id, 10) },
         });

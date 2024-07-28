@@ -7,7 +7,6 @@ import {emiratesOptions} from "@/app/constants";
 
 export default function Centers() {
   const { data, loading, setData, page, setPage, limit, setLimit, total, setTotal } = useDataFetcher("admin/centers", false);
-
   const inputs = [
     { data: { id: "name", type: "text", label: "Name" }, pattern: {
         required: {
@@ -73,8 +72,15 @@ export default function Centers() {
     { name: "email", label: "Email" },
     { name: "supervisorEmail", label: "Supervisor Email" }
   ];
+
 const editInputs = [...inputs]
-    editInputs.splice(4, 1)
+    editInputs.map((input) => {
+        if (input.data.id === "password") {
+            input.pattern={}
+                 }
+        return input;
+    }
+    );
   return (
         <div >
           <CreateModal
