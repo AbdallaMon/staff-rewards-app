@@ -271,6 +271,125 @@ export async function updateEmployeeRating(userId, newRating) {
         return handlePrismaError(error);
     }
 }
+
+// export async function createAttendanceRecord({ userId, shiftIds, duty, date, centerId, examType }) {
+//     try {
+//         const dateString = new Date(date).toISOString(); // Use full ISO-8601 string
+//         const existingAttendances = [];
+//
+//         for (const shiftId of shiftIds) {
+//             const existingAttendance = await prisma.attendance.findFirst({
+//                 where: {
+//                     userId: +userId,
+//                     date: dateString,
+//                     shiftId: +shiftId,
+//                     centerId: +centerId,
+//                 },
+//                 include: {
+//                     shift: {
+//                         select: {
+//                             name: true
+//                         }
+//                     }
+//                 }
+//             });
+//
+//             if (existingAttendance) {
+//                 existingAttendances.push(existingAttendance.shift.name);
+//             }
+//         }
+//
+//         if (existingAttendances.length > 0) {
+//             return {
+//                 status: 400,
+//                 message: `Attendance already exists for the following shifts: ${existingAttendances.join(', ')}`,
+//             };
+//         }
+//
+//         const attendanceRecords = await Promise.all(
+//               shiftIds.map(async (shiftId) => {
+//                   // Create attendance record
+//                   const attendance = await prisma.attendance.create({
+//                       data: {
+//                           userId: +userId,
+//                           shiftId: +shiftId,
+//                           date: new Date(date),
+//                           centerId: +centerId,
+//                       },
+//                   });
+//
+//                   // Create duty reward related to the attendance
+//                   const dutyReward = await prisma.dutyReward.create({
+//                       data: {
+//                           amount: duty.amount,
+//                           date: new Date(date),
+//                           user: {
+//                               connect: {
+//                                   id: +userId
+//                               }
+//                           },
+//                           attendance: {
+//                               connect: {
+//                                   id: attendance.id,
+//                               },
+//                           },
+//                           shift: {
+//                               connect: {
+//                                   id: +shiftId,
+//                               },
+//                           },
+//                           duty: {
+//                               connect: {
+//                                   id: +duty.id,
+//                               },
+//                           },
+//                       },
+//                   });
+//
+//                   return { attendance, dutyReward };
+//               })
+//         );
+//
+//         // Calculate total reward for the day
+//         const totalReward = attendanceRecords.reduce((sum, record) => sum + record.dutyReward.amount, 0);
+//
+//         const dayAttendance = await prisma.dayAttendance.upsert({
+//             where: {
+//                 userId_date_centerId: {
+//                     userId: +userId,
+//                     date: dateString, // Use full ISO-8601 string
+//                     centerId: +centerId,
+//                 },
+//             },
+//             update: {
+//                 totalReward: {
+//                     increment: totalReward,
+//                 },
+//                 attendances: {
+//                     connect: attendanceRecords.map(record => ({ id: record.attendance.id })),
+//                 },
+//             },
+//             create: {
+//                 userId: +userId,
+//                 centerId: +centerId,
+//                 date: dateString, // Use full ISO-8601 string
+//                 examType,
+//                 totalReward,
+//                 attendances: {
+//                     connect: attendanceRecords.map(record => ({ id: record.attendance.id })),
+//                 },
+//             },
+//         });
+//
+//         return {
+//             status: 200,
+//             data: { attendanceRecords, dayAttendance },
+//             message: "Attendance, duty rewards, and day attendance created/updated successfully",
+//         };
+//     } catch (error) {
+//         return handlePrismaError(error);
+//     }
+// }
 export async function createAttendanceRecord({ userId, shiftIds, duty, date, centerId, examType }) {
     try {
         const existingDayAttendance = await prisma.dayAttendance.findFirst({
