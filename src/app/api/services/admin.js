@@ -242,7 +242,6 @@ export async function editCenter(id, data) {
         const updatedCenter = await prisma.center.update({
             where: { id: parseInt(id, 10) },
             data: updates,
-
         });
 if(!data.email){
     delete userUpdates.email;
@@ -256,7 +255,7 @@ if(userUpdates.password){
 }
         if (data.email) {
             await prisma.user.update({
-                where: { id: +id},
+                where: { id: +updatedCenter.adminUserId},
                 data: userUpdates,
             });
 
