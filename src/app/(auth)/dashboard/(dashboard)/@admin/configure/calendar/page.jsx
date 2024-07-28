@@ -65,7 +65,6 @@ export default function CalendarPage() {
                     setTotal={setTotal}
               />
               <AdminTable
-                    withEdit={true}
                     withDelete={true}
                     data={data}
                     columns={columns}
@@ -78,7 +77,6 @@ export default function CalendarPage() {
                     inputs={inputs}
                     setData={setData}
                     loading={loading}
-                    editHref={"admin/calendar"}
                     deleteHref={"admin/calendar"}
                     isCalendar={true}
                     setFilters={setFilters}

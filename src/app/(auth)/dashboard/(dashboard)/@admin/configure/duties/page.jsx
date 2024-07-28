@@ -58,7 +58,6 @@ export default function Duties() {
               />
               <AdminTable
                     withEdit={true}
-                    withDelete={true}
                     withArchive={true}
                     data={data}
                     columns={columns}
@@ -72,7 +71,6 @@ export default function Duties() {
                     setData={setData}
                     loading={loading}
                     editHref={"admin/duties"}
-                    deleteHref={"admin/duties"}
                     archiveHref={"admin/duties"}
 
               />

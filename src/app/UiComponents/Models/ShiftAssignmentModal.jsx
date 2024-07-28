@@ -54,12 +54,12 @@ const ShiftAssignmentModal = ({ shifts, setData, label, href, extraProps, item }
             setSnackbarOpen(true);
             return;
         }
-
         const formData = {
             userId: selectedUserId,
             shiftIds: selectedShifts,
             duty: filters.duty,
             date: item.date,
+            examType: item.examType,
         };
 
         const result = await handleRequestSubmit(formData, setLoading, href, false, "Assigning shifts...");

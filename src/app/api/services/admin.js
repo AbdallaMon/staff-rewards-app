@@ -2,16 +2,9 @@ import prisma from "@/lib/pirsma/prisma";
 import bcrypt from "bcrypt";
 import { sendEmail } from "@/app/api/utlis/sendMail";
 import { url } from "@/app/constants";
-
+import { handlePrismaError } from "@/app/api/utlis/prismaError";
 // Helper function to handle Prisma errors
-function handlePrismaError(error) {
-    console.log(error, "error");
-    if (error.code === 'P2002') {
-        const target = error.meta.target;
-        return { status: 409, message: `Unique constraint failed on the field: ${target}` };
-    }
-    return { status: 500, message: `Database error: ${error.message}` };
-}
+
 
 ////// Shifts //////
 export async function fetchShifts(page = 1, limit = 10) {
@@ -609,6 +602,19 @@ export async function fetchCalendars(page = 1, limit = 10, filters = {}) {
 // Create a new calendar entry
 export async function createCalendar(data) {
     try {
+        const existingCalendar = await prisma.calendar.findFirst({
+            where: {
+                examType: data.examType,
+                date: new Date(data.date).toISOString()
+            },
+        });
+
+        if (existingCalendar) {
+            return {
+                status: 400,
+                message: "A calendar entry for this exam type and date already exists.",
+            };
+        }
         const newCalendar = await prisma.calendar.create({
             data: {
                 date: new Date(data.date),
@@ -640,9 +646,39 @@ export async function editCalendar(id, data) {
 // Delete a calendar entry
 export async function deleteCalendar(id) {
     try {
+        // Find the calendar entry to get the date and examType
+        const calendar = await prisma.calendar.findUnique({
+            where: { id: parseInt(id, 10) },
+            select: {
+                date: true,
+                examType: true,
+            },
+        });
+
+        if (!calendar) {
+            return { status: 404, message: "Calendar entry not found" };
+        }
+
+        // Check for related dayAttendance
+        const relatedDayAttendance = await prisma.dayAttendance.findFirst({
+            where: {
+                date: calendar.date,
+                examType: calendar.examType,
+            },
+        });
+
+        if (relatedDayAttendance) {
+            return {
+                status: 400,
+                message: "Cannot delete calendar entry. There is a related dayAttendance for the same date and examType.",
+            };
+        }
+
+        // Delete the calendar entry if no related dayAttendance is found
         const deletedCalendar = await prisma.calendar.delete({
             where: { id: parseInt(id, 10) },
         });
+
         return { status: 200, data: deletedCalendar, message: "Calendar entry deleted successfully" };
     } catch (error) {
         return handlePrismaError(error);

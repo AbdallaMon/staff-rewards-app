@@ -1,4 +1,4 @@
-import {archiveDuty, deleteDuty, editCalendar, editDuty} from "@/app/api/services/admin";
+import {archiveDuty, deleteCalendar, deleteDuty, editCalendar, editDuty} from "@/app/api/services/admin";
 
 export async function PUT(request,response){
     const {calenderId}=response.params;
@@ -8,7 +8,7 @@ export async function PUT(request,response){
 }
 
 export async function DELETE(request,response){
-    const {dutyId}=response.params;
-    const data=await deleteDuty(+dutyId);
+    const {calenderId}=response.params;
+    const data=await deleteCalendar(+calenderId);
     return Response.json(data,{status:200});
 }

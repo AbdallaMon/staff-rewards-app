@@ -33,7 +33,6 @@ export default function EmployeesRequest() {
           <div>
               <AdminTable
                     withEdit={false}
-                    withDelete={false}
                     data={data}
                     columns={columns}
                     page={page}

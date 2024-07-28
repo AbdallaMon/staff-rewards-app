@@ -57,7 +57,6 @@ export default function Shifts() {
         <AdminTable
               withEdit={true}
               withArchive={true}
-              withDelete={true}
               archiveHref={"admin/shifts"}
               data={data}
               columns={columns}
@@ -71,7 +70,6 @@ export default function Shifts() {
               setData={setData}
               loading={loading}
               editHref={"admin/shifts"}
-              deleteHref={"admin/shifts"}
         />
     </div>;
 }

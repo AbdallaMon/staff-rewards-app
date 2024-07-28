@@ -35,6 +35,7 @@ model User {
   duty                 Duty?     @relation(fields: [dutyId], references: [id])
   attendance           Attendance[]
   dutyRewards          DutyReward[]
+  dayAttendances       DayAttendance[]
   centerAdmin          Center?   @relation("CenterAdmin")
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
@@ -44,6 +45,17 @@ model User {
   emailConfirmed       Boolean   @default(false)
   accountStatus        AccountStatus @default(APPROVED)
   rejectedReason       String?
+  logs                 Log[]
+}
+
+model Log {
+  id           Int       @id @default(autoincrement())
+  userId       Int
+  attendanceId Int
+  action       String?
+  createdAt    DateTime  @default(now())
+  user         User      @relation(fields: [userId], references: [id])
+  attendance   Attendance @relation(fields: [attendanceId], references: [id])
 }
 
 model Center {
@@ -54,8 +66,8 @@ model Center {
   email          String
   supervisorEmail String
   employees      User[]        @relation("CenterEmployees")
-  centerShifts   CenterShift[]
   attendance     Attendance[]
+  dayAttendances DayAttendance[]
   adminUserId    Int?          @unique
   centerAdmin    User?         @relation(fields: [adminUserId], references: [id], name: "CenterAdmin")
   createdAt      DateTime      @default(now())
@@ -68,24 +80,11 @@ model Shift {
   name          String
   duration      Int           // Duration in hours
   rewards       DutyReward[]
-  centerShifts  CenterShift[]
   attendance    Attendance[]
   archived      Boolean       @default(false)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @default(now())
   deletedAt     DateTime?
-}
-
-model CenterShift {
-  id           Int           @id @default(autoincrement())
-  centerId     Int
-  shiftId      Int
-  center       Center        @relation(fields: [centerId], references: [id])
-  shift        Shift         @relation(fields: [shiftId], references: [id])
-  schedule     ShiftSchedule[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @default(now())
-  deletedAt    DateTime?
 }
 
 model Duty {
@@ -94,10 +93,26 @@ model Duty {
   rewards      DutyReward[]
   amount       Float
   users        User[]
-  archived      Boolean       @default(false)
+  archived     Boolean       @default(false)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @default(now())
   deletedAt    DateTime?
+}
+
+model DayAttendance {
+  id            Int           @id @default(autoincrement())
+  userId        Int
+  centerId      Int
+  date          DateTime
+  examType      String?
+  totalReward   Float?
+  user          User          @relation(fields: [userId], references: [id])
+  center        Center        @relation(fields: [centerId], references: [id])
+  attendances   Attendance[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @default(now())
+  deletedAt     DateTime?
+   @@unique([userId, date, centerId])
 }
 
 model DutyReward {
@@ -119,29 +134,21 @@ model DutyReward {
 }
 
 model Attendance {
-  id           Int           @id @default(autoincrement())
-  userId       Int
-  centerId     Int
-  shiftId      Int
-  date         DateTime
-  user         User          @relation(fields: [userId], references: [id])
-  center       Center        @relation(fields: [centerId], references: [id])
-  shift        Shift         @relation(fields: [shiftId], references: [id])
-  dutyRewards  DutyReward[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @default(now())
-  deletedAt    DateTime?
-}
-
-model ShiftSchedule {
-  id           Int           @id @default(autoincrement())
-  centerShiftId Int
-  date         DateTime
-  shiftType    ShiftType
-  centerShift  CenterShift   @relation(fields: [centerShiftId], references: [id])
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @default(now())
-  deletedAt    DateTime?
+  id              Int           @id @default(autoincrement())
+  userId          Int
+  centerId        Int
+  shiftId         Int
+  date            DateTime
+  user            User          @relation(fields: [userId], references: [id])
+  center          Center        @relation(fields: [centerId], references: [id])
+  shift           Shift         @relation(fields: [shiftId], references: [id])
+  dutyRewards     DutyReward[]
+  dayAttendanceId Int?
+  dayAttendance   DayAttendance? @relation(fields: [dayAttendanceId], references: [id])
+  logs            Log[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @default(now())
+  deletedAt       DateTime?
 }
 
 model Calendar {
@@ -156,11 +163,6 @@ model Calendar {
 enum Gender {
   MALE
   FEMALE
-}
-
-enum ShiftType {
-  HOURS_3
-  HOURS_5
 }
 
 enum UserRole {

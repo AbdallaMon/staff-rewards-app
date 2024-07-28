@@ -87,7 +87,6 @@ const editInputs = [...inputs]
           />
           <AdminTable
                 withEdit={true}
-                withDelete={true}
                 data={data}
                 columns={columns}
                 page={page}
@@ -100,7 +99,6 @@ const editInputs = [...inputs]
                 setData={setData}
                 loading={loading}
                 editHref={"admin/centers"}
-                deleteHref={"admin/centers"}
                 checkChanges={true}
           />
         </div>

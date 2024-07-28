@@ -80,7 +80,6 @@ export default function EmployeesRequest() {
 
               <AdminTable
                     withEdit={false}
-                    withDelete={false}
                     data={data}
                     columns={columns}
                     page={page}

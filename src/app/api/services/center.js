@@ -1,13 +1,6 @@
 import prisma from "@/lib/pirsma/prisma";
+import { handlePrismaError } from "@/app/api/utlis/prismaError";
 
-function handlePrismaError(error) {
-    console.log(error, "error");
-    if (error.code === 'P2002') {
-        const target = error.meta.target;
-        return { status: 409, message: `Unique constraint failed on the field: ${target}` };
-    }
-    return { status: 500, message: `Database error: ${error.message}` };
-}
 
 export async function fetchUsersByCenterId(centerId, page = 1, limit = 10, filters = {}) {
     const offset = (page - 1) * limit;
@@ -24,7 +17,7 @@ export async function fetchUsersByCenterId(centerId, page = 1, limit = 10, filte
     if (filters.dutyId) {
         where.dutyId = filters.dutyId;
     }
-
+where.role="EMPLOYEE";
     try {
         const [employees, total] = await prisma.$transaction([
             prisma.user.findMany({
@@ -80,8 +73,7 @@ export async function fetchUsersByCenterId(centerId, page = 1, limit = 10, filte
         return handlePrismaError(error);
     }
 }
-
-export async function fetchAttendanceByCenterId(centerId, filters = {}) {
+export async function fetchAttendanceByCenterId(centerId, page, limit, filters = {}) {
     const where = { centerId };
 
     if (filters.startDate && filters.endDate) {
@@ -108,17 +100,49 @@ export async function fetchAttendanceByCenterId(centerId, filters = {}) {
     }
 
     try {
-        const [attendanceRecords, total] = await prisma.$transaction([
-            prisma.attendance.findMany({
+        const [dayAttendanceRecords, total] = await prisma.$transaction([
+            prisma.dayAttendance.findMany({
                 where,
                 orderBy: { date: 'desc' },
+                skip: (page - 1) * limit,
+                take: limit,
+                select: {
+                    userId: true,
+                    date: true,
+                    examType: true,
+                    totalReward: true,
+                    id: true,
+                    user: {
+                        select: {
+                            name: true,
+                            emiratesId: true,
+                            rating: true,
+
+                        },
+                    },
+                    _count: {
+                        select: { attendances: true },
+                    },
+                },
             }),
-            prisma.attendance.count({ where }),
+            prisma.dayAttendance.count({ where }),
         ]);
+
+        const summaryRecords = dayAttendanceRecords.map(record => ({
+            userId: record.userId,
+            name: record.user.name,
+            emiratesId: record.user.emiratesId,
+            date: record.date,
+            rating: record.user.rating,
+            examType: record.examType,
+            numberOfShifts: record._count.attendances,
+            reward: record.totalReward,
+            id: record.id,
+        }));
 
         return {
             status: 200,
-            data: attendanceRecords,
+            data: summaryRecords,
             total,
             message: "Attendance records fetched successfully"
         };
@@ -127,6 +151,82 @@ export async function fetchAttendanceByCenterId(centerId, filters = {}) {
     }
 }
 
+
+export async function fetchAttendanceDetailsByDayAttendanceId(dayAttendanceId) {
+    try {
+        const dayAttendance = await prisma.dayAttendance.findUnique({
+            where: { id: parseInt(dayAttendanceId, 10) },
+            include: {
+                user: {
+                    select: {
+                        name: true,
+                        email: true,
+                        emiratesId: true,
+                        photo: true,
+                        rating: true,
+                        duty: {
+                            select: {
+                                name: true,
+                            },
+
+                        }
+                    },
+                },
+
+                attendances: {
+                    include: {
+                        shift: {
+                            select: {
+                                name: true,
+                                duration: true,
+                            },
+                        },
+                        dutyRewards: {
+                            select: {
+                                amount: true,
+                                duty: {
+                                    select: {
+                                        name: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!dayAttendance) {
+            return { status: 404, message: "Day Attendance not found" };
+        }
+
+        // Fetch all shifts to identify un-attended shifts
+        const allShifts = await prisma.shift.findMany({
+            where:{
+                archived:false
+            },
+            select: {
+                id: true,
+                name: true,
+                duration: true,
+            },
+        });
+
+        const attendedShiftIds = dayAttendance.attendances.map(attendance => attendance.shiftId);
+        const unattendedShifts = allShifts.filter(shift => !attendedShiftIds.includes(shift.id));
+
+        return {
+            status: 200,
+            data: {
+                ...dayAttendance,
+                unattendedShifts,
+            },
+            message: "Day Attendance details fetched successfully",
+        };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
 export async function updateEmployeeRating(userId, newRating) {
     try {
         const updatedEmployee = await prisma.user.update({
@@ -171,9 +271,22 @@ export async function updateEmployeeRating(userId, newRating) {
         return handlePrismaError(error);
     }
 }
-
-export async function createAttendanceRecord({ userId, shiftIds, duty, date, centerId }) {
+export async function createAttendanceRecord({ userId, shiftIds, duty, date, centerId, examType }) {
     try {
+        const existingDayAttendance = await prisma.dayAttendance.findFirst({
+            where: {
+                userId: +userId,
+                date: new Date(date).toISOString(),
+                centerId: +centerId,
+            },
+        });
+
+        if (existingDayAttendance) {
+            return {
+                status: 400,
+                message: "Attendance for this user on this date already exists.",
+            };
+        }
         const attendanceRecords = await Promise.all(
               shiftIds.map(async (shiftId) => {
                   // Create attendance record
@@ -218,10 +331,41 @@ export async function createAttendanceRecord({ userId, shiftIds, duty, date, cen
               })
         );
 
+        // Calculate total reward for the day
+        const totalReward = attendanceRecords.reduce((sum, record) => sum + record.dutyReward.amount, 0);
+
+        const dayAttendance = await prisma.dayAttendance.upsert({
+            where: {
+                userId_date_centerId: {
+                    userId: +userId,
+                    date: new Date(date).toISOString(), // Use full ISO-8601 string
+                    centerId: +centerId,
+                },
+            },
+            update: {
+                totalReward: {
+                    increment: totalReward,
+                },
+                attendances: {
+                    connect: attendanceRecords.map(record => ({ id: record.attendance.id })),
+                },
+            },
+            create: {
+                userId: +userId,
+                centerId: +centerId,
+                date: new Date(date).toISOString(), // Use full ISO-8601 string
+                examType,
+                totalReward,
+                attendances: {
+                    connect: attendanceRecords.map(record => ({ id: record.attendance.id })),
+                },
+            },
+        });
+
         return {
             status: 200,
-            data: attendanceRecords,
-            message: "Attendance and duty rewards created successfully",
+            data: { attendanceRecords, dayAttendance },
+            message: "Attendance, duty rewards, and day attendance created/updated successfully",
         };
     } catch (error) {
         return handlePrismaError(error);

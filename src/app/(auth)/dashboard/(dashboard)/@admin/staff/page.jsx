@@ -91,7 +91,6 @@ useEffect(()=>{
          <FilterSelect options={centers} label={"Centers"} onChange={handleCenterChange} loading={centerLoading} value={selectedCenter} />
               <AdminTable
                     withEdit={!loadingInputs}
-                    withDelete={false}
                     data={data}
                     columns={columns}
                     page={page}
@@ -103,7 +102,6 @@ useEffect(()=>{
                     inputs={inputs}
                     setData={setData}
                     loading={loading}
-                    deleteHref={null}
                     editHref={"admin/employees"}
                     extraComponent={({ item }) => (
                           <Button onClick={() => handleRowClick(item.id)}>View Details</Button>
