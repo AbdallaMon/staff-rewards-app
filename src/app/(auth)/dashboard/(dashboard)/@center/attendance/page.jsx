@@ -42,11 +42,9 @@ export default function Attendance() {
     };
 
     const handleRowClick = (attendanceId) => {
-        console.log(attendanceId,"attendanceId")
         setSelectedAttendanceId(attendanceId);
         setDrawerOpen(true);
     };
-    console.log(selectedAttendanceId,"selectedAttendanceId")
 
     return (
           <div>
@@ -88,8 +86,13 @@ export default function Attendance() {
               <AttendanceDetailDrawer
                     dayAttendanceId={selectedAttendanceId}
                     open={drawerOpen}
-                    onClose={() => setDrawerOpen(false)}
+                    onClose={() => {
+                        setDrawerOpen(false)
+                        setSelectedAttendanceId(null)
+                    }}
                     center={true}
+                    setData={setData}
+
               />
           </div>
     );

@@ -14,22 +14,43 @@ import {
     Divider,
     Modal,
     Container,
-    Link
+    Link,
+    Checkbox,
+    Button
 } from '@mui/material';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaEdit } from 'react-icons/fa';
+import { handleRequestSubmit } from "@/helpers/functions/handleSubmit";
+import { useToastContext } from "@/providers/ToastLoadingProvider";
 
 const fetchAttendanceById = async (dayAttendanceId, center) => {
-    const response = await fetch(center ? `/api/center/attendance/${dayAttendanceId}` : `/api/attendance/${dayAttendanceId}`);
+    const response = await fetch(center ? `/api/center/attendance/${dayAttendanceId}` : `/api/financial/attendance/${dayAttendanceId}`);
     const result = await response.json();
     return result;
 };
 
-const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center }) => {
+const updateAttendance = async (dayAttendanceId, editedAttendances, deletedAttendances, center) => {
+    const response = await fetch(center ? `/api/center/attendance/${dayAttendanceId}` : `/api/financial/attendance/${dayAttendanceId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ editedAttendances, deletedAttendances })
+    });
+    const result = await response.json();
+    return result;
+};
+
+const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center,setData }) => {
     const [attendanceData, setAttendanceData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [imageModalOpen, setImageModalOpen] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [checkedShifts, setCheckedShifts] = useState({});
+    const [editedAttendances, setEditedAttendances] = useState([]);
+    const [deletedAttendances, setDeletedAttendances] = useState([]);
+    const { setLoading: setSubmitLoading } = useToastContext();
 
     useEffect(() => {
         if (dayAttendanceId) {
@@ -37,7 +58,12 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center }) => {
             setError(null);
             fetchAttendanceById(dayAttendanceId, center).then(response => {
                 if (response.status === 200) {
+                    const attendances = response.data.attendances.reduce((acc, attendance) => {
+                        acc[attendance.shiftId] = true;
+                        return acc;
+                    }, {});
                     setAttendanceData(response.data);
+                    setCheckedShifts(attendances);
                 } else {
                     setError(response.message);
                 }
@@ -59,25 +85,56 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center }) => {
         setImageModalOpen(false);
     };
 
-    const renderDocument = (label, value) => (
-          <ListItem>
-              <ListItemText primary={label} secondary={value ? (value.toLowerCase().endsWith('.pdf') ? "" : value) : "N/A"} />
-              {value && (
-                    value.toLowerCase().endsWith('.pdf') ? (
-                          <Link href={value} target="_blank" sx={{ ml: 2 }}>
-                              PDF file. Click to open link.
-                          </Link>
-                    ) : (
-                          <Avatar
-                                src={value}
-                                sx={{ width: 80, height: 80, cursor: 'pointer', ml: 2 }}
-                                onClick={() => handleImageClick(value)}
-                          />
-                    )
-              )}
-          </ListItem>
-    );
+    const handleEditClick = () => {
+        setEditModalOpen(true);
+    };
 
+    const handleEditModalClose = () => {
+        setEditModalOpen(false);
+    };
+
+    const handleCheckboxChange = (shiftId, attended) => {
+        setCheckedShifts(prev => ({ ...prev, [shiftId]: attended }));
+
+        if (attended) {
+            // Add to editedAttendances only if it is not already attended
+            if (!attendanceData.attendances.some(attendance => attendance.shiftId === shiftId)) {
+                setEditedAttendances(prev => [...prev, shiftId]);
+            }
+            setDeletedAttendances(prev => prev.filter(id => id !== shiftId));
+        } else {
+            if (attendanceData.attendances.some(attendance => attendance.shiftId === shiftId)) {
+                setDeletedAttendances(prev => [...prev, shiftId]);
+            }
+            setEditedAttendances(prev => prev.filter(id => id !== shiftId));
+        }
+    };
+
+    const handleSubmit = async () => {
+        const href = center ? `center/attendance/${dayAttendanceId}` : `financial/attendance/${dayAttendanceId}`;
+        const dutyAmount=attendanceData.user.duty.amount;
+        const otherData={centerId:attendanceData.centerId,userId:attendanceData.userId,dutyId:attendanceData.user.duty.id,amount:dutyAmount,date:attendanceData.date,dutyName:attendanceData.user.duty.name}
+        const response = await handleRequestSubmit({ editedAttendances, deletedAttendances,...otherData }, setSubmitLoading, href, false, "Updating", false, "PUT");
+        if (response.status === 200) {
+            setData((prev)=>prev.map((item)=>{
+                if(item.id===dayAttendanceId){
+                    const numberOfShifts=attendanceData.attendances.length+editedAttendances.length-deletedAttendances.length;
+                    item.numberOfShifts=numberOfShifts;
+                    item.reward=numberOfShifts*dutyAmount;
+                }
+                return item
+            }
+            ))
+            setDeletedAttendances([]);
+            setEditedAttendances([]);
+            onClose();
+            setEditModalOpen(false);
+        } else {
+            setError(response.message);
+        }
+    };
+
+    const isToday = new Date().toDateString() === new Date(attendanceData?.date).toDateString();
     return (
           <>
               <Drawer anchor="bottom" open={open} onClose={onClose} sx={{}}>
@@ -135,7 +192,6 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center }) => {
                                         <Typography variant="h6" color="primary">Attended Shifts</Typography>
                                         <Typography variant="subtitle1" color="secondary">Exam Type: {attendanceData.examType || "N/A"}</Typography>
                                         <Typography variant="subtitle1" color="secondary">Date: {new Date(attendanceData.date).toLocaleDateString() || "N/A"}</Typography>
-
                                         <List>
                                             {attendanceData.attendances.map((attendance, index) => (
                                                   <ListItem key={index}>
@@ -144,7 +200,7 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center }) => {
                                                             secondary={`Duration: ${attendance.shift.duration} hours`}
                                                       />
                                                       <List>
-                                                          {attendance.dutyRewards.map((reward, idx) => (
+                                                          {attendance.dutyRewards?.map((reward, idx) => (
                                                                 <ListItem key={idx}>
                                                                     <ListItemText
                                                                           primary={`Duty: ${reward.duty.name}`}
@@ -168,12 +224,46 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center }) => {
                                                   </ListItem>
                                             ))}
                                         </List>
+                                        {center && isToday && (
+                                              <Button variant="contained" color="primary" onClick={handleEditClick}>
+                                                  <FaEdit /> Edit Attendance
+                                              </Button>
+                                        )}
+                                        {!isToday && center && (
+                                              <Typography variant="h6" color="error">You can't edit this because the exam has ended.</Typography>
+                                        )}
+                                        {!center && (
+                                              <Button variant="contained" color="primary" onClick={handleEditClick}>
+                                                  <FaEdit /> Edit Attendance
+                                              </Button>
+                                        )}
                                     </Grid>
                                 </Grid>
                             </Box>
                       )}
                   </Container>
               </Drawer>
+              <Modal open={editModalOpen} onClose={handleEditModalClose} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  <Box sx={{ p: 2, backgroundColor: 'white', borderRadius: 2, minWidth: 300 }}>
+                      <Typography variant="h6">Edit Attendance</Typography>
+                      <List>
+                          {attendanceData?.allShifts?.map((shift) => {
+                              const attended = checkedShifts[shift.id] || false;
+                              return (
+                                    <ListItem key={shift.id}>
+                                        <Checkbox
+                                              checked={attended}
+                                              onChange={(e) => handleCheckboxChange(shift.id, e.target.checked)}
+                                        />
+                                        <ListItemText primary={shift.name}  />
+                                        <span>{shift.duration} hr</span>
+                                    </ListItem>
+                              );
+                          })}
+                      </List>
+                      <Button variant="contained" color="primary" onClick={handleSubmit}>Save Changes</Button>
+                  </Box>
+              </Modal>
               {selectedImage && (
                     <Modal open={imageModalOpen} onClose={handleImageModalClose} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                         <Box sx={{ position: 'relative', maxWidth: '90%', maxHeight: '90%' }}>

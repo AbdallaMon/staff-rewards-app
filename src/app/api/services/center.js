@@ -167,6 +167,8 @@ export async function fetchAttendanceDetailsByDayAttendanceId(dayAttendanceId) {
                         duty: {
                             select: {
                                 name: true,
+                                id:true
+                                ,amount:true
                             },
 
                         }
@@ -219,7 +221,7 @@ export async function fetchAttendanceDetailsByDayAttendanceId(dayAttendanceId) {
             status: 200,
             data: {
                 ...dayAttendance,
-                unattendedShifts,
+                unattendedShifts,allShifts
             },
             message: "Day Attendance details fetched successfully",
         };
@@ -484,7 +486,110 @@ export async function createAttendanceRecord({ userId, shiftIds, duty, date, cen
         return {
             status: 200,
             data: { attendanceRecords, dayAttendance },
-            message: "Attendance, duty rewards, and day attendance created/updated successfully",
+            message: "Attendance created successfully",
+        };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+
+///// edit attendance //////
+
+export async function updateAttendanceRecords(dayAttendanceId, body) {
+    const {editedAttendances, deletedAttendances, userId, amount, date, centerId, examType,dutyId }=body
+    try {
+        // Verify that the dayAttendance exists
+        const existingDayAttendance = await prisma.dayAttendance.findUnique({
+            where: { id: +dayAttendanceId },
+        });
+
+        if (!existingDayAttendance) {
+            return {
+                status: 400,
+                message: "No attendance record found for this date.",
+            };
+        }
+
+        let totalReward = 0;
+
+        // Delete the specified attendance records and their related duty rewards
+        await Promise.all(deletedAttendances.map(async (shiftId) => {
+            const attendance = await prisma.attendance.findFirst({
+                where: {
+                    userId: +userId,
+                    shiftId: +shiftId,
+                    date: new Date(date),
+                    centerId: +centerId,
+                    dayAttendanceId: +dayAttendanceId,
+                },
+            });
+
+            if (attendance) {
+                const dutyRewards = await prisma.dutyReward.findMany({
+                    where: { attendanceId: attendance.id },
+                });
+
+                const rewardSum = dutyRewards.reduce((sum, reward) => sum + reward.amount, 0);
+                totalReward -= rewardSum;
+
+                await prisma.dutyReward.deleteMany({
+                    where: { attendanceId: attendance.id },
+                });
+
+                await prisma.attendance.delete({
+                    where: { id: attendance.id },
+                });
+            }
+        }));
+
+        // Create new attendance records for the specified shifts
+        const attendanceRecords = await Promise.all(
+              editedAttendances.map(async (shiftId) => {
+                  const attendance = await prisma.attendance.create({
+                      data: {
+                          userId: +userId,
+                          shiftId: +shiftId,
+                          date: new Date(date),
+                          centerId: +centerId,
+                          dayAttendanceId: +dayAttendanceId,
+                      },
+                  });
+                  const dutyReward = await prisma.dutyReward.create({
+                      data: {
+                          amount: amount,
+                          date: new Date(date),
+                          userId: +userId,
+                          attendanceId: attendance.id,
+                          shiftId: +shiftId,
+                          dutyId: +dutyId,
+                      },
+                  });
+
+                  totalReward += dutyReward.amount;
+
+                  return { attendance, dutyReward };
+              })
+        );
+
+  await prisma.dayAttendance.update({
+            where: { id: +dayAttendanceId },
+            data: {
+                totalReward: {
+                    increment: totalReward,
+                },
+                attendances: {
+                    connect: attendanceRecords.map(record => ({ id: record.attendance.id })),
+                },
+            },
+        });
+
+
+
+
+        return {
+            status: 200,
+            message: "Attendance records updated successfully",
         };
     } catch (error) {
         return handlePrismaError(error);
