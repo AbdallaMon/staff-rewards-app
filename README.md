@@ -4,3 +4,7 @@
 8- add tabs for logs
 9- dashboard for admin
 11- admin can change password
+
+
+// notes
+1- do i separate the attachments from the register form?
