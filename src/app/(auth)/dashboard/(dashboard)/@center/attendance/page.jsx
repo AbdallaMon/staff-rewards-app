@@ -1,5 +1,5 @@
 "use client";
-import { Box, Button } from "@mui/material";
+import {Box, Button, TextField} from "@mui/material";
 import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
 import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
@@ -7,33 +7,43 @@ import { useState } from "react";
 import dayjs from "dayjs";
 import AttendanceDetailDrawer from "@/app/UiComponents/DataViewer/AttendanceDetailDrawer";
 import RangeDateComponent from "@/app/UiComponents/FormComponents/MUIInputs/RangeDateComponent";
+import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
+import {DatePicker} from "@mui/x-date-pickers/DatePicker";
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import DateComponent from "@/app/UiComponents/FormComponents/MUIInputs/DateChangerComponent";
 
 export default function Attendance() {
     const { data, loading, setData, page, setPage, limit, setLimit, total, setTotal, setFilters } = useDataFetcher("center/attendance", false);
-    const [startDate, setStartDate] = useState();
-    const [endDate, setEndDate] = useState();
+    const now = dayjs();
+    const firstDayOfMonth = now.startOf('month').format('YYYY-MM-DD');
+    const lastDayOfMonth = now.endOf('month').format('YYYY-MM-DD');
+
+    const [date, setDate] = useState(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedAttendanceId, setSelectedAttendanceId] = useState(null);
-
+    const [startDate, setStartDate] = useState(firstDayOfMonth);
+    const [endDate, setEndDate] = useState(lastDayOfMonth);
     const columns = [
         { name: "name", label: "Name" },
         { name: "emiratesId", label: "Emirates ID" },
         { name: "date", label: "Date" },
-        { name: "reward", label: "Total Reward" },
         { name: "examType", label: "Exam Type" },
         { name: "numberOfShifts", label: "Attended Shifts" },
     ];
 
+    const handleDateChange = (newDate) => {
+        setDate(newDate ? dayjs(newDate).format('YYYY-MM-DD') : null);
+        updateFilters({ date: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, startDate: null, endDate: null });
+    };
     const handleStartDateChange = (newDate) => {
         setStartDate(newDate);
-        updateFilters({ startDate: newDate });
+        updateFilters({ startDate: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, date: null });
     };
 
     const handleEndDateChange = (newDate) => {
         setEndDate(newDate);
-        updateFilters({ endDate: newDate });
+        updateFilters({ endDate: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, date: null });
     };
-
     const updateFilters = (newFilters) => {
         setFilters((prevFilters) => ({
             ...prevFilters,
@@ -67,6 +77,9 @@ export default function Attendance() {
                         handleStartDateChange={handleStartDateChange}
                         handleEndDateChange={handleEndDateChange}
                   />
+                 <DateComponent date={date} handleDateChange={handleDateChange}
+                 label="Select a day"
+                 />
               </Box>
               <AdminTable
                     data={data}

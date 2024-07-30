@@ -10,7 +10,7 @@ export function DisplayLoadingAndErrors({ loading }) {
             position: "fixed",
             top: 0,
             right: 0,
-            zIndex: 1001,
+            zIndex: 99998,
             width: "100%",
             height: "100%",
             backgroundColor: "rgba(0, 0, 0, 0.5)",

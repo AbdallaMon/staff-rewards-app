@@ -22,7 +22,7 @@ export default function LoginPage() {
     );
   }
 
-  const subTitle = <Link href={url + "/"}>Request a new account ?</Link>;
+  const subTitle = <Link href={url + "/register"}>Request a new account ?</Link>;
   return (
         <>
           <AuthForm

@@ -42,7 +42,7 @@ model User {
   deletedAt            DateTime?
   resetPasswordToken   String?   @unique
   resetPasswordExpires DateTime?
-  emailConfirmed       Boolean   @default(false)
+  emailConfirmed       Boolean   @default(true)
   accountStatus        AccountStatus @default(APPROVED)
   rejectedReason       String?
   logs                 Log[]
@@ -106,6 +106,8 @@ model DayAttendance {
   date          DateTime
   examType      String?
   totalReward   Float?
+  isPaid       Boolean       @default(false)
+  attachment String?
   user          User          @relation(fields: [userId], references: [id])
   center        Center        @relation(fields: [centerId], references: [id])
   attendances   Attendance[]

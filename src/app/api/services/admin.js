@@ -1,8 +1,9 @@
 import prisma from "@/lib/pirsma/prisma";
 import bcrypt from "bcrypt";
-import { sendEmail } from "@/app/api/utlis/sendMail";
-import { url } from "@/app/constants";
-import { handlePrismaError } from "@/app/api/utlis/prismaError";
+import {sendEmail} from "@/app/api/utlis/sendMail";
+import {url} from "@/app/constants";
+import {handlePrismaError} from "@/app/api/utlis/prismaError";
+import jwt from "jsonwebtoken";
 // Helper function to handle Prisma errors
 
 
@@ -14,10 +15,10 @@ export async function fetchShifts(page = 1, limit = 10) {
             prisma.shift.findMany({
                 skip: offset,
                 take: limit,
-                orderBy: { createdAt: 'desc' },
-                where: { archived: false }
+                orderBy: {createdAt: 'desc'},
+                where: {archived: false}
             }),
-            prisma.shift.count({ where: { archived: false } }),
+            prisma.shift.count({where: {archived: false}}),
         ]);
         return {
             status: 200,
@@ -40,7 +41,7 @@ export async function createShift(data) {
                 duration: +data.duration,
             },
         });
-        return { status: 200, data: newShift, message: "Shift created successfully" };
+        return {status: 200, data: newShift, message: "Shift created successfully"};
     } catch (error) {
         return handlePrismaError(error);
     }
@@ -49,13 +50,13 @@ export async function createShift(data) {
 export async function editShift(id, data) {
     try {
         const updatedShift = await prisma.shift.update({
-            where: { id: parseInt(id, 10) },
+            where: {id: parseInt(id, 10)},
             data: {
                 name: data.name,
                 duration: +data.duration,
             },
         });
-        return { status: 200, data: updatedShift, message: "Shift updated successfully" };
+        return {status: 200, data: updatedShift, message: "Shift updated successfully"};
     } catch (error) {
         return handlePrismaError(error);
     }
@@ -64,9 +65,9 @@ export async function editShift(id, data) {
 export async function deleteShift(id) {
     try {
         const deletedShift = await prisma.shift.delete({
-            where: { id: parseInt(id, 10) },
+            where: {id: parseInt(id, 10)},
         });
-        return { status: 200, data: deletedShift, message: "Shift deleted successfully" };
+        return {status: 200, data: deletedShift, message: "Shift deleted successfully"};
     } catch (error) {
         return handlePrismaError(error);
     }
@@ -75,10 +76,10 @@ export async function deleteShift(id) {
 export async function archiveShift(id) {
     try {
         const archivedShift = await prisma.shift.update({
-            where: { id: parseInt(id, 10) },
-            data: { archived: true },
+            where: {id: parseInt(id, 10)},
+            data: {archived: true},
         });
-        return { status: 200, data: archivedShift, message: "Shift archived successfully" };
+        return {status: 200, data: archivedShift, message: "Shift archived successfully"};
     } catch (error) {
         return handlePrismaError(error);
     }
@@ -92,10 +93,10 @@ export async function fetchDuties(page = 1, limit = 10) {
             prisma.duty.findMany({
                 skip: offset,
                 take: limit,
-                orderBy: { createdAt: 'desc' },
-                where: { archived: false }
+                orderBy: {createdAt: 'desc'},
+                where: {archived: false}
             }),
-            prisma.duty.count({ where: { archived: false } }),
+            prisma.duty.count({where: {archived: false}}),
         ]);
         return {
             status: 200,
@@ -118,7 +119,7 @@ export async function createDuty(data) {
                 amount: +data.amount,
             },
         });
-        return { status: 200, data: newDuty, message: "Duty created successfully" };
+        return {status: 200, data: newDuty, message: "Duty created successfully"};
     } catch (error) {
         return handlePrismaError(error);
     }
@@ -127,13 +128,13 @@ export async function createDuty(data) {
 export async function editDuty(id, data) {
     try {
         const updatedDuty = await prisma.duty.update({
-            where: { id: parseInt(id, 10) },
+            where: {id: parseInt(id, 10)},
             data: {
                 name: data.name,
                 amount: +data.amount,
             },
         });
-        return { status: 200, data: updatedDuty, message: "Duty updated successfully" };
+        return {status: 200, data: updatedDuty, message: "Duty updated successfully"};
     } catch (error) {
         return handlePrismaError(error);
     }
@@ -142,9 +143,9 @@ export async function editDuty(id, data) {
 export async function deleteDuty(id) {
     try {
         const deletedDuty = await prisma.duty.delete({
-            where: { id: parseInt(id, 10) },
+            where: {id: parseInt(id, 10)},
         });
-        return { status: 200, data: deletedDuty, message: "Duty deleted successfully" };
+        return {status: 200, data: deletedDuty, message: "Duty deleted successfully"};
     } catch (error) {
         return handlePrismaError(error);
     }
@@ -153,10 +154,10 @@ export async function deleteDuty(id) {
 export async function archiveDuty(id) {
     try {
         const archivedDuty = await prisma.duty.update({
-            where: { id: parseInt(id, 10) },
-            data: { archived: true },
+            where: {id: parseInt(id, 10)},
+            data: {archived: true},
         });
-        return { status: 200, data: archivedDuty, message: "Duty archived successfully" };
+        return {status: 200, data: archivedDuty, message: "Duty archived successfully"};
     } catch (error) {
         return handlePrismaError(error);
     }
@@ -170,7 +171,10 @@ export async function createCenter(data) {
         // Validate password
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
         if (!passwordRegex.test(data.password)) {
-            return { status: 400, message: "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, and one number." };
+            return {
+                status: 400,
+                message: "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, and one number."
+            };
         }
     }
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -194,7 +198,7 @@ export async function createCenter(data) {
                 email: data.email,
                 supervisorEmail: data.supervisorEmail,
                 centerAdmin: {
-                    connect: { id: newUser.id }
+                    connect: {id: newUser.id}
                 }
             },
         });
@@ -213,7 +217,7 @@ export async function createCenter(data) {
               emailContent
         );
 
-        return { status: 200, data: newCenter, message: "Center created successfully and email sent to supervisor." };
+        return {status: 200, data: newCenter, message: "Center created successfully and email sent to supervisor."};
     } catch (error) {
         return handlePrismaError(error);
     }
@@ -225,37 +229,39 @@ export async function editCenter(id, data) {
             // Validate password
             const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
             if (!passwordRegex.test(data.password)) {
-                return { status: 400, message: "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, and one number." };
+                return {
+                    status: 400,
+                    message: "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, and one number."
+                };
             }
         }
-        const updates = { ...data };
-        const userUpdates={
-            email:data.email
+        const updates = {...data};
+        const userUpdates = {
+            email: data.email
         }
         // Handle password
         if (data.password) {
-            userUpdates.password =await bcrypt.hash(data.password, 10);
+            userUpdates.password = await bcrypt.hash(data.password, 10);
         }
-            delete updates.password;
+        delete updates.password;
 
 
         const updatedCenter = await prisma.center.update({
-            where: { id: parseInt(id, 10) },
+            where: {id: parseInt(id, 10)},
             data: updates,
         });
-if(!data.email){
-    delete userUpdates.email;
-}
-if(userUpdates.password){
-    await prisma.user.update({
-        where: { id: +updatedCenter.adminUserId},
-        data: userUpdates,
-    });
-    console.log("555555")
-}
+        if (!data.email) {
+            delete userUpdates.email;
+        }
+        if (userUpdates.password) {
+            await prisma.user.update({
+                where: {id: +updatedCenter.adminUserId},
+                data: userUpdates,
+            });
+        }
         if (data.email) {
             await prisma.user.update({
-                where: { id: +updatedCenter.adminUserId},
+                where: {id: +updatedCenter.adminUserId},
                 data: userUpdates,
             });
 
@@ -274,7 +280,7 @@ if(userUpdates.password){
             );
         }
 
-        return { status: 200, data: updatedCenter, message: "Center updated successfully" };
+        return {status: 200, data: updatedCenter, message: "Center updated successfully"};
     } catch (error) {
         return handlePrismaError(error);
     }
@@ -287,11 +293,10 @@ export async function fetchCenters(page = 1, limit = 10) {
             prisma.center.findMany({
                 skip: offset,
                 take: limit,
-                orderBy: { createdAt: 'desc' },
+                orderBy: {createdAt: 'desc'},
             }),
             prisma.center.count(),
         ]);
-
 
         return {
             status: 200,
@@ -310,13 +315,13 @@ export async function deleteCenter(id) {
     try {
 
         const deletedCenter = await prisma.center.delete({
-            where: { id: parseInt(id, 10) },
+            where: {id: parseInt(id, 10)},
         });
         const deletedUser = await prisma.user.delete({
-            where: { id: deletedCenter.adminUserId },
+            where: {id: deletedCenter.adminUserId},
         });
 
-        return { status: 200, data: deletedCenter, message: "Center and associated admin user deleted successfully" };
+        return {status: 200, data: deletedCenter, message: "Center and associated admin user deleted successfully"};
     } catch (error) {
         return handlePrismaError(error);
     }
@@ -332,6 +337,7 @@ export async function fetchEmployees(page = 1, limit = 10, employRequests = fals
         role: 'EMPLOYEE',
         accountStatus: requestStatus,
         centerId: centerId ? parseInt(centerId, 10) : undefined,
+        emailConfirmed: true,
     };
     try {
         const [employees, total] = await prisma.$transaction([
@@ -364,9 +370,9 @@ export async function fetchEmployees(page = 1, limit = 10, employRequests = fals
                         },
                     },
                 },
-                orderBy: { createdAt: 'desc' },
+                orderBy: {createdAt: 'desc'},
             }),
-            prisma.user.count({ where: { role: 'EMPLOYEE', accountStatus: requestStatus } })
+            prisma.user.count({where: {role: 'EMPLOYEE', accountStatus: requestStatus}})
         ]);
 
         const employeesWithRewards = employees.map(employee => {
@@ -396,15 +402,15 @@ export async function fetchUnconfirmedUsers(page = 1, limit = 10) {
     try {
         const [users, total] = await prisma.$transaction([
             prisma.user.findMany({
-                where: { emailConfirmed: false },
+                where: {emailConfirmed: false},
                 skip: offset,
                 take: limit,
                 include: {
                     center: true,
                 },
-                orderBy: { createdAt: 'desc' },
+                orderBy: {createdAt: 'desc'},
             }),
-            prisma.user.count({ where: { emailConfirmed: false } })
+            prisma.user.count({where: {emailConfirmed: false}})
         ]);
         return {
             status: 200,
@@ -429,7 +435,7 @@ export async function EditEmploy(employId, data) {
     }
     try {
         const updatedEmploy = await prisma.user.update({
-            where: { id: parseInt(employId, 10) },
+            where: {id: parseInt(employId, 10)},
             data: {
                 ...data
             },
@@ -477,7 +483,7 @@ export async function EditEmploy(employId, data) {
 export async function getUserById(id) {
     try {
         const user = await prisma.user.findUnique({
-            where: { id: parseInt(id, 10) },
+            where: {id: parseInt(id, 10)},
             include: {
                 center: true,
                 duty: true,
@@ -486,10 +492,10 @@ export async function getUserById(id) {
         });
 
         if (!user) {
-            return { status: 404, message: "User not found" };
+            return {status: 404, message: "User not found"};
         }
 
-        return { status: 200, data: user, message: "User fetched successfully" };
+        return {status: 200, data: user, message: "User fetched successfully"};
     } catch (error) {
         return handlePrismaError(error);
     }
@@ -497,11 +503,11 @@ export async function getUserById(id) {
 
 ///// employees requests /////
 
-export const approveUser = async (userId, { password, examType }) => {
+export const approveUser = async (userId, {password, examType}) => {
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = await prisma.user.update({
-            where: { id: userId },
+            where: {id: userId},
             data: {
                 password: hashedPassword,
                 examType,
@@ -519,18 +525,18 @@ export const approveUser = async (userId, { password, examType }) => {
 
         await sendEmail(user.email, 'Account Approved', emailContent);
 
-        return { status: 200, message: 'User approved successfully and a message sent to the user email ' };
+        return {status: 200, message: 'User approved successfully and a message sent to the user email '};
     } catch (error) {
         console.error('Error approving user:', error);
         return handlePrismaError(error);
     }
 };
 
-export const rejectUser = async (userId, { reason }) => {
+export const rejectUser = async (userId, {reason}) => {
     try {
         const user = await prisma.user.update({
-            where: { id: userId },
-            data: { accountStatus: 'REJECTED', rejectedReason: reason },
+            where: {id: userId},
+            data: {accountStatus: 'REJECTED', rejectedReason: reason},
         });
 
         const emailContent = `
@@ -541,29 +547,47 @@ export const rejectUser = async (userId, { reason }) => {
 
         await sendEmail(user.email, 'Account Rejected', emailContent);
 
-        return { status: 200, message: 'User rejected and a message with the reason sent to his email' };
+        return {status: 200, message: 'User rejected and a message with the reason sent to his email'};
     } catch (error) {
         console.error('Error rejecting user:', error);
         return handlePrismaError(error);
     }
 };
 
-export const uncompletedUser = async (userId, { checks, comments }) => {
+export const uncompletedUser = async (userId, {checks, comments}, baseUrl) => {
     try {
         const user = await prisma.user.update({
-            where: { id: userId },
-            data: { accountStatus: 'UNCOMPLETED' },
+            where: {id: userId},
+            data: {accountStatus: 'UNCOMPLETED'},
         });
 
-        let emailContent = '<h1>Account Registration Incomplete</h1><p>Your account registration is incomplete for the following reasons:</p><ul>';
-        checks.forEach((field) => {
-            emailContent += `<li><strong>${field}:</strong> ${comments[field] || 'No comment provided'}</li>`;
-        });
-        emailContent += `</ul><p><a href="${url}/signup/${userId}">Click here to complete your registration</a></p>`;
+        const tokenPayload = {
+            userId: userId,
+            email: user.email,
+            checks: checks.map((checkId) => ({
+                id: checkId,
+                comment: comments[checkId] || 'No comment provided',
+            })),
+        };
+        const SECRET_KEY = process.env.SECRET_KEY;
+
+        const token = jwt.sign(tokenPayload, SECRET_KEY, {expiresIn: '1h'});
+
+        const emailContent = `
+            <h1>Account Registration Incomplete</h1>
+            <p>Your account registration is incomplete for the following reasons:</p>
+            <ul>
+                ${checks.map(checkId => `<li><strong>${checkId}:</strong> ${comments[checkId] || 'No comment provided'}</li>`).join('')}
+            </ul>
+            <p><a href="${baseUrl}/uncompleted?token=${token}">Click here to complete your registration</a></p>
+        `;
 
         await sendEmail(user.email, 'Account Registration Incomplete', emailContent);
 
-        return { status: 200, message: 'User marked as uncompleted and a message with uncompleted details sent with link' };
+        return {
+            status: 200,
+            message: 'User marked as uncompleted and a message with uncompleted details sent with link'
+        };
     } catch (error) {
         console.error('Error marking user as uncompleted:', error);
         return handlePrismaError(error);
@@ -601,9 +625,9 @@ export async function fetchCalendars(page = 1, limit = 10, filters = {}) {
                 where,
                 skip: offset,
                 take: limit,
-                orderBy: { date: 'desc' },
+                orderBy: {date: 'desc'},
             }),
-            prisma.calendar.count({ where }),
+            prisma.calendar.count({where}),
         ]);
 
         return {
@@ -641,7 +665,7 @@ export async function createCalendar(data) {
                 examType: data.examType,
             },
         });
-        return { status: 200, data: newCalendar, message: "Calendar entry created successfully" };
+        return {status: 200, data: newCalendar, message: "Calendar entry created successfully"};
     } catch (error) {
         return handlePrismaError(error);
     }
@@ -651,13 +675,13 @@ export async function createCalendar(data) {
 export async function editCalendar(id, data) {
     try {
         const updatedCalendar = await prisma.calendar.update({
-            where: { id: parseInt(id, 10) },
+            where: {id: parseInt(id, 10)},
             data: {
                 date: new Date(data.date),
                 examType: data.examType,
             },
         });
-        return { status: 200, data: updatedCalendar, message: "Calendar entry updated successfully" };
+        return {status: 200, data: updatedCalendar, message: "Calendar entry updated successfully"};
     } catch (error) {
         return handlePrismaError(error);
     }
@@ -668,7 +692,7 @@ export async function deleteCalendar(id) {
     try {
         // Find the calendar entry to get the date and examType
         const calendar = await prisma.calendar.findUnique({
-            where: { id: parseInt(id, 10) },
+            where: {id: parseInt(id, 10)},
             select: {
                 date: true,
                 examType: true,
@@ -676,7 +700,7 @@ export async function deleteCalendar(id) {
         });
 
         if (!calendar) {
-            return { status: 404, message: "Calendar entry not found" };
+            return {status: 404, message: "Calendar entry not found"};
         }
 
         // Check for related dayAttendance
@@ -696,10 +720,10 @@ export async function deleteCalendar(id) {
 
         // Delete the calendar entry if no related dayAttendance is found
         const deletedCalendar = await prisma.calendar.delete({
-            where: { id: parseInt(id, 10) },
+            where: {id: parseInt(id, 10)},
         });
 
-        return { status: 200, data: deletedCalendar, message: "Calendar entry deleted successfully" };
+        return {status: 200, data: deletedCalendar, message: "Calendar entry deleted successfully"};
     } catch (error) {
         return handlePrismaError(error);
     }

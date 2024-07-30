@@ -10,11 +10,11 @@ export default function STAFF() {
         { name: "name", label: "Name" },
         { name: "email", label: "Email" },
         { name: "rating", label: "Rating" },
+        {name:"phone",label: "Phone"},
         { name: "emiratesId", label: "Emirates ID" },
-        { name: "totalRewards", label: "Total Rewards" },
+        {name:"zone",label:"Zone"},
         { name: "duty.name", label: "Duty" },
     ];
-
     const inputs = [
         {
             data: { id: "rating", type: "text", label: "Rating" ,helperText:"rate the employee out of 10"},

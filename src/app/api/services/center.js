@@ -1,10 +1,14 @@
 import prisma from "@/lib/pirsma/prisma";
-import { handlePrismaError } from "@/app/api/utlis/prismaError";
+import {handlePrismaError} from "@/app/api/utlis/prismaError";
 
 
 export async function fetchUsersByCenterId(centerId, page = 1, limit = 10, filters = {}) {
     const offset = (page - 1) * limit;
-    const where = { centerId };
+    const where = {
+        centerId
+        , role: "EMPLOYEE",
+        accountStatus: "APPROVED",
+    };
 
     if (filters.userId) {
         where.id = +filters.userId;
@@ -17,20 +21,22 @@ export async function fetchUsersByCenterId(centerId, page = 1, limit = 10, filte
     if (filters.dutyId) {
         where.dutyId = filters.dutyId;
     }
-where.role="EMPLOYEE";
+
     try {
         const [employees, total] = await prisma.$transaction([
             prisma.user.findMany({
                 where,
                 skip: offset,
                 take: limit,
-                orderBy: { createdAt: 'desc' },
+                orderBy: {createdAt: 'desc'},
                 select: {
                     id: true,
                     name: true,
                     email: true,
                     emiratesId: true,
                     rating: true,
+                    zone: true,
+                    phone: true,
                     center: {
                         select: {
                             name: true,
@@ -43,28 +49,17 @@ where.role="EMPLOYEE";
                             id: true,
                         },
                     },
-                    dutyRewards: {
-                        select: {
-                            amount: true,
-                        },
-                    },
                 },
             }),
-            prisma.user.count({ where })
+            prisma.user.count({where})
         ]);
 
-        const employeesWithRewards = employees.map(employee => {
-            const totalRewards = employee.dutyRewards?.reduce((acc, reward) => acc + reward.amount, 0) || 0;
-            return {
-                ...employee,
-                totalRewards
-            };
-        });
+        console.log(employees, "employess?")
 
         return {
             status: 200,
-            data: employeesWithRewards,
             total,
+            data: employees,
             page,
             limit,
             message: "Employees fetched successfully"
@@ -73,37 +68,61 @@ where.role="EMPLOYEE";
         return handlePrismaError(error);
     }
 }
-export async function fetchAttendanceByCenterId(centerId, page, limit, filters = {}) {
-    const where = { centerId };
 
-    if (filters.startDate && filters.endDate) {
+export async function fetchAttendanceByCenterId(centerId, page, limit, filters = {}) {
+    const where = {centerId};
+
+    if (filters.date) {
+        const date = new Date(filters.date);
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
         where.date = {
-            gte: new Date(filters.startDate),
-            lte: new Date(filters.endDate)
-        };
-    } else if (filters.startDate) {
-        where.date = {
-            gte: new Date(filters.startDate)
-        };
-    } else if (filters.endDate) {
-        where.date = {
-            lte: new Date(filters.endDate)
+            gte: startOfDay,
+            lte: endOfDay
         };
     } else {
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        where.date = {
-            gte: startOfMonth,
-            lte: endOfMonth
-        };
+
+        if (filters.startDate && filters.endDate) {
+            const endDate = new Date(filters.endDate);
+            endDate.setHours(23, 59, 59, 999);  // Ensure endDate includes the entire day
+
+            where.date = {
+                gte: new Date(filters.startDate),
+                lte: endDate
+            };
+        } else if (filters.startDate) {
+            where.date = {
+                gte: new Date(filters.startDate)
+            };
+        } else if (filters.endDate) {
+            const endDate = new Date(filters.endDate);
+            endDate.setHours(23, 59, 59, 999);  // Ensure endDate includes the entire day
+
+            where.date = {
+                lte: endDate
+            };
+        } else {
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+            where.date = {
+                gte: startOfMonth,
+                lte: endOfMonth
+            };
+        }
+    }
+    if (filters.userId) {
+        where.userId = +filters.userId
     }
 
     try {
         const [dayAttendanceRecords, total] = await prisma.$transaction([
             prisma.dayAttendance.findMany({
                 where,
-                orderBy: { date: 'desc' },
+                orderBy: {date: 'desc'},
                 skip: (page - 1) * limit,
                 take: limit,
                 select: {
@@ -121,11 +140,11 @@ export async function fetchAttendanceByCenterId(centerId, page, limit, filters =
                         },
                     },
                     _count: {
-                        select: { attendances: true },
+                        select: {attendances: true},
                     },
                 },
             }),
-            prisma.dayAttendance.count({ where }),
+            prisma.dayAttendance.count({where}),
         ]);
 
         const summaryRecords = dayAttendanceRecords.map(record => ({
@@ -155,7 +174,7 @@ export async function fetchAttendanceByCenterId(centerId, page, limit, filters =
 export async function fetchAttendanceDetailsByDayAttendanceId(dayAttendanceId) {
     try {
         const dayAttendance = await prisma.dayAttendance.findUnique({
-            where: { id: parseInt(dayAttendanceId, 10) },
+            where: {id: parseInt(dayAttendanceId, 10)},
             include: {
                 user: {
                     select: {
@@ -167,8 +186,8 @@ export async function fetchAttendanceDetailsByDayAttendanceId(dayAttendanceId) {
                         duty: {
                             select: {
                                 name: true,
-                                id:true
-                                ,amount:true
+                                id: true
+                                , amount: true
                             },
 
                         }
@@ -199,13 +218,13 @@ export async function fetchAttendanceDetailsByDayAttendanceId(dayAttendanceId) {
         });
 
         if (!dayAttendance) {
-            return { status: 404, message: "Day Attendance not found" };
+            return {status: 404, message: "Day Attendance not found"};
         }
 
         // Fetch all shifts to identify un-attended shifts
         const allShifts = await prisma.shift.findMany({
-            where:{
-                archived:false
+            where: {
+                archived: false
             },
             select: {
                 id: true,
@@ -221,7 +240,7 @@ export async function fetchAttendanceDetailsByDayAttendanceId(dayAttendanceId) {
             status: 200,
             data: {
                 ...dayAttendance,
-                unattendedShifts,allShifts
+                unattendedShifts, allShifts
             },
             message: "Day Attendance details fetched successfully",
         };
@@ -229,11 +248,12 @@ export async function fetchAttendanceDetailsByDayAttendanceId(dayAttendanceId) {
         return handlePrismaError(error);
     }
 }
+
 export async function updateEmployeeRating(userId, newRating) {
     try {
         const updatedEmployee = await prisma.user.update({
-            where: { id: userId },
-            data: { rating: +newRating },
+            where: {id: userId},
+            data: {rating: +newRating},
             select: {
                 id: true,
                 name: true,
@@ -392,7 +412,7 @@ export async function updateEmployeeRating(userId, newRating) {
 //         return handlePrismaError(error);
 //     }
 // }
-export async function createAttendanceRecord({ userId, shiftIds, duty, date, centerId, examType }) {
+export async function createAttendanceRecord({userId, shiftIds, duty, date, centerId, examType}) {
     try {
         const existingDayAttendance = await prisma.dayAttendance.findFirst({
             where: {
@@ -448,7 +468,7 @@ export async function createAttendanceRecord({ userId, shiftIds, duty, date, cen
                       },
                   });
 
-                  return { attendance, dutyReward };
+                  return {attendance, dutyReward};
               })
         );
 
@@ -468,7 +488,7 @@ export async function createAttendanceRecord({ userId, shiftIds, duty, date, cen
                     increment: totalReward,
                 },
                 attendances: {
-                    connect: attendanceRecords.map(record => ({ id: record.attendance.id })),
+                    connect: attendanceRecords.map(record => ({id: record.attendance.id})),
                 },
             },
             create: {
@@ -478,14 +498,14 @@ export async function createAttendanceRecord({ userId, shiftIds, duty, date, cen
                 examType,
                 totalReward,
                 attendances: {
-                    connect: attendanceRecords.map(record => ({ id: record.attendance.id })),
+                    connect: attendanceRecords.map(record => ({id: record.attendance.id})),
                 },
             },
         });
 
         return {
             status: 200,
-            data: { attendanceRecords, dayAttendance },
+            data: {attendanceRecords, dayAttendance},
             message: "Attendance created successfully",
         };
     } catch (error) {
@@ -497,11 +517,11 @@ export async function createAttendanceRecord({ userId, shiftIds, duty, date, cen
 ///// edit attendance //////
 
 export async function updateAttendanceRecords(dayAttendanceId, body) {
-    const {editedAttendances, deletedAttendances, userId, amount, date, centerId, examType,dutyId }=body
+    const {editedAttendances, deletedAttendances, userId, amount, date, centerId, examType, dutyId} = body
     try {
         // Verify that the dayAttendance exists
         const existingDayAttendance = await prisma.dayAttendance.findUnique({
-            where: { id: +dayAttendanceId },
+            where: {id: +dayAttendanceId},
         });
 
         if (!existingDayAttendance) {
@@ -527,18 +547,18 @@ export async function updateAttendanceRecords(dayAttendanceId, body) {
 
             if (attendance) {
                 const dutyRewards = await prisma.dutyReward.findMany({
-                    where: { attendanceId: attendance.id },
+                    where: {attendanceId: attendance.id},
                 });
 
                 const rewardSum = dutyRewards.reduce((sum, reward) => sum + reward.amount, 0);
                 totalReward -= rewardSum;
 
                 await prisma.dutyReward.deleteMany({
-                    where: { attendanceId: attendance.id },
+                    where: {attendanceId: attendance.id},
                 });
 
                 await prisma.attendance.delete({
-                    where: { id: attendance.id },
+                    where: {id: attendance.id},
                 });
             }
         }));
@@ -568,23 +588,21 @@ export async function updateAttendanceRecords(dayAttendanceId, body) {
 
                   totalReward += dutyReward.amount;
 
-                  return { attendance, dutyReward };
+                  return {attendance, dutyReward};
               })
         );
 
-  await prisma.dayAttendance.update({
-            where: { id: +dayAttendanceId },
+        await prisma.dayAttendance.update({
+            where: {id: +dayAttendanceId},
             data: {
                 totalReward: {
                     increment: totalReward,
                 },
                 attendances: {
-                    connect: attendanceRecords.map(record => ({ id: record.attendance.id })),
+                    connect: attendanceRecords.map(record => ({id: record.attendance.id})),
                 },
             },
         });
-
-
 
 
         return {

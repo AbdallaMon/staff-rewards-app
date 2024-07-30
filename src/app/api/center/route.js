@@ -1,18 +1,18 @@
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import {fetchUsersByCenterId} from "@/app/api/services/center";
+import {getCookieValue} from "@/app/api/utlis/getCookieValue";
+import {verifyToken} from "@/app/api/utlis/tokens";
 
 export async function GET(request) {
-    const SECRET_KEY = process.env.SECRET_KEY;
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
+    const token = getCookieValue("token")
 
     if (!token) {
         return  Response.json({status:401,auth: false, message: "Please sign in again" }, { status: 401 });
     }
 
     try {
-        const decoded = jwt.verify(token, SECRET_KEY);
+        const decoded = verifyToken(token)
         if (decoded) {
             const { centerId } = decoded;
             const { searchParams } = new URL(request.url);
@@ -26,6 +26,6 @@ export async function GET(request) {
             throw new Error("Invalid token");
         }
     } catch (error) {
-        return new Response(JSON.stringify({ auth: false, message: "Error authenticating user", error: error.message }), { status: 401 });
+        return new Response.json({ auth: false, message: "Error authenticating user", error: error.message }, { status: 401 });
     }
 }

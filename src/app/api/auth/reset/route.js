@@ -26,7 +26,7 @@ export async function POST(request) {
       },
       data: {
         resetPasswordToken: token,
-        resetPasswordExpires: new Date(Date.now() + 3600000), // 1 hour
+        resetPasswordExpires: new Date(Date.now() + 3600000),
       },
     });
 
