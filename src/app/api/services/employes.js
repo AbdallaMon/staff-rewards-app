@@ -13,9 +13,7 @@ export async function createEmployeeRequest(data) {
         data.accountStatus = "UNCOMPLETED"
         data.role = "EMPLOYEE"
         const user = await prisma.user.create(
-              {
-                  data
-              }
+              {data}
         )
         const payloadData = {
             userId: user.id,
@@ -40,5 +38,62 @@ export async function createEmployeeRequest(data) {
             }
         }
         return handlePrismaError(e)
+    }
+}
+
+export async function completeRegisterAndConfirmUser(data, userId) {
+    try {
+        data.emailConfirmed = true;
+        data.accountStatus = "PENDING"
+        if (data.centerId) {
+            data.centerId = +data.centerId;
+        }
+        if (data.dutyId) {
+            data.dutyId = +data.dutyId;
+        }
+        await prisma.user.update(
+              {
+                  where: {id: userId},
+                  data
+              }
+        )
+        return {
+            status: 200,
+            message: 'Your attachments uploaded ,and your email confirmed we will review your request and send u message via email'
+        };
+    } catch (e) {
+
+        return handlePrismaError(e)
+    }
+}
+
+export async function checkIfEmailAlreadyConfirmed(userId, confirmed) {
+    try {
+        if (confirmed) {
+            confirmed = true
+        } else {
+            confirmed = false
+        }
+        const where = {
+            id: userId,
+            emailConfirmed: confirmed,
+        }
+        if (confirmed) {
+            where.accountStatus = "UNCOMPLETED"
+        } else {
+            where.accountStatus = 'PENDING'
+        }
+
+        const user = await prisma.user.findUnique({
+            where: where
+        })
+        if (!user) {
+            return {status: 400, message: "The link is expired and this account status has been sent to your email"}
+        } else {
+            return {status: 200}
+        }
+    } catch (e) {
+        return handlePrismaError(e)
+
     }
 }

@@ -8,5 +8,5 @@ export function verifyToken(token) {
 }
 
 export function createToken(data, options) {
-    return jwt.sign(data, SECRET_KEY, options);
+    return jwt.sign(data, SECRET_KEY, options ? options : {expiresIn: '30d'});
 }

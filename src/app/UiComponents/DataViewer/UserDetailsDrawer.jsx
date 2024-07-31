@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     Box,
     CircularProgress,
@@ -17,7 +17,7 @@ import {
     Container,
     Link
 } from '@mui/material';
-import { FaTimes } from 'react-icons/fa';
+import {FaTimes} from 'react-icons/fa';
 import CreateModal from "@/app/UiComponents/Models/CreateModal";
 import UncompletedModal from "@/app/UiComponents/Models/UncompletedModal";
 
@@ -27,7 +27,7 @@ const fetchUserById = async (userId) => {
     return result;
 };
 
-const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }) => {
+const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData}) => {
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -83,41 +83,47 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
         onClose();
     };
 
-    const isPdf = (url) => url.toLowerCase().endsWith('.pdf');
+    const isPdf = (url) => url ? url.toLowerCase().endsWith('.pdf') : null
 
-    const renderDocument = (label, value) => (
-          <ListItem>
-              <ListItemText primary={label} secondary={value?isPdf(value) ? "" : value :"N/A"} />
-              {value && (
-                    isPdf(value) ? (
-                          <Link href={value} target="_blank" sx={{ ml: 2 }}>
-                              PDF file. Click to open link.
-                          </Link>
-                    ) : (
-                          <Avatar
-                                src={value}
-                                sx={{ width: 80, height: 80, cursor: 'pointer', ml: 2 }}
-                                onClick={() => handleImageClick(value)}
-                          />
-                    )
-              )}
-          </ListItem>
-    );
+    const renderDocument = (label, value) => {
+
+        return (
+
+              <ListItem>
+                  <ListItemText primary={label} secondary={!value && "N/A"}/>
+                  {value && (
+                        isPdf(value) ? (
+                              <Link href={value} target="_blank" sx={{ml: 2}}>
+                                  PDF. Click to open.
+                              </Link>
+                        ) : (
+                              <Avatar
+                                    src={value}
+                                    sx={{width: 80, height: 80, cursor: 'pointer', ml: 2}}
+                                    onClick={() => handleImageClick(value)}
+                              />
+                        )
+                  )}
+              </ListItem>
+        )
+    }
+
 
     return (
           <>
               <Drawer anchor="bottom" open={open} onClose={onClose} sx={{}}>
-                  <Container maxWidth="xl" sx={{ p: 2, height: '100vh', overflow: 'auto', position: 'relative', zIndex: 1 }}>
-                      <IconButton onClick={onClose} sx={{ position: 'absolute', right: 16, top: 16 }}>
-                          <FaTimes />
+                  <Container maxWidth="xl"
+                             sx={{p: 2, height: '100vh', overflow: 'auto', position: 'relative', zIndex: 1}}>
+                      <IconButton onClick={onClose} sx={{position: 'absolute', right: 16, top: 16}}>
+                          <FaTimes/>
                       </IconButton>
                       {loading && (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                                <CircularProgress />
+                            <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%'}}>
+                                <CircularProgress/>
                             </Box>
                       )}
                       {!loading && error && (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                            <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%'}}>
                                 <Typography variant="h6">{error}</Typography>
                             </Box>
                       )}
@@ -126,11 +132,17 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
                                 <Typography variant="h5" gutterBottom>User Details</Typography>
                                 <Grid container spacing={2}>
                                     <Grid item xs={12} md={6}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                        <Box sx={{display: 'flex', alignItems: 'center', mb: 2}}>
                                             {userData.photo ? (
+                                                  // ./public/
                                                   <Avatar
                                                         src={userData.photo}
-                                                        sx={{ width: 120, height: 120, cursor: 'pointer', marginRight: 2 }}
+                                                        sx={{
+                                                            width: 120,
+                                                            height: 120,
+                                                            cursor: 'pointer',
+                                                            marginRight: 2
+                                                        }}
                                                         onClick={() => handleImageClick(userData.photo)}
                                                   />
                                             ) : (
@@ -138,35 +150,38 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
                                             )}
                                             <List>
                                                 <ListItem>
-                                                    <ListItemText primary="Name" secondary={userData.name || "N/A"} />
+                                                    <ListItemText primary="Name" secondary={userData.name || "N/A"}/>
                                                 </ListItem>
                                                 <ListItem>
-                                                    <ListItemText primary="Email" secondary={userData.email || "N/A"} />
+                                                    <ListItemText primary="Email" secondary={userData.email || "N/A"}/>
                                                 </ListItem>
                                                 <ListItem>
-                                                    <ListItemText primary="Center" secondary={userData.center?.name || "N/A"} />
+                                                    <ListItemText primary="Center"
+                                                                  secondary={userData.center?.name || "N/A"}/>
                                                 </ListItem>
                                                 <ListItem>
-                                                    <ListItemText primary="Zone" secondary={userData.zone || "N/A"} />
+                                                    <ListItemText primary="Zone" secondary={userData.zone || "N/A"}/>
                                                 </ListItem>
                                             </List>
                                         </Box>
-                                        <Divider />
+                                        <Divider/>
                                         <List>
                                             <ListItem>
-                                                <ListItemText primary="Duty" secondary={userData.duty?.name || "N/A"} />
+                                                <ListItemText primary="Duty" secondary={userData.duty?.name || "N/A"}/>
                                             </ListItem>
                                             <ListItem>
-                                                <ListItemText primary="Rating" secondary={userData.rating || "N/A"} />
+                                                <ListItemText primary="Rating" secondary={userData.rating || "N/A"}/>
                                             </ListItem>
                                             <ListItem>
-                                                <ListItemText primary="Phone" secondary={userData.phone || "N/A"} />
+                                                <ListItemText primary="Phone" secondary={userData.phone || "N/A"}/>
                                             </ListItem>
                                             <ListItem>
-                                                <ListItemText primary="Bank Name" secondary={userData.bankName || "N/A"} />
+                                                <ListItemText primary="Bank Name"
+                                                              secondary={userData.bankName || "N/A"}/>
                                             </ListItem>
                                             <ListItem>
-                                                <ListItemText primary="Bank User Name" secondary={userData.bankUserName || "N/A"} />
+                                                <ListItemText primary="Bank User Name"
+                                                              secondary={userData.bankUserName || "N/A"}/>
                                             </ListItem>
                                         </List>
                                     </Grid>
@@ -180,7 +195,14 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
                                     </Grid>
                                 </Grid>
                                 {renderExtraButtons && (
-                                      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', gap: 4 }}>
+                                      <Box sx={{
+                                          mt: 2,
+                                          display: 'flex',
+                                          justifyContent: 'center',
+                                          gap: 4,
+                                          width: "100%",
+                                          flexWrap: "wrap"
+                                      }}>
                                           <CreateModal
                                                 open={rejectModalOpen}
                                                 onClose={() => setRejectModalOpen(false)}
@@ -188,7 +210,7 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
                                                 title="Reject Reason"
                                                 inputs={[
                                                     {
-                                                        data: { id: "reason", type: "textarea", label: "Reason" },
+                                                        data: {id: "reason", type: "textarea", label: "Reason"},
                                                         pattern: {
                                                             required: {
                                                                 value: true,
@@ -198,7 +220,7 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
                                                     }
                                                 ]}
                                                 label="Reject"
-                                                extraProps={{ formTitle: "Reject Reason", btnText: "Reject" }}
+                                                extraProps={{formTitle: "Reject Reason", btnText: "Reject"}}
                                                 BtnColor="secondary"
                                                 href={`admin/employees/${userId}/reject`}
                                           />
@@ -210,7 +232,7 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
                                                 BtnColor="primary"
                                                 inputs={[
                                                     {
-                                                        data: { id: "password", type: "password", label: "Password" },
+                                                        data: {id: "password", type: "password", label: "Password"},
                                                         pattern: {
                                                             required: {
                                                                 value: true,
@@ -224,7 +246,7 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
                                                     },
                                                 ]}
                                                 label="Approve"
-                                                extraProps={{ formTitle: "Approve User", btnText: "Approve" }}
+                                                extraProps={{formTitle: "Approve User", btnText: "Approve"}}
                                                 href={`admin/employees/${userId}/approve`}
                                           />
                                           <div className={"px-2 mb-1 mt-2"}>
@@ -240,12 +262,15 @@ const UserDetailDrawer = ({ userId, open, onClose, renderExtraButtons, setData }
                   </Container>
               </Drawer>
               {selectedImage && (
-                    <Modal open={imageModalOpen} onClose={handleImageModalClose} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <Box sx={{ position: 'relative', maxWidth: '90%', maxHeight: '90%' }}>
-                            <IconButton onClick={handleImageModalClose} sx={{ position: 'absolute', top: 0, right: 0, color: 'white' }}>
-                                <FaTimes />
+                    <Modal open={imageModalOpen} onClose={handleImageModalClose}
+                           sx={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                        <Box sx={{position: 'relative', maxWidth: '90%', maxHeight: '90%'}}>
+                            <IconButton onClick={handleImageModalClose}
+                                        sx={{position: 'absolute', top: 0, right: 0, color: 'white'}}>
+                                <FaTimes/>
                             </IconButton>
-                            <img src={selectedImage} alt="User Document" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                            <img src={selectedImage} alt="User Document"
+                                 style={{width: '100%', height: '100%', objectFit: 'contain'}}/>
                         </Box>
                     </Modal>
               )}

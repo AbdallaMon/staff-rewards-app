@@ -206,16 +206,39 @@ const MultiStepForm = () => {
                                               {...field}
                                               label="Emirates ID"
                                               fullWidth
-                                              type={"input"}
+                                              type={"number"}
                                               margin="normal"
                                               error={!!errors.emiratesId}
-                                              helperText={errors.emiratesId ? errors.emiratesId.message : 'Enter 15 digits'}
+                                              helperText={errors.emiratesId && errors.emiratesId.message}
                                               sx={{bgcolor: 'background.default'}}
                                               value={field.value}
                                               onChange={(e) => {
                                                   if (e.target.value.length === 16) return;
                                                   return field.onChange(e.target.value)
                                               }}
+                                        />
+                                  )}
+                            />
+                            <Controller
+                                  name="passportNumber"
+                                  control={control}
+                                  rules={{
+                                      required: 'Emirates ID is required',
+                                      pattern: {
+                                          value: /^\d{15}$/,
+                                          message: 'Invalid Emirates ID format, it should be 15 digits'
+                                      }
+                                  }}
+                                  render={({field}) => (
+                                        <TextField
+                                              {...field}
+                                              label="Passport Number"
+                                              fullWidth
+                                              margin="normal"
+                                              error={!!errors.passportNumber}
+                                              helperText={errors.passportNumber ? errors.passportNumber.message : 'Passport number is required'}
+                                              sx={{bgcolor: 'background.default'}}
+                                              value={field.value}
                                         />
                                   )}
                             />

@@ -397,34 +397,6 @@ export async function fetchEmployees(page = 1, limit = 10, employRequests = fals
     }
 }
 
-export async function fetchUnconfirmedUsers(page = 1, limit = 10) {
-    const offset = (page - 1) * limit;
-    try {
-        const [users, total] = await prisma.$transaction([
-            prisma.user.findMany({
-                where: {emailConfirmed: false},
-                skip: offset,
-                take: limit,
-                include: {
-                    center: true,
-                },
-                orderBy: {createdAt: 'desc'},
-            }),
-            prisma.user.count({where: {emailConfirmed: false}})
-        ]);
-        return {
-            status: 200,
-            data: users,
-            total,
-            page,
-            limit,
-            message: "Unconfirmed users fetched successfully",
-        };
-    } catch (error) {
-        return handlePrismaError(error);
-
-    }
-}
 
 export async function EditEmploy(employId, data) {
     if (data.centerId) {
@@ -564,20 +536,20 @@ export const uncompletedUser = async (userId, {checks, comments}, baseUrl) => {
         const tokenPayload = {
             userId: userId,
             email: user.email,
-            checks: checks.map((checkId) => ({
-                id: checkId,
-                comment: comments[checkId] || 'No comment provided',
+            checks: checks.map((check) => ({
+                id: check.id,
+                comment: check.comment || 'No comment provided',
             })),
         };
         const SECRET_KEY = process.env.SECRET_KEY;
 
-        const token = jwt.sign(tokenPayload, SECRET_KEY, {expiresIn: '1h'});
+        const token = jwt.sign(tokenPayload, SECRET_KEY, {expiresIn: '30d'});
 
         const emailContent = `
             <h1>Account Registration Incomplete</h1>
             <p>Your account registration is incomplete for the following reasons:</p>
             <ul>
-                ${checks.map(checkId => `<li><strong>${checkId}:</strong> ${comments[checkId] || 'No comment provided'}</li>`).join('')}
+                ${checks.map(check => `<li><strong>${check.id}:</strong> ${check.comment || 'No comment provided'}</li>`).join('')}
             </ul>
             <p><a href="${baseUrl}/uncompleted?token=${token}">Click here to complete your registration</a></p>
         `;
