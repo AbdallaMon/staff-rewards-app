@@ -411,7 +411,7 @@ const MultiStepForm = () => {
                                       required: 'IBAN is required',
                                       pattern: {
                                           value: /^\d{21}$/,
-                                          message: 'Invalid IBAN format, it should be AE followed by 21 digits'
+                                          message: 'Invalid IBAN format, it should be  21 digits'
                                       }
                                   }}
                                   render={({field}) => (
@@ -422,7 +422,7 @@ const MultiStepForm = () => {
                                               margin="normal"
                                               type={"number"}
                                               error={!!errors.ibanBank}
-                                              helperText={errors.ibanBank ? errors.ibanBank.message : 'Enter IBAN in the format: AE followed by 21 digits'}
+                                              helperText={errors.ibanBank ? errors.ibanBank.message : 'Enter IBAN in the format: 21 digits'}
                                               sx={{bgcolor: 'background.default'}}
                                               InputProps={{
                                                   startAdornment: <InputAdornment position="start">AE</InputAdornment>,

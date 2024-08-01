@@ -97,3 +97,34 @@ export async function checkIfEmailAlreadyConfirmed(userId, confirmed) {
 
     }
 }
+
+export async function getEmployeeById(employeeId) {
+    try {
+
+        const user = await prisma.user.findUnique({
+            where: {id: parseInt(employeeId)},
+            include: {
+                duty: true,
+                center: true
+            }
+        });
+        return {data: user, status: 200,}
+
+    } catch (e) {
+        return handlePrismaError(e)
+    }
+}
+
+export async function updateEmployee(employeeId, data) {
+    try {
+        await prisma.user.update({
+            where: {id: parseInt(employeeId)},
+            data,
+            select: {id: true},
+        });
+        return {data: data, status: 200,}
+
+    } catch (e) {
+        return handlePrismaError(e)
+    }
+}

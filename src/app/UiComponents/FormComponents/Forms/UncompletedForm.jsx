@@ -49,13 +49,7 @@ const UncompletedForm = () => {
     const searchParams = useSearchParams();
     const token = searchParams.get("token");
     const {setLoading} = useToastContext();
-    const [fileInputs, setFileInputs] = useState({
-        emiratesIdPhoto: null,
-        ibanBankPhoto: null,
-        graduationImage: null,
-        passportPhoto: null,
-        photo: null,
-    });
+    const [fileInputs, setFileInputs] = useState({});
     const [validationErrors, setValidationErrors] = useState({});
     const [modalOpen, setModalOpen] = useState(false);
     const [modalImage, setModalImage] = useState(null);
@@ -84,11 +78,20 @@ const UncompletedForm = () => {
 
         // Decode token and set incomplete fields
         const decodedToken = jwt.decode(token);
-        console.log(decodedToken, "dec");
+
+        decodedToken.checks.forEach((check) => {
+            if (check.id.toLowerCase().includes("image") || check.id.toLowerCase().includes("photo")) {
+                setFileInputs((old) => ({
+                    ...old,
+                    [check.id]: null
+                }));
+            }
+        });
         setIncompleteFields(decodedToken.checks || []);
+
         setDecoding(false);
     }, [token]);
-
+    console.log(incompleteFields)
     const handleFileChange = (e, field) => {
         const file = e.target.files[0];
         if (file && (file.type.startsWith('image/') || file.type === 'application/pdf')) {
@@ -116,7 +119,8 @@ const UncompletedForm = () => {
     const onSubmit = async (data) => {
         let hasError = false;
         const errors = {};
-
+        console.log(data, "data")
+        console.log(fileInputs, "fileInputs")
         // Validate each file input
         Object.keys(fileInputs).forEach((field) => {
             if (!fileInputs[field]) {
@@ -125,6 +129,7 @@ const UncompletedForm = () => {
             }
         });
 
+        console.log(hasError, "haserro")
         if (hasError) {
             setValidationErrors(errors);
             return;

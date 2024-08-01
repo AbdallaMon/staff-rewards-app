@@ -1,6 +1,6 @@
 import {verifyToken} from "@/app/api/utlis/tokens";
 import parseFormData from "@/app/api/utlis/parseFormData";
-import {completeRegisterAndConfirmUser, createEmployeeRequest} from "@/app/api/services/employes";
+import {completeRegisterAndConfirmUser} from "@/app/api/services/employes";
 
 export async function POST(request) {
     const {searchParams} = new URL(request.url);
