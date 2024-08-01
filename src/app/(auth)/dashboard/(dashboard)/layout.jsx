@@ -1,5 +1,4 @@
 "use client";
-
 import HandleAuth from "./HandleAuth";
 import {useRouter} from "next/navigation";
 import {useEffect, useState} from "react";
@@ -39,7 +38,6 @@ export default function Layout({center, admin, staff}) {
 
     return (
           <HandleAuth>
-
               {role === "ADMIN" ? admin : role === "EMPLOYEE" ? staff : role === "CENTER" ? center : null}{" "}
           </HandleAuth>
     );

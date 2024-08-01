@@ -113,7 +113,6 @@ const ProfilePage = ({userId}) => {
             handleCloseModal();
         }
     };
-    console.log(user, "user")
     const handleImageSubmit = async (data) => {
         const formData = new FormData();
         formData.append(currentImageField, data[currentImageField]);

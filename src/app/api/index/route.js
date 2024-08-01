@@ -1,5 +1,5 @@
 import prisma from "@/lib/pirsma/prisma";
-import { cookies } from "next/headers";
+import {cookies} from "next/headers";
 import jwt from "jsonwebtoken";
 
 const modelMap = {
@@ -24,30 +24,33 @@ export async function getIndexedData(index, query, filters, centerId) {
 
     if (index === "user") {
         if (query) {
-            where.emiratesId = { contains: query };
+            where.emiratesId = {contains: query};
             where.accountStatus = "APPROVED";
         }
         if (centerId) {
             where.centerId = centerId;
         }
     }
-const select={
-        id:true,name:true
-}
-    if(index==="user"){
-        select.emiratesId=true
-        select.email=true
-        select.duty=true
+    const select = {
+        id: true, name: true
     }
-    if(index==="shift"){
-        select.duration=true
+    if (index === "user") {
+        select.emiratesId = true
+        select.email = true
+        select.duty = true
+    }
+    if (index === "shift") {
+        select.duration = true
+    }
+    if (index === "duty") {
+        select.amount = true
     }
     try {
         const data = await model.findMany({
             where,
-            select:select,
+            select: select,
         });
-        return { data, status: 200 };
+        return {data, status: 200};
     } catch (error) {
         console.error(`Error fetching data from ${index}:`, error);
         throw error;
@@ -55,7 +58,7 @@ const select={
 }
 
 export async function GET(request) {
-    const { searchParams } = new URL(request.url);
+    const {searchParams} = new URL(request.url);
     const index = searchParams.get('id');
     const query = searchParams.get('query') || '';
     const filters = JSON.parse(searchParams.get('filters') || '{}');
@@ -77,22 +80,22 @@ export async function GET(request) {
                 return Response.json({
                     message: "Failed to decode token",
                     error: error.message,
-                }, { status: 500 });
+                }, {status: 500});
             }
         } else {
             return Response.json({
                 message: "No token provided",
                 error: "Unauthorized",
-            }, { status: 401 });
+            }, {status: 401});
         }
     }
 
     try {
         const result = await getIndexedData(index, query, filters, centerId);
-        return Response.json(result, { status: 200 });
+        return Response.json(result, {status: 200});
     } catch (error) {
         return Response.json({
             message: `Failed to fetch data: ${error.message}`,
-        }, { status: 500 });
+        }, {status: 500});
     }
 }

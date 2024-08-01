@@ -1,9 +1,9 @@
 "use client";
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import Calendar from 'react-calendar';
 import {Box, Button, TableCell, Typography, useTheme} from '@mui/material';
 import 'react-calendar/dist/Calendar.css';
-import { colors } from "@/app/constants";
+import {colors} from "@/app/constants";
 
 const CalendarComponent = ({
                                data,
@@ -15,11 +15,15 @@ const CalendarComponent = ({
                                onEdit,
                                onDelete,
                                onArchive,
-                               class_Name = "",editButtonText,extraComponentProps,extraComponent:ExtraComponent,setData
+                               class_Name = "",
+                               editButtonText,
+                               extraComponentProps,
+                               extraComponent: ExtraComponent,
+                               setData
                            }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
 
-    const handleMonthChange = ({ activeStartDate }) => {
+    const handleMonthChange = ({activeStartDate}) => {
         setCurrentDate(activeStartDate);
         setFilters((prevFilters) => ({
             ...prevFilters,
@@ -29,7 +33,7 @@ const CalendarComponent = ({
     };
 
     const theme = useTheme();
-    const renderDay = ({ date, view }) => {
+    const renderDay = ({date, view}) => {
         if (view !== 'month') return null;
         const dayData = data.filter(item => new Date(item.date).toDateString() === date.toDateString());
         const hasData = dayData.length > 0;
@@ -48,14 +52,21 @@ const CalendarComponent = ({
                     }}
               >
                   {dayData.map(item => (
-                        <Box key={item.id} sx={{ marginTop: '4px' }}>
-                            <Typography variant="body2" sx={{ color: theme.palette.primary.contrastText }}>
-                                {item[labelKey]}
+                        <Box key={item.id} sx={{marginTop: '4px'}}>
+                            <Typography variant="body2"
+                                        sx={{
+                                            color: theme.palette.primary.contrastText,
+                                            background: theme.palette.secondary.main
+                                        }}>
+                                {item[labelKey]} Exam
                             </Typography>
-                            <Box sx={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px' }}>
-                                {withEdit && <Button size="small" variant="contained" onClick={() => onEdit(item)}>{editButtonText}</Button>}
-                                {withDelete && <Button size="small" variant="contained" color="secondary" onClick={() => onDelete(item)}>Delete</Button>}
-                                {withArchive && <Button size="small" variant="contained" color="warning" onClick={() => onArchive(item)}>Archive</Button>}
+                            <Box sx={{display: 'flex', gap: '4px', flexWrap: 'wrap', marginTop: '4px'}}>
+                                {withEdit && <Button size="small" variant="contained"
+                                                     onClick={() => onEdit(item)}>{editButtonText}</Button>}
+                                {withDelete && <Button size="small" variant="contained" color="secondary"
+                                                       onClick={() => onDelete(item)}>Delete</Button>}
+                                {withArchive && <Button size="small" variant="contained" color="warning"
+                                                        onClick={() => onArchive(item)}>Archive</Button>}
                                 {ExtraComponent && (
                                       <>
                                           <ExtraComponent
@@ -73,7 +84,7 @@ const CalendarComponent = ({
     };
 
     return (
-          <Box sx={{ width: '100%', maxWidth: '100%', overflowX: 'auto' }} className={class_Name}>
+          <Box sx={{width: '100%', maxWidth: '100%', overflowX: 'auto'}} className={class_Name}>
               <Calendar
                     onActiveStartDateChange={handleMonthChange}
                     value={currentDate}

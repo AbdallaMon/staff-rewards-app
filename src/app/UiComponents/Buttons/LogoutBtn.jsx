@@ -6,9 +6,9 @@ import {useRouter} from "next/navigation";
 import {useAuth} from "@/providers/AuthProvider";
 import {FaSignOutAlt} from "react-icons/fa";
 
-export default function LogoutButton(){
-    const { setLoading } = useToastContext();
-    const { setRedirect } = useAuth();
+export default function LogoutButton({fit}) {
+    const {setLoading} = useToastContext();
+    const {setRedirect} = useAuth();
     const router = useRouter();
 
     async function handleLogout() {
@@ -24,18 +24,19 @@ export default function LogoutButton(){
             router.push("/login");
         }
     }
-    return (
-        <Button
-            onClick={() => {
-                handleLogout();
-            }}
-            sx={{
-                width: "100%",
-            }}
-            color="secondary"
 
-        >  <FaSignOutAlt />
-            Logout
-        </Button>
+    return (
+          <Button
+                onClick={() => {
+                    handleLogout();
+                }}
+                sx={{
+                    width: fit ? "fit-content" : "100%",
+                }}
+                color="secondary"
+
+          > <FaSignOutAlt/>
+              Logout
+          </Button>
     );
 }

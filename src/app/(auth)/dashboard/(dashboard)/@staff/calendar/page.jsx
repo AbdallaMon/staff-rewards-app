@@ -24,17 +24,7 @@ export default function CalendarPage() {
         {name: "date", label: "Date"},
         {name: "examType", label: "Exam Type"}
     ];
-    const [shifts, setShifts] = useState([]); // Add state to hold shifts data
 
-    useEffect(() => {
-        // Fetch shifts data
-        const fetchShifts = async () => {
-            const response = await fetch("/api/index?id=shift"); // Adjust the API endpoint if necessary
-            const result = await response.json();
-            setShifts(result.data);
-        };
-        fetchShifts();
-    }, []);
 
     const searchParams = useSearchParams();
     const selectedExamType = searchParams.get('examType');
@@ -95,12 +85,6 @@ export default function CalendarPage() {
                     isCalendar={true}
                     setFilters={setFilters}
                     labelKey="examType"
-                    extraComponent={({item}) => (
-                          <>
-                              <ShiftAssignmentModal shifts={shifts} setFilters={setFilters} setData={setData}
-                                                    item={item} label={"Attendees"} href="center/attendance"/>
-                          </>
-                    )}
               />
           </div>
     );
