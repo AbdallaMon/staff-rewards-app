@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {forwardRef, useRef} from 'react';
 import {
     Container,
     Box,
@@ -44,7 +44,7 @@ const SignatureTable = styled(Table)`
   table-layout: fixed;
 `;
 
-const AttendanceTemplate = React.forwardRef(({user, dayAttendance, duties, shifts}, ref) => (
+const AttendanceTemplate = forwardRef(({user, dayAttendance, duties, shifts}, ref) => (
       <StyledContainer ref={ref}>
           <Header>
               <img src="/certLogo.png" alt="CERT Logo" width={100}/>
@@ -198,6 +198,7 @@ const AttendanceTemplate = React.forwardRef(({user, dayAttendance, duties, shift
           </Box>
       </StyledContainer>
 ));
+AttendanceTemplate.displayName = "AttendanceTemplate";
 
 const PrintButton = ({user, dayAttendance, duties, shifts}) => {
     const componentRef = useRef();

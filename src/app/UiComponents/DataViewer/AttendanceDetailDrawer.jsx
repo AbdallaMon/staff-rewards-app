@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     Box,
     CircularProgress,
@@ -18,9 +18,9 @@ import {
     Checkbox,
     Button
 } from '@mui/material';
-import { FaTimes, FaEdit } from 'react-icons/fa';
-import { handleRequestSubmit } from "@/helpers/functions/handleSubmit";
-import { useToastContext } from "@/providers/ToastLoadingProvider";
+import {FaTimes, FaEdit} from 'react-icons/fa';
+import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
+import {useToastContext} from "@/providers/ToastLoadingProvider";
 
 const fetchAttendanceById = async (dayAttendanceId, center) => {
     const response = await fetch(center ? `/api/center/attendance/${dayAttendanceId}` : `/api/financial/attendance/${dayAttendanceId}`);
@@ -34,13 +34,13 @@ const updateAttendance = async (dayAttendanceId, editedAttendances, deletedAtten
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ editedAttendances, deletedAttendances })
+        body: JSON.stringify({editedAttendances, deletedAttendances})
     });
     const result = await response.json();
     return result;
 };
 
-const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center,setData }) => {
+const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData}) => {
     const [attendanceData, setAttendanceData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -50,7 +50,7 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center,setData
     const [checkedShifts, setCheckedShifts] = useState({});
     const [editedAttendances, setEditedAttendances] = useState([]);
     const [deletedAttendances, setDeletedAttendances] = useState([]);
-    const { setLoading: setSubmitLoading } = useToastContext();
+    const {setLoading: setSubmitLoading} = useToastContext();
 
     useEffect(() => {
         if (dayAttendanceId) {
@@ -94,7 +94,7 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center,setData
     };
 
     const handleCheckboxChange = (shiftId, attended) => {
-        setCheckedShifts(prev => ({ ...prev, [shiftId]: attended }));
+        setCheckedShifts(prev => ({...prev, [shiftId]: attended}));
 
         if (attended) {
             // Add to editedAttendances only if it is not already attended
@@ -112,18 +112,28 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center,setData
 
     const handleSubmit = async () => {
         const href = center ? `center/attendance/${dayAttendanceId}` : `financial/attendance/${dayAttendanceId}`;
-        const dutyAmount=attendanceData.user.duty.amount;
-        const otherData={centerId:attendanceData.centerId,userId:attendanceData.userId,dutyId:attendanceData.user.duty.id,amount:dutyAmount,date:attendanceData.date,dutyName:attendanceData.user.duty.name}
-        const response = await handleRequestSubmit({ editedAttendances, deletedAttendances,...otherData }, setSubmitLoading, href, false, "Updating", false, "PUT");
+        const dutyAmount = attendanceData.user.duty.amount;
+        const otherData = {
+            centerId: attendanceData.centerId,
+            userId: attendanceData.userId,
+            dutyId: attendanceData.user.duty.id,
+            amount: dutyAmount,
+            date: attendanceData.date,
+            dutyName: attendanceData.user.duty.name
+        }
+        const response = await handleRequestSubmit({
+            editedAttendances,
+            deletedAttendances, ...otherData
+        }, setSubmitLoading, href, false, "Updating", false, "PUT");
         if (response.status === 200) {
-            setData((prev)=>prev.map((item)=>{
-                if(item.id===dayAttendanceId){
-                    const numberOfShifts=attendanceData.attendances.length+editedAttendances.length-deletedAttendances.length;
-                    item.numberOfShifts=numberOfShifts;
-                    item.reward=numberOfShifts*dutyAmount;
-                }
-                return item
-            }
+            setData((prev) => prev.map((item) => {
+                      if (item.id === dayAttendanceId) {
+                          const numberOfShifts = attendanceData.attendances.length + editedAttendances.length - deletedAttendances.length;
+                          item.numberOfShifts = numberOfShifts;
+                          item.reward = numberOfShifts * dutyAmount;
+                      }
+                      return item
+                  }
             ))
             setDeletedAttendances([]);
             setEditedAttendances([]);
@@ -138,17 +148,18 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center,setData
     return (
           <>
               <Drawer anchor="bottom" open={open} onClose={onClose} sx={{}}>
-                  <Container maxWidth="xl" sx={{ p: 2, height: '100vh', overflow: 'auto', position: 'relative', zIndex: 1 }}>
-                      <IconButton onClick={onClose} sx={{ position: 'absolute', right: 16, top: 16 }}>
-                          <FaTimes />
+                  <Container maxWidth="xl"
+                             sx={{p: 2, height: '100vh', overflow: 'auto', position: 'relative', zIndex: 1}}>
+                      <IconButton onClick={onClose} sx={{position: 'absolute', right: 16, top: 16}}>
+                          <FaTimes/>
                       </IconButton>
                       {loading && (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                                <CircularProgress />
+                            <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%'}}>
+                                <CircularProgress/>
                             </Box>
                       )}
                       {!loading && error && (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                            <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%'}}>
                                 <Typography variant="h6">{error}</Typography>
                             </Box>
                       )}
@@ -158,11 +169,16 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center,setData
                                 <Grid container spacing={2}>
                                     <Grid item xs={12} md={6}>
                                         <Typography variant="h6" gutterBottom color="primary">User Details</Typography>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                        <Box sx={{display: 'flex', alignItems: 'center', mb: 2}}>
                                             {attendanceData.user.photo ? (
                                                   <Avatar
                                                         src={attendanceData.user.photo}
-                                                        sx={{ width: 120, height: 120, cursor: 'pointer', marginRight: 2 }}
+                                                        sx={{
+                                                            width: 120,
+                                                            height: 120,
+                                                            cursor: 'pointer',
+                                                            marginRight: 2
+                                                        }}
                                                         onClick={() => handleImageClick(attendanceData.user.photo)}
                                                   />
                                             ) : (
@@ -170,28 +186,35 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center,setData
                                             )}
                                             <List>
                                                 <ListItem>
-                                                    <ListItemText primary="Name" secondary={attendanceData.user.name || "N/A"} />
+                                                    <ListItemText primary="Name"
+                                                                  secondary={attendanceData.user.name || "N/A"}/>
                                                 </ListItem>
                                                 <ListItem>
-                                                    <ListItemText primary="Email" secondary={attendanceData.user.email || "N/A"} />
+                                                    <ListItemText primary="Email"
+                                                                  secondary={attendanceData.user.email || "N/A"}/>
                                                 </ListItem>
                                                 <ListItem>
-                                                    <ListItemText primary="Emirates ID" secondary={attendanceData.user.emiratesId || "N/A"} />
+                                                    <ListItemText primary="Emirates ID"
+                                                                  secondary={attendanceData.user.emiratesId || "N/A"}/>
                                                 </ListItem>
                                                 <ListItem>
-                                                    <ListItemText primary="Rating" secondary={attendanceData.user.rating || "N/A"} />
+                                                    <ListItemText primary="Rating"
+                                                                  secondary={attendanceData.user.rating || "N/A"}/>
                                                 </ListItem>
                                                 <ListItem>
-                                                    <ListItemText primary="Duty" secondary={attendanceData.user.duty.name || "N/A"} />
+                                                    <ListItemText primary="Duty"
+                                                                  secondary={attendanceData.user.duty.name || "N/A"}/>
                                                 </ListItem>
                                             </List>
                                         </Box>
-                                        <Divider />
+                                        <Divider/>
                                     </Grid>
                                     <Grid item xs={12} md={6}>
                                         <Typography variant="h6" color="primary">Attended Shifts</Typography>
-                                        <Typography variant="subtitle1" color="secondary">Exam Type: {attendanceData.examType || "N/A"}</Typography>
-                                        <Typography variant="subtitle1" color="secondary">Date: {new Date(attendanceData.date).toLocaleDateString() || "N/A"}</Typography>
+                                        <Typography variant="subtitle1" color="secondary">Exam
+                                            Type: {attendanceData.examType || "N/A"}</Typography>
+                                        <Typography variant="subtitle1"
+                                                    color="secondary">Date: {new Date(attendanceData.date).toLocaleDateString() || "N/A"}</Typography>
                                         <List>
                                             {attendanceData.attendances.map((attendance, index) => (
                                                   <ListItem key={index}>
@@ -212,7 +235,7 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center,setData
                                                   </ListItem>
                                             ))}
                                         </List>
-                                        <Divider />
+                                        <Divider/>
                                         <Typography variant="h6" color="primary">Unattended Shifts</Typography>
                                         <List>
                                             {attendanceData.unattendedShifts.map((shift, index) => (
@@ -226,15 +249,16 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center,setData
                                         </List>
                                         {center && isToday && (
                                               <Button variant="contained" color="primary" onClick={handleEditClick}>
-                                                  <FaEdit /> Edit Attendance
+                                                  <FaEdit/> Edit Attendance
                                               </Button>
                                         )}
                                         {!isToday && center && (
-                                              <Typography variant="h6" color="error">You can't edit this because the exam has ended.</Typography>
+                                              <Typography variant="h6" color="error">You can&apos;t edit this because
+                                                  the exam has ended.</Typography>
                                         )}
                                         {!center && (
                                               <Button variant="contained" color="primary" onClick={handleEditClick}>
-                                                  <FaEdit /> Edit Attendance
+                                                  <FaEdit/> Edit Attendance
                                               </Button>
                                         )}
                                     </Grid>
@@ -243,8 +267,9 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center,setData
                       )}
                   </Container>
               </Drawer>
-              <Modal open={editModalOpen} onClose={handleEditModalClose} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  <Box sx={{ p: 2, backgroundColor: 'white', borderRadius: 2, minWidth: 300 }}>
+              <Modal open={editModalOpen} onClose={handleEditModalClose}
+                     sx={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                  <Box sx={{p: 2, backgroundColor: 'white', borderRadius: 2, minWidth: 300}}>
                       <Typography variant="h6">Edit Attendance</Typography>
                       <List>
                           {attendanceData?.allShifts?.map((shift) => {
@@ -255,7 +280,7 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center,setData
                                               checked={attended}
                                               onChange={(e) => handleCheckboxChange(shift.id, e.target.checked)}
                                         />
-                                        <ListItemText primary={shift.name}  />
+                                        <ListItemText primary={shift.name}/>
                                         <span>{shift.duration} hr</span>
                                     </ListItem>
                               );
@@ -265,12 +290,15 @@ const AttendanceDetailDrawer = ({ dayAttendanceId, open, onClose, center,setData
                   </Box>
               </Modal>
               {selectedImage && (
-                    <Modal open={imageModalOpen} onClose={handleImageModalClose} sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <Box sx={{ position: 'relative', maxWidth: '90%', maxHeight: '90%' }}>
-                            <IconButton onClick={handleImageModalClose} sx={{ position: 'absolute', top: 0, right: 0, color: 'white' }}>
-                                <FaTimes />
+                    <Modal open={imageModalOpen} onClose={handleImageModalClose}
+                           sx={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                        <Box sx={{position: 'relative', maxWidth: '90%', maxHeight: '90%'}}>
+                            <IconButton onClick={handleImageModalClose}
+                                        sx={{position: 'absolute', top: 0, right: 0, color: 'white'}}>
+                                <FaTimes/>
                             </IconButton>
-                            <img src={selectedImage} alt="User Document" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                            <img src={selectedImage} alt="User Document"
+                                 style={{width: '100%', height: '100%', objectFit: 'contain'}}/>
                         </Box>
                     </Modal>
               )}

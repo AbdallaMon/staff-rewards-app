@@ -10,7 +10,7 @@ export async function createEmployeeRequest(data) {
         data.dutyId = +data.dutyId;
         data.centerId = +data.centerId;
         data.emailConfirmed = false;
-        data.accountStatus = "UNCOMPLETED"
+        data.accountStatus = "PENDING"
         data.role = "EMPLOYEE"
         const user = await prisma.user.create(
               {data}
@@ -24,8 +24,6 @@ export async function createEmployeeRequest(data) {
             <h1>Confirm your account</h1>
             <p>Your account has been created. To complete your registration, please confirm your email address by clicking the link below:</p>
             <p><a href="${url}/confirm?token=${payload}">Confirm your email</a></p>
-            <p>If the above link doesn't work, copy and paste the following URL into your browser:</p>
-            <p>${url}/uncompleted?token=${payload}</p>
         `;
         await sendEmail(user.email, 'Confirm your account', emailContent);
 
@@ -237,8 +235,7 @@ export async function getUserDayAttendancesWithoutAttachment(userId) {
                 center: true,
             },
         });
-
-        return {status: 200, data: dayAttendances};
+        return {status: 200, data: dayAttendances.length > 0 ? dayAttendances : null};
     } catch (e) {
         return {status: 500, error: 'Failed to fetch day attendances'};
     }

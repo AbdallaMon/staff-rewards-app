@@ -25,6 +25,7 @@ import {useForm, Controller} from 'react-hook-form';
 import {IoMdClose, IoMdEye, IoMdCreate} from 'react-icons/io';
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
+import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
 
 const Input = styled('input')({
     display: 'none',
@@ -126,7 +127,7 @@ const ProfilePage = ({userId}) => {
         }
     };
 
-    if (loading) return <CircularProgress/>;
+    if (loading) return <FullScreenLoader/>
 
     return (
           <Container>
@@ -136,7 +137,8 @@ const ProfilePage = ({userId}) => {
                       <Box display="flex" flexDirection="column" height="100%">
                           <ProfileSection>
                               <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
-                                  <Avatar src={user.photo} alt="User Photo" sx={{width: 100, height: 100, mb: 2}}/>
+                                  <Avatar src={user.photo} alt="User Photo"
+                                          sx={{width: 100, height: 100, mb: 2}}/>
                                   <IconButton onClick={() => handleImageEditClick('photo')}><IoMdCreate/></IconButton>
                                   <Box display="flex" alignItems="center" mb={1}>
                                       <Typography variant="body1" sx={{mr: 1}}>Name: {user.name}</Typography>
