@@ -10,7 +10,7 @@ const modelMap = {
     // Add other models as needed
 };
 
-export async function getIndexedData(index, query, filters, centerId) {
+export async function getIndexedData(index, query, filters, centerId, center) {
     const model = modelMap[index];
 
     if (!model) {
@@ -29,6 +29,9 @@ export async function getIndexedData(index, query, filters, centerId) {
         }
         if (centerId) {
             where.centerId = centerId;
+        }
+        if (center && center !== "null") {
+            where.centerId = +center;
         }
     }
     const select = {
@@ -63,7 +66,7 @@ export async function GET(request) {
     const query = searchParams.get('query') || '';
     const filters = JSON.parse(searchParams.get('filters') || '{}');
     const centerIdFlag = searchParams.get('centerId') === 'true';
-
+    const center = searchParams.get("center")
     let centerId = null;
 
     if (centerIdFlag) {
@@ -91,7 +94,7 @@ export async function GET(request) {
     }
 
     try {
-        const result = await getIndexedData(index, query, filters, centerId);
+        const result = await getIndexedData(index, query, filters, centerId, center);
         return Response.json(result, {status: 200});
     } catch (error) {
         return Response.json({

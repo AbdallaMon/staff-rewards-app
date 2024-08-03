@@ -6,11 +6,11 @@ import Tab from "@mui/material/Tab";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { TabScrollButton } from "@mui/material";
+import {usePathname} from "next/navigation";
+import {TabScrollButton} from "@mui/material";
 
 function CustomTabPanel(props) {
-    const { children, value, index, ...other } = props;
+    const {children, value, index, ...other} = props;
 
     return (
           <div
@@ -21,7 +21,7 @@ function CustomTabPanel(props) {
                 {...other}
           >
               {value === index && (
-                    <Box sx={{ p: 3 }}>
+                    <Box sx={{p: 3}}>
                         <Typography>{children}</Typography>
                     </Box>
               )}
@@ -43,26 +43,29 @@ function a11yProps(index) {
 }
 
 const adminLinks = [
-    { label: "Centers", href: "/dashboard" },
-    { label: "Configure", href: "/dashboard/configure" },
+    {label: "Centers", href: "/dashboard"},
+    {label: "Configure", href: "/dashboard/configure"},
 
-    { label: "Staff", href: "/dashboard/staff" },
+    {label: "Staff", href: "/dashboard/staff"},
     {label: "Staff requests", href: "/dashboard/staff-requests"},
 ];
 
 const reportLinks = [
-    { label: "Centers", href: "/dashboard" },
-    { label: "Rewards", href: "/dashboard/rewards" },
+    {label: "Attendances", href: "/dashboard"},
+    {label: "Edit attendance", href: "/dashboard/attendances/edit"},
+    {label: "Bank details report", href: "/dashboard/reports/bank"},
+    {label: "Attendances approval reports", href: "/dashboard/reports/approval"},
 ];
 
 const staffLinks = [
-    { label: "Staff", href: "/dashboard" },
-    { label: "Attendance", href: "/dashboard/attendance" },
-    { label: "Calendar", href: "/dashboard/calendar" },
+    {label: "Staff", href: "/dashboard"},
+    {label: "Attendance", href: "/dashboard/attendance"},
+    {label: "Calendar", href: "/dashboard/calendar"},
 ];
-export function BasicTabs({ section }) {
+
+export function BasicTabs({section}) {
     const currentPath = usePathname();
-    const tabs=section==="admin"?adminLinks:section==="report"?reportLinks:staffLinks;
+    const tabs = section === "admin" ? adminLinks : section === "report" ? reportLinks : staffLinks;
 
     const currentIndex = tabs.findIndex((tab) => tab.href === currentPath);
     const [value, setValue] = React.useState(
@@ -84,8 +87,8 @@ export function BasicTabs({ section }) {
     };
 
     return (
-          <Box sx={{ width: "100%" }}>
-              <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Box sx={{width: "100%"}}>
+              <Box sx={{borderBottom: 1, borderColor: "divider"}}>
                   <Tabs
                         value={value}
                         onChange={handleChange}
@@ -106,7 +109,7 @@ export function BasicTabs({ section }) {
                         )}
                   >
                       {tabs.map((tab, index) => (
-                            <Link key={tab.href} href={tab.href} >
+                            <Link key={tab.href} href={tab.href}>
                                 <Tab
                                       label={tab.label}
                                       {...a11yProps(index)}
