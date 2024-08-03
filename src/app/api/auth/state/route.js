@@ -32,8 +32,10 @@ export async function GET() {
     } catch (error) {
         console.log(error);
         return Response.json({
-            message: "Error authenticating user",
+            message: "Your session has finished",
             error: error.message,
-        });
+            auth: false,
+            status: 400
+        }, {status: 400});
     }
 }

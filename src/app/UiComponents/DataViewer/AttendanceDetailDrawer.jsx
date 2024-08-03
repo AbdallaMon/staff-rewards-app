@@ -23,24 +23,13 @@ import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 
 const fetchAttendanceById = async (dayAttendanceId, center) => {
-    const response = await fetch(center ? `/api/center/attendance/${dayAttendanceId}` : `/api/financial/attendance/${dayAttendanceId}`);
+    const response = await fetch(center ? `/api/center/attendance/${dayAttendanceId}` : `/api/finincal/attendance/${dayAttendanceId}`);
     const result = await response.json();
     return result;
 };
 
-const updateAttendance = async (dayAttendanceId, editedAttendances, deletedAttendances, center) => {
-    const response = await fetch(center ? `/api/center/attendance/${dayAttendanceId}` : `/api/financial/attendance/${dayAttendanceId}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({editedAttendances, deletedAttendances})
-    });
-    const result = await response.json();
-    return result;
-};
 
-const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData}) => {
+const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData, finincalId}) => {
     const [attendanceData, setAttendanceData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -109,9 +98,8 @@ const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData
             setEditedAttendances(prev => prev.filter(id => id !== shiftId));
         }
     };
-
     const handleSubmit = async () => {
-        const href = center ? `center/attendance/${dayAttendanceId}` : `financial/attendance/${dayAttendanceId}`;
+        const href = center ? `center/attendance/${dayAttendanceId}` : `finincal/attendance/${dayAttendanceId}?userId=${finincalId}`;
         const dutyAmount = attendanceData.user.duty.amount;
         const otherData = {
             centerId: attendanceData.centerId,
@@ -119,7 +107,12 @@ const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData
             dutyId: attendanceData.user.duty.id,
             amount: dutyAmount,
             date: attendanceData.date,
-            dutyName: attendanceData.user.duty.name
+            dutyName: attendanceData.user.duty.name,
+            name: attendanceData.user.name,
+            email: attendanceData.user.email,
+            emiratesId: attendanceData.user.emiratesId,
+            oldAttendances: attendanceData.attendances,
+            allShifts: attendanceData.allShifts
         }
         const response = await handleRequestSubmit({
             editedAttendances,

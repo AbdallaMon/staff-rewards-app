@@ -10,7 +10,6 @@ import {
 
 export default function Layout({center, admin, staff, financial}) {
     const [res, setRes] = useState(null);
-    console.log(res, "res")
     const router = useRouter();
 
     useEffect(() => {

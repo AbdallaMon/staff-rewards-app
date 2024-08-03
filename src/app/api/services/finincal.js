@@ -1,4 +1,5 @@
 import prisma from "@/lib/pirsma/prisma";
+import {handlePrismaError} from "@/app/api/utlis/prismaError";
 
 export const getUnpaidDayAttendanceDates = async (startDate, endDate, centerId) => {
     const startOfDay = date => new Date(date.setHours(0, 0, 0, 0));
@@ -199,5 +200,262 @@ export async function getUserDayAttendancesApprovals(page, limit, filters) {
         console.log(e, "e")
         return {status: 500, message: "Something wrong happened"}
 
+    }
+}
+
+
+///
+
+export async function fetchAttendanceForFinincial(page, limit, filters = {}) {
+    const where = {};
+    if (filters.centerId) {
+        where.centerId = +filters.centerId
+    }
+    if (filters.date) {
+        const date = new Date(filters.date);
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+        where.date = {
+            gte: startOfDay,
+            lte: endOfDay
+        };
+    } else {
+
+        if (filters.startDate && filters.endDate) {
+            const endDate = new Date(filters.endDate);
+            endDate.setHours(23, 59, 59, 999);  // Ensure endDate includes the entire day
+
+            where.date = {
+                gte: new Date(filters.startDate),
+                lte: endDate
+            };
+        } else if (filters.startDate) {
+            where.date = {
+                gte: new Date(filters.startDate)
+            };
+        } else if (filters.endDate) {
+            const endDate = new Date(filters.endDate);
+            endDate.setHours(23, 59, 59, 999);  // Ensure endDate includes the entire day
+
+            where.date = {
+                lte: endDate
+            };
+        } else {
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+            where.date = {
+                gte: startOfMonth,
+                lte: endOfMonth
+            };
+        }
+    }
+    if (filters.userId) {
+        where.userId = +filters.userId
+    }
+
+    try {
+        const [dayAttendanceRecords, total] = await prisma.$transaction([
+            prisma.dayAttendance.findMany({
+                where,
+                orderBy: {date: 'desc'},
+                skip: (page - 1) * limit,
+                take: limit,
+                select: {
+                    userId: true,
+                    date: true,
+                    examType: true,
+                    totalReward: true,
+                    id: true,
+                    user: {
+                        select: {
+                            name: true,
+                            emiratesId: true,
+                            rating: true,
+
+                        },
+                    },
+                    _count: {
+                        select: {attendances: true},
+                    },
+                },
+            }),
+            prisma.dayAttendance.count({where}),
+        ]);
+
+        const summaryRecords = dayAttendanceRecords.map(record => ({
+            userId: record.userId,
+            name: record.user.name,
+            emiratesId: record.user.emiratesId,
+            date: record.date,
+            rating: record.user.rating,
+            examType: record.examType,
+            numberOfShifts: record._count.attendances,
+            reward: record.totalReward,
+            id: record.id,
+        }));
+
+        return {
+            status: 200,
+            data: summaryRecords,
+            total,
+            message: "Attendance records fetched successfully"
+        };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+export async function updateAttendanceRecordsWithLog(dayAttendanceId, body, loggerId) {
+    const {
+        editedAttendances,
+        deletedAttendances,
+        userId,
+        amount,
+        date,
+        centerId,
+        dutyId,
+        email,
+        name,
+        emiratesId,
+        allShifts,
+        oldAttendances
+    } = body;
+    try {
+        const existingDayAttendance = await prisma.dayAttendance.findUnique({
+            where: {id: +dayAttendanceId},
+            include: {
+                attendances: {
+                    include: {
+                        shift: true
+                    }
+                }
+            }
+        });
+        let initialTotalReward = existingDayAttendance.totalReward;
+        let totalRewardChange = 0;
+        const logger = await prisma.user.findUnique({
+            where: {id: +loggerId},
+            select: {name: true, email: true},
+        });
+
+        if (!logger) {
+            return {
+                status: 400,
+                message: "User or Logger not found.",
+            };
+        }
+        await Promise.all(deletedAttendances.map(async (shiftId) => {
+            const attendance = await prisma.attendance.findFirst({
+                where: {
+                    userId: +userId,
+                    shiftId: +shiftId,
+                    date: new Date(date),
+                    centerId: +centerId,
+                    dayAttendanceId: +dayAttendanceId,
+                },
+            });
+
+            if (attendance) {
+                const dutyRewards = await prisma.dutyReward.findMany({
+                    where: {attendanceId: attendance.id},
+                });
+
+                const rewardSum = dutyRewards.reduce((sum, reward) => sum + reward.amount, 0);
+                totalRewardChange -= rewardSum;
+
+                await prisma.dutyReward.deleteMany({
+                    where: {attendanceId: attendance.id},
+                });
+
+                await prisma.attendance.delete({
+                    where: {id: attendance.id},
+                });
+            }
+        }));
+
+        // Create new attendance records for the specified shifts
+        const attendanceRecords = await Promise.all(
+              editedAttendances.map(async (shiftId) => {
+                  const attendance = await prisma.attendance.create({
+                      data: {
+                          userId: +userId,
+                          shiftId: +shiftId,
+                          date: new Date(date),
+                          centerId: +centerId,
+                          dayAttendanceId: +dayAttendanceId,
+                      },
+                  });
+                  const dutyReward = await prisma.dutyReward.create({
+                      data: {
+                          amount: amount,
+                          date: new Date(date),
+                          userId: +userId,
+                          attendanceId: attendance.id,
+                          shiftId: +shiftId,
+                          dutyId: +dutyId,
+                      },
+                  });
+
+                  totalRewardChange += dutyReward.amount;
+
+                  return {attendance, dutyReward};
+              })
+        );
+
+        await prisma.dayAttendance.update({
+            where: {id: +dayAttendanceId},
+            data: {
+                totalReward: {
+                    increment: totalRewardChange,
+                },
+                attachment: null,
+                attendances: {
+                    connect: attendanceRecords.map(record => ({id: record.attendance.id})),
+                },
+            },
+        });
+
+        // Get shift names
+        const allShiftNames = allShifts.reduce((acc, shift) => {
+            acc[shift.id] = shift.name;
+            return acc;
+        }, {});
+        const oldAttendanceShiftNames = oldAttendances.map(attendance => attendance.shift.name);
+        const deletedShiftNames = deletedAttendances.map(id => allShiftNames[id]);
+        const editedShiftNames = editedAttendances.map(id => allShiftNames[id]);
+
+        // Create the log entry
+        const logDescription = `
+            <p>Attendance records updated by <strong>${logger.name} (${logger.email})</strong></p>
+            <p><strong>User:</strong> ${name} (${email}, Emirates ID: ${emiratesId})</p>
+            <p><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</p>
+            <p><strong>Changes:</strong></p>
+            <ul>
+                <li>Previously Attended Shifts: ${oldAttendanceShiftNames.join(", ")}</li>
+                <li>Deleted Attendances: ${deletedShiftNames.join(", ")}</li>
+                <li>New Attendances: ${editedShiftNames.join(", ")}</li>
+                <li>Total Reward Before: ${initialTotalReward}</li>
+                <li>Total Reward After: ${initialTotalReward + totalRewardChange}</li>
+            </ul>
+        `;
+        console.log(logDescription, "logDesritption")
+        await prisma.log.create({
+            data: {
+                userId: +loggerId,
+                action: 'UPDATE_ATTENDANCE',
+                description: logDescription,
+            },
+        });
+
+        return {
+            status: 200,
+            message: "Attendance records updated successfully",
+        };
+    } catch (error) {
+        return handlePrismaError(error);
     }
 }

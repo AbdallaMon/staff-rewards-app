@@ -53,7 +53,7 @@ model Log {
   id           Int       @id @default(autoincrement())
   userId       Int
   action       String?
-  description String?
+  description  String     @db.Text
   createdAt    DateTime  @default(now())
   user         User      @relation(fields: [userId], references: [id])
 }
