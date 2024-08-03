@@ -431,7 +431,7 @@ export async function updateAttendanceRecordsWithLog(dayAttendanceId, body, logg
         // Create the log entry
         const logDescription = `
             <p>Attendance records updated by <strong>${logger.name} (${logger.email})</strong></p>
-            <p><strong>User:</strong> ${name} (${email}, Emirates ID: ${emiratesId})</p>
+            <p><strong>Employee :</strong> ${name} (${email}, Emirates ID: ${emiratesId})</p>
             <p><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</p>
             <p><strong>Changes:</strong></p>
             <ul>
