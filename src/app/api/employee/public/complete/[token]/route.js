@@ -1,6 +1,7 @@
 import {verifyToken} from "@/app/api/utlis/tokens";
 import parseFormData from "@/app/api/utlis/parseFormData";
 import {completeRegisterAndConfirmUser, createEmployeeRequest} from "@/app/api/services/employes";
+import deleteFileFromPath from "@/app/api/utlis/deleteAFile";
 
 export async function POST(request, response) {
     const token = response.params.token
@@ -14,10 +15,12 @@ export async function POST(request, response) {
 
     const decoded = verifyToken(token)
     if (decoded) {
-        const uploadedUrls = await parseFormData(request)
+        const {uploadedUrls, deletedUrl} = await parseFormData(request, true)
 
         const userId = decoded.userId;
         const res = await completeRegisterAndConfirmUser(uploadedUrls, userId)
+        await deleteFileFromPath(deletedUrl)
+
         return Response.json(res, {status: res.status})
     } else {
         return Response.json({

@@ -8,9 +8,9 @@ import {
     Success,
 } from "@/app/UiComponents/ToastUpdate/ToastUpdate";
 
-export default function Layout({center, admin, staff}) {
+export default function Layout({center, admin, staff, financial}) {
     const [res, setRes] = useState(null);
-
+    console.log(res, "res")
     const router = useRouter();
 
     useEffect(() => {
@@ -35,10 +35,10 @@ export default function Layout({center, admin, staff}) {
     }, []);
     if (!res || !res.role) return null;
     const role = res?.role;
-
+    console.log(role, "role")
     return (
           <HandleAuth>
-              {role === "ADMIN" ? admin : role === "EMPLOYEE" ? staff : role === "CENTER" ? center : null}{" "}
+              {role === "ADMIN" ? admin : role === "EMPLOYEE" ? staff : role === "FINANCIAL_AUDITOR" ? financial : role === "CENTER" ? center : null}{" "}
           </HandleAuth>
     );
 }

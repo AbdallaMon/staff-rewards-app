@@ -1,6 +1,6 @@
 import {getEmployeeById, updateEmployee} from "@/app/api/services/employes";
 import parseFormData from "@/app/api/utlis/parseFormData";
-import {deleteFileFromUrl} from "@/app/api/utlis/deleteAFile";
+import deleteFileFromPath from "@/app/api/utlis/deleteAFile";
 
 export async function GET(request, response) {
     const id = response.params.id
@@ -23,7 +23,7 @@ export async function PUT(request, response) {
 
     const res = await updateEmployee(+id, uploadedUrls)
 
-    await deleteFileFromUrl(deletedUrl)
+    await deleteFileFromPath(deletedUrl)
     return Response.json(res, {status: res.status});
 
 }

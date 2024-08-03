@@ -7,38 +7,43 @@ export const api = {
 };
 
 /**
- * Deletes a file from Nextcloud based on the provided URL.
- * @param {string} fileUrl - The URL of the file to be deleted.
+ * Deletes a file from Nextcloud based on the provided file path.
+ * @param {string} filePath - The path of the file to be deleted.
  */
-export async function deleteFileFromUrl(fileUrl) {
+export async function deleteFileFromPath(filePath) {
     try {
         const nextcloudUrlBase = process.env.NEXTCLOUD_URL;
         const nextcloudUsername = process.env.NEXTCLOUD_USERNAME;
         const nextcloudPassword = process.env.NEXTCLOUD_PASSWORD;
-
-        // Ensure the file URL is within the Nextcloud base URL
-        if (!fileUrl.startsWith(nextcloudUrlBase)) {
-            console.log('Invalid file URL:', fileUrl);
-            return NextResponse.json({message: 'Invalid file URL'}, {status: 400});
-        }
+        const parsedUrl = new URL(filePath);
+        const name = parsedUrl.searchParams.get('name');
+        // Construct the WebDAV path for deletion
+        const deleteUrl = `${nextcloudUrlBase}/${name}`;
+        console.log('Constructed Delete URL:', filePath);
 
         // Make a DELETE request to the Nextcloud URL to delete the file
-        await axios.delete(fileUrl, {
+        const response = await axios.delete(deleteUrl, {
             auth: {
                 username: nextcloudUsername,
                 password: nextcloudPassword,
             },
         });
 
-        console.log(`File deleted: ${fileUrl}`);
+        console.log('Delete response:', response.data);
+
         return NextResponse.json({message: 'File deleted successfully'});
     } catch (error) {
         console.error('Error deleting file:', error);
-        if (error.response && error.response.status === 404) {
-            return NextResponse.json({message: 'File not found'}, {status: 404});
+
+        if (error.response) {
+            console.error('Error response data:', error.response.data);
+            if (error.response.status === 404) {
+                return NextResponse.json({message: 'File not found'}, {status: 404});
+            }
         }
+
         return NextResponse.json({message: 'Error deleting file'}, {status: 500});
     }
 }
 
-export default deleteFileFromUrl;
+export default deleteFileFromPath;

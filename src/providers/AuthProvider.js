@@ -8,7 +8,6 @@ export const AuthContext = createContext(null);
 export default function AuthProvider({children}) {
     const dispatch = useDispatch();
     const {isLoggedIn, data} = useSelector((state) => state.auth);
-    console.log(data, "data")
     const [redirect, setRedirect] = useState(false);
     useEffect(() => {
         async function fetchData() {

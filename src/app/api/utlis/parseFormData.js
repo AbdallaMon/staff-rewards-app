@@ -8,7 +8,7 @@ export const config = {
     },
 };
 
-async function parseFormData(req) {
+async function parseFormData(req, withDelete) {
     const formData = await req.formData();
     try {
         const results = {};
@@ -37,16 +37,36 @@ async function parseFormData(req) {
                     },
                 });
 
-                results[key] = nextcloudUrl;
+                // Generate a public share link for the uploaded file
+                const shareUrl = `${nextcloudUrlBase.replace('/remote.php/webdav', '')}/ocs/v2.php/apps/files_sharing/api/v1/shares`;
+                const shareResponse = await axios.post(shareUrl, null, {
+                    params: {
+                        path: `/${uniqueName}`,
+                        shareType: 3, // Public link
+                        permissions: 1, // Read-only
+                    },
+                    auth: {
+                        username: nextcloudUsername,
+                        password: nextcloudPassword,
+                    },
+                    headers: {
+                        'OCS-APIREQUEST': 'true',
+                    },
+                });
+                const extenstion = value.type === "application/pdf" ? `?type=pdf&name=${uniqueName}` : `/preview?name=${uniqueName}`
+                const publicUrl = shareResponse.data.ocs.data.url + extenstion;
+                results[key] = publicUrl;
             } else {
                 if (key === 'deletedUrl') continue;
                 results[key] = value;
             }
         }
 
-        if (deletedUrl) {
+
+        if (withDelete) {
             return {uploadedUrls: results, deletedUrl};
         }
+
         return results;
     } catch (e) {
         console.error(e);

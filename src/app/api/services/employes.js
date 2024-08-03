@@ -12,6 +12,9 @@ export async function createEmployeeRequest(data) {
         data.emailConfirmed = false;
         data.accountStatus = "PENDING"
         data.role = "EMPLOYEE"
+        if (data.ibanBank) {
+            data.ibanBank = "AE" + data.ibanBank;
+        }
         const user = await prisma.user.create(
               {data}
         )
@@ -49,6 +52,7 @@ export async function completeRegisterAndConfirmUser(data, userId) {
         if (data.dutyId) {
             data.dutyId = +data.dutyId;
         }
+
         await prisma.user.update(
               {
                   where: {id: userId},
@@ -115,6 +119,9 @@ export async function getEmployeeById(employeeId) {
 
 export async function updateEmployee(employeeId, data) {
     try {
+        if (data.ibanBank) {
+            data.ibanBank = "AE" + data.ibanBank;
+        }
         await prisma.user.update({
             where: {id: parseInt(employeeId)},
             data,

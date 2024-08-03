@@ -5,7 +5,7 @@ import {useToastContext} from "@/providers/ToastLoadingProvider";
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {Box, Button, Card, CardContent, Container, Grid, TextField, Typography} from "@mui/material";
 import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
-import PrintButton from "@/app/UiComponents/DataViewer/AttendanceTemplate";
+import PrintButton from "@/app/UiComponents/Templatese/AttendanceTemplate";
 
 export default function CheckAttendanceAttachments({children}) {
     let {data} = useSelector((state) => state.auth);

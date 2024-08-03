@@ -82,6 +82,11 @@ export default function Navbar() {
                                                                 <Button color="inherit">Calendar</Button>
                                                             </Link>
                                                         </MenuItem>
+                                                        <MenuItem onClick={handleLinksMenuClose}>
+                                                            <Link href="/dashboard/profile">
+                                                                <Button color="inherit">Profile</Button>
+                                                            </Link>
+                                                        </MenuItem>
                                                     </Menu>
                                                     <Box sx={{
                                                         flexGrow: 1,
@@ -101,6 +106,9 @@ export default function Navbar() {
                                                     </Link>
                                                     <Link href="/dashboard/calendar" passHref>
                                                         <Button color="inherit">Calendar</Button>
+                                                    </Link>
+                                                    <Link href="/dashboard/profile" passHref>
+                                                        <Button color="inherit">Profile</Button>
                                                     </Link>
                                                     <Box sx={{
                                                         flexGrow: 1,

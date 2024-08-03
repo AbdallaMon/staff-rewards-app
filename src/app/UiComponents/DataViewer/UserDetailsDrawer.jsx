@@ -36,7 +36,7 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData}) 
     const [rejectModalOpen, setRejectModalOpen] = useState(false);
     const [approveModalOpen, setApproveModalOpen] = useState(false);
     const [uncompletedModalOpen, setUncompletedModalOpen] = useState(false);
-
+    console.log(userData, "useData")
     useEffect(() => {
         if (userId) {
             setLoading(true);
@@ -83,7 +83,7 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData}) 
         onClose();
     };
 
-    const isPdf = (url) => url ? url.toLowerCase().endsWith('.pdf') : null
+    const isPdf = (url) => url ? url.toLowerCase().endsWith('pdf') : null
 
     const renderDocument = (label, value) => {
 
@@ -134,7 +134,6 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData}) 
                                     <Grid item xs={12} md={6}>
                                         <Box sx={{display: 'flex', alignItems: 'center', mb: 2}}>
                                             {userData.photo ? (
-                                                  // ./public/
                                                   <Avatar
                                                         src={userData.photo}
                                                         sx={{

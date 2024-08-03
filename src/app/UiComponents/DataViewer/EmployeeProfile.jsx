@@ -26,6 +26,7 @@ import {IoMdClose, IoMdEye, IoMdCreate} from 'react-icons/io';
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
+import PrintBankDetailsButton from "@/app/UiComponents/Templatese/BankdetailsTemplate";
 
 const Input = styled('input')({
     display: 'none',
@@ -136,7 +137,7 @@ const ProfilePage = ({userId}) => {
                   <Grid item xs={12} md={6}>
                       <Box display="flex" flexDirection="column" height="100%">
                           <ProfileSection>
-                              <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
+                              <Box display="flex" flexDirection="column" alignItems="flex-start" mb={2}>
                                   <Avatar src={user.photo} alt="User Photo"
                                           sx={{width: 100, height: 100, mb: 2}}/>
                                   <IconButton onClick={() => handleImageEditClick('photo')}><IoMdCreate/></IconButton>
@@ -234,6 +235,30 @@ const ProfilePage = ({userId}) => {
                                         </Box>
                                   )}
                               </Box>
+                              <Box display="flex" alignItems="center" mb={2}>
+                                  <Typography variant="body1">Bank Approval Attachment: </Typography>
+                                  {user.bankApprovalAttachment?.endsWith('.pdf') ? (
+                                        <>
+                                            <Link href={user.bankApprovalAttachment} target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  sx={{ml: 1}}>View PDF</Link>
+                                            <IconButton
+                                                  onClick={() => handleImageEditClick('bankApprovalAttachment')}><IoMdCreate/></IconButton>
+                                        </>
+                                  ) : (
+                                        <Box display="flex" alignItems="center" ml={1}>
+                                            <Avatar src={user.bankApprovalAttachment} alt="Bank Approval Attachment"
+                                                    sx={{width: 80, height: 80, mr: 1}}/>
+                                            <IconButton
+                                                  onClick={() => handleImageEditClick('bankApprovalAttachment')}><IoMdCreate/></IconButton>
+                                            <Tooltip title="View Full Image">
+                                                <IconButton
+                                                      onClick={() => setFullImageModal(user.bankApprovalAttachment)}><IoMdEye/></IconButton>
+                                            </Tooltip>
+                                        </Box>
+                                  )}
+                              </Box>
+                              <PrintBankDetailsButton user={user}/>
                           </ProfileSection>
                           <ProfileSection>
                               <Typography variant="h6">Additional Information</Typography>

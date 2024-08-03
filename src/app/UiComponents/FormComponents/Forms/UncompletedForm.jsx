@@ -63,12 +63,18 @@ const UncompletedForm = () => {
     useEffect(() => {
         const loadDuties = async () => {
             const duties = await fetchOptions('duty');
+            if (!duties) {
+                setDutyOptions([])
+            }
             setDutyOptions(duties);
             setLoadingDuties(false);
         };
 
         const loadCenters = async () => {
             const centers = await fetchOptions('center');
+            if (!centers) {
+                setCenterOptions({})
+            }
             setCenterOptions(centers);
             setLoadingCenters(false);
         };
@@ -91,7 +97,6 @@ const UncompletedForm = () => {
 
         setDecoding(false);
     }, [token]);
-    console.log(incompleteFields)
     const handleFileChange = (e, field) => {
         const file = e.target.files[0];
         if (file && (file.type.startsWith('image/') || file.type === 'application/pdf')) {
@@ -119,8 +124,6 @@ const UncompletedForm = () => {
     const onSubmit = async (data) => {
         let hasError = false;
         const errors = {};
-        console.log(data, "data")
-        console.log(fileInputs, "fileInputs")
         // Validate each file input
         Object.keys(fileInputs).forEach((field) => {
             if (!fileInputs[field]) {
@@ -129,7 +132,6 @@ const UncompletedForm = () => {
             }
         });
 
-        console.log(hasError, "haserro")
         if (hasError) {
             setValidationErrors(errors);
             return;
@@ -277,7 +279,7 @@ const UncompletedForm = () => {
                                 required: 'IBAN is required',
                                 pattern: {
                                     value: /^\d{21}$/,
-                                    message: 'Invalid IBAN format, it should be AE followed by 21 digits'
+                                    message: 'Invalid IBAN format, it should  21 digits'
                                 }
                             }}
                             render={({field}) => (
@@ -288,7 +290,7 @@ const UncompletedForm = () => {
                                         margin="normal"
                                         type={"number"}
                                         error={!!errors.ibanBank}
-                                        helperText={errors.ibanBank ? errors.ibanBank.message : 'Enter IBAN in the format: AE followed by 21 digits'}
+                                        helperText={errors.ibanBank ? errors.ibanBank.message : 'Enter IBAN : 21 digits'}
                                         sx={{bgcolor: 'background.default'}}
                                         InputProps={{
                                             startAdornment: <InputAdornment position="start">AE</InputAdornment>,
