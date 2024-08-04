@@ -4,6 +4,7 @@ import {sendEmail} from "@/app/api/utlis/sendMail";
 import {url} from "@/app/constants";
 import {handlePrismaError} from "@/app/api/utlis/prismaError";
 import jwt from "jsonwebtoken";
+import {generateResetToken} from "@/app/api/utlis/utility";
 // Helper function to handle Prisma errors
 
 
@@ -475,27 +476,15 @@ export async function getUserById(id) {
 
 ///// employees requests /////
 
-export const approveUser = async (userId, {password, examType}) => {
+export const approveUser = async (userId) => {
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
         const user = await prisma.user.update({
             where: {id: userId},
             data: {
-                password: hashedPassword,
-                examType,
                 accountStatus: 'APPROVED',
             },
         });
-
-        const emailContent = `
-      <h1>Account Approved</h1>
-      <p>Your account has been approved. You can log in with your email and the password provided.</p>
-      <p><strong>Email:</strong> ${user.email}</p>
-      <p><strong>Password:</strong> ${password}</p>
-      <p><a href="${url}/login">Click here to login</a></p>
-    `;
-
-        await sendEmail(user.email, 'Account Approved', emailContent);
+        await generateResetToken(user.email, true)
 
         return {status: 200, message: 'User approved successfully and a message sent to the user email '};
     } catch (error) {
@@ -696,6 +685,102 @@ export async function deleteCalendar(id) {
         });
 
         return {status: 200, data: deletedCalendar, message: "Calendar entry deleted successfully"};
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+//// financial accounts
+export async function createFinancialAccount(data) {
+
+    try {
+        const user = await prisma.user.create({
+            data: {
+                name: data.name,
+                email: data.email,
+                role: "FINANCIAL_AUDITOR",
+                isActive: true,
+                emailConfirmed: true,
+            },
+        });
+        await generateResetToken(user.email)
+
+        return {status: 200, data: user, message: "Account created successfully and email sent to the account."};
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+export async function fetchFinancialAccounts(page = 1, limit = 10) {
+    const offset = (page - 1) * limit;
+    try {
+        const where = {
+            role: "FINANCIAL_AUDITOR"
+        }
+        const [users, total] = await prisma.$transaction([
+            prisma.user.findMany({
+                where,
+                skip: offset,
+                take: limit,
+                orderBy: {createdAt: 'desc'},
+            }),
+            prisma.user.count({where}),
+        ]);
+
+        return {
+            status: 200,
+            data: users,
+            total,
+            page,
+            limit,
+            message: "Users fetched successfully",
+        };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+export async function deleteFinancialAccount(id) {
+    try {
+        await prisma.log.deleteMany({
+            where: {userId: parseInt(id, 10)},
+        });
+        const deletedUser = await prisma.user.delete({
+            where: {id: parseInt(id, 10)},
+        });
+
+        return {status: 200, data: deletedUser, message: "User deleted "};
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+export async function editFinancialAccount(id, data) {
+    try {
+
+        const newUser = await prisma.user.update({
+            where: {id: +id},
+            data,
+        });
+        if (data.email) {
+            if (data.email !== newUser.email) {
+                const emailContent = `
+                <h1>Your Account Email Updated</h1>
+                <p>The email for your account has been updated.</p>
+                <p><strong>New Email:</strong> ${data.email}</p>
+                <p><a href="${url}/login">Click here to login</a></p>
+            `;
+
+                // Send email to the supervisor with the new email
+                await sendEmail(
+                      data.email,
+                      "Your Account Email Updated",
+                      emailContent
+                );
+            }
+        }
+
+        return {status: 200, data: newUser, message: "account updated successfully"};
     } catch (error) {
         return handlePrismaError(error);
     }

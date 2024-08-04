@@ -21,7 +21,6 @@ import {useTheme} from '@mui/material/styles';
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 
-// Dummy API fetch functions (replace with your actual API calls)
 const fetchOptions = async (id) => {
     const response = await fetch(`/api/index?id=${id}`);
     const result = await response.json();
@@ -77,7 +76,7 @@ const MultiStepForm = () => {
     ];
 
     const stepFieldGroups = [
-        ['name', 'emiratesId', 'email', 'zone', 'gender', 'phone'],
+        ['name', 'emiratesId', 'email', 'zone', 'gender', 'graduationName', 'phone'],
         ['dutyId', 'centerId'],
         ['bankName', 'bankUserName', 'ibanBank']
     ];
@@ -118,37 +117,41 @@ const MultiStepForm = () => {
                           <Typography variant="body1" fontWeight="bold">Emirates ID</Typography>
                           <Typography variant="body2">{data.emiratesId}</Typography>
                       </Grid>
-                      <Grid item xs={12}>
+                      <Grid item xs={12} sm={6}>
                           <Typography variant="body1" fontWeight="bold">Email</Typography>
                           <Typography variant="body2">{data.email}</Typography>
                       </Grid>
                       <Grid item xs={12} sm={6}>
+                          <Typography variant="body1" fontWeight="bold">Graduation title</Typography>
+                          <Typography variant="body2">{data.graduationName}</Typography>
+                      </Grid>
+                      <Grid item xs={6} sm={6}>
                           <Typography variant="body1" fontWeight="bold">Zone</Typography>
                           <Typography variant="body2">{data.zone}</Typography>
                       </Grid>
-                      <Grid item xs={12} sm={6}>
+                      <Grid item xs={6} sm={6}>
                           <Typography variant="body1" fontWeight="bold">Gender</Typography>
                           <Typography variant="body2">{data.gender}</Typography>
                       </Grid>
-                      <Grid item xs={12} sm={6}>
+                      <Grid item xs={6} sm={6}>
                           <Typography variant="body1" fontWeight="bold">Phone</Typography>
                           <Typography variant="body2">{data.phone}</Typography>
                       </Grid>
-                      <Grid item xs={12} sm={6}>
+                      <Grid item xs={6} sm={6}>
                           <Typography variant="body1" fontWeight="bold">Duty</Typography>
                           <Typography
                                 variant="body2">{dutyOptions.find(option => option.id === data.dutyId)?.name || ''}</Typography>
                       </Grid>
-                      <Grid item xs={12} sm={6}>
+                      <Grid item xs={6} sm={6}>
                           <Typography variant="body1" fontWeight="bold">Center</Typography>
                           <Typography
                                 variant="body2">{centerOptions.find(option => option.id === data.centerId)?.name || ''}</Typography>
                       </Grid>
-                      <Grid item xs={12} sm={6}>
+                      <Grid item xs={6} sm={6}>
                           <Typography variant="body1" fontWeight="bold">Bank Name</Typography>
                           <Typography variant="body2">{data.bankName}</Typography>
                       </Grid>
-                      <Grid item xs={12} sm={6}>
+                      <Grid item xs={6} sm={6}>
                           <Typography variant="body1" fontWeight="bold">Bank User Name</Typography>
                           <Typography variant="body2">{data.bankUserName}</Typography>
                       </Grid>
@@ -178,7 +181,13 @@ const MultiStepForm = () => {
                             <Controller
                                   name="name"
                                   control={control}
-                                  rules={{required: 'Name is required'}}
+                                  rules={{
+                                      required: 'Name is required',
+                                      pattern: {
+                                          value: /^[a-zA-Z]+ [a-zA-Z]+ [a-zA-Z]+$/,
+                                          message: 'Please enter at least three names'
+                                      }
+                                  }}
                                   render={({field}) => (
                                         <TextField
                                               {...field}
@@ -186,7 +195,7 @@ const MultiStepForm = () => {
                                               fullWidth
                                               margin="normal"
                                               error={!!errors.name}
-                                              helperText={errors.name ? errors.name.message : ''}
+                                              helperText={errors.name ? errors.name.message : 'Your full name (at least three)'}
                                               sx={{bgcolor: 'background.default'}}
                                         />
                                   )}
@@ -223,11 +232,7 @@ const MultiStepForm = () => {
                                   name="passportNumber"
                                   control={control}
                                   rules={{
-                                      required: 'Emirates ID is required',
-                                      pattern: {
-                                          value: /^\d{15}$/,
-                                          message: 'Invalid Emirates ID format, it should be 15 digits'
-                                      }
+                                      required: 'Passport Number is required',
                                   }}
                                   render={({field}) => (
                                         <TextField
@@ -235,6 +240,7 @@ const MultiStepForm = () => {
                                               label="Passport Number"
                                               fullWidth
                                               margin="normal"
+                                              type="number"
                                               error={!!errors.passportNumber}
                                               helperText={errors.passportNumber ? errors.passportNumber.message : 'Passport number is required'}
                                               sx={{bgcolor: 'background.default'}}
@@ -247,7 +253,10 @@ const MultiStepForm = () => {
                                   control={control}
                                   rules={{
                                       required: 'Email is required',
-                                      pattern: {value: /^\S+@\S+$/i, message: 'Invalid email address'}
+                                      pattern: {
+                                          value: /^(?!.*\.(gov|ae)$)\S+@\S+\.\S+$/i,
+                                          message: 'Invalid email address note: .gov/.ae  are not accepted'
+                                      }
                                   }}
                                   render={({field}) => (
                                         <TextField
@@ -256,7 +265,7 @@ const MultiStepForm = () => {
                                               fullWidth
                                               margin="normal"
                                               error={!!errors.email}
-                                              helperText={errors.email ? errors.email.message : ''}
+                                              helperText={errors.email ? errors.email.message : ""}
                                               sx={{bgcolor: 'background.default'}}
                                         />
                                   )}
@@ -298,6 +307,22 @@ const MultiStepForm = () => {
                                   )}
                             />
                             <Controller
+                                  name="graduationName"
+                                  control={control}
+                                  rules={{required: 'Graduation title is required'}}
+                                  render={({field}) => (
+                                        <TextField
+                                              {...field}
+                                              label="Graduation title"
+                                              fullWidth
+                                              margin="normal"
+                                              error={!!errors.graduationName}
+                                              helperText={errors.graduationName ? errors.graduationName.message : ''}
+                                              sx={{bgcolor: 'background.default'}}
+                                        />
+                                  )}
+                            />
+                            <Controller
                                   name="phone"
                                   control={control}
                                   rules={{required: 'Phone is required'}}
@@ -307,6 +332,7 @@ const MultiStepForm = () => {
                                               label="Phone"
                                               fullWidth
                                               margin="normal"
+                                              type="number"
                                               error={!!errors.phone}
                                               helperText={errors.phone ? errors.phone.message : ''}
                                               sx={{bgcolor: 'background.default'}}
@@ -382,7 +408,7 @@ const MultiStepForm = () => {
                                               fullWidth
                                               margin="normal"
                                               error={!!errors.bankName}
-                                              helperText={errors.bankName ? errors.bankName.message : ''}
+                                              helperText={errors.bankName ? errors.bankName.message : 'Mashreq ,ADIB ,...'}
                                               sx={{bgcolor: 'background.default'}}
                                         />
                                   )}
@@ -398,7 +424,7 @@ const MultiStepForm = () => {
                                               fullWidth
                                               margin="normal"
                                               error={!!errors.bankUserName}
-                                              helperText={errors.bankUserName ? errors.bankUserName.message : ''}
+                                              helperText={errors.bankUserName ? errors.bankUserName.message : 'Your full name in the bank'}
                                               sx={{bgcolor: 'background.default'}}
                                         />
                                   )}

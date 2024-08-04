@@ -18,12 +18,16 @@ import {
     InputLabel,
     FormControl,
     InputAdornment,
-    Tabs,
-    Tab,
+    BottomNavigation,
+    BottomNavigationAction,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText
 } from '@mui/material';
 import {styled} from '@mui/material/styles';
 import {useForm, Controller} from 'react-hook-form';
-import {IoMdClose, IoMdEye, IoMdCreate} from 'react-icons/io';
+import {IoMdClose, IoMdEye, IoMdCreate, IoMdPerson, IoMdCash, IoMdInformationCircle} from 'react-icons/io';
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
@@ -55,7 +59,7 @@ const DataBox = styled(Box)(({theme}) => ({
     display: "grid",
     gridTemplateColumns: "0.9fr 1.1fr",
     alignItems: "center",
-    marginBottom: theme.spacing(1),
+    marginBottom: "12px",
 }));
 
 const fetchUserDetails = async (userId) => {
@@ -154,243 +158,302 @@ const ProfilePage = ({userId}) => {
               <Button onClick={toggleEditMode} variant="contained" color="primary" sx={{mb: 2}}>
                   {editMode ? "Exit Edit Mode" : "Enter Edit Mode"}
               </Button>
-              <Tabs value={tabIndex} onChange={handleTabChange} aria-label="profile tabs" centered>
-                  <Tab label="Personal Info"/>
-                  <Tab label="Bank Details"/>
-                  <Tab label="Additional Info"/>
-              </Tabs>
-              <TabPanel value={tabIndex} index={0}>
-                  <Box display="flex" flexDirection="column" alignItems="center" height="100%">
-                      <ProfileSection>
-                          <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
-                              <Avatar src={user.photo} alt="User Photo"
-                                      sx={{width: 100, height: 100, mb: 2}}/>
-                              {editMode && (
-                                    <IconButton onClick={() => handleImageEditClick('photo')}><IoMdCreate/></IconButton>
-                              )}
+              <Box display={{md: 'flex'}} width="100%">
+                  <Box width="25%" mr={2} sx={{
+                      display: {md: "block", xs: "none"},
+                      pt: 4
+                  }}>
+                      <List component="nav">
+                          <ListItem button selected={tabIndex === 0} onClick={() => setTabIndex(0)}>
+                              <ListItemIcon>
+                                  <IoMdPerson/>
+                              </ListItemIcon>
+                              <ListItemText primary="Personal Info"/>
+                          </ListItem>
+                          <ListItem button selected={tabIndex === 1} onClick={() => setTabIndex(1)}>
+                              <ListItemIcon>
+                                  <IoMdCash/>
+                              </ListItemIcon>
+                              <ListItemText primary="Bank Details"/>
+                          </ListItem>
+                          <ListItem button selected={tabIndex === 2} onClick={() => setTabIndex(2)}>
+                              <ListItemIcon>
+                                  <IoMdInformationCircle/>
+                              </ListItemIcon>
+                              <ListItemText primary="Additional Info"/>
+                          </ListItem>
+                      </List>
+                  </Box>
+                  <Box sx={{
+                      width: {
+                          xs: "100%",
+                          md: "75%"
+                      }
+                  }}>
+                      <TabPanel value={tabIndex} index={0}>
+                          <Box display="flex" flexDirection="column" alignItems="center" height="100%">
+                              <ProfileSection>
+                                  <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
+                                      <Avatar src={user.photo} alt="User Photo"
+                                              sx={{width: 100, height: 100, mb: 2}}/>
+                                      {editMode && (
+                                            <IconButton
+                                                  onClick={() => handleImageEditClick('photo')}><IoMdCreate/></IconButton>
+                                      )}
+                                  </Box>
+                                  <Typography variant="h6" align="center">Personal Information</Typography>
+                                  <Divider sx={{my: 1}}/>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">Name:</Typography>
+                                      <Typography variant="body1">{user.name} {editMode && (
+                                            <IconButton
+                                                  onClick={() => handleEditClick('name')}><IoMdCreate/></IconButton>
+                                      )}</Typography>
+
+                                  </DataBox>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">Email:</Typography>
+                                      <Typography variant="body1">{user.email} {editMode && (
+                                            <IconButton
+                                                  onClick={() => handleEditClick('email')}><IoMdCreate/></IconButton>
+                                      )}</Typography>
+                                  </DataBox>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">Phone:</Typography>
+                                      <Typography variant="body1">{user.phone} {editMode && (
+                                            <IconButton
+                                                  onClick={() => handleEditClick('phone')}><IoMdCreate/></IconButton>
+                                      )}</Typography>
+                                  </DataBox>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">Zone:</Typography>
+                                      <Typography variant="body1">{user.zone} {editMode && (
+                                            <IconButton
+                                                  onClick={() => handleEditClick('zone')}><IoMdCreate/></IconButton>
+                                      )}</Typography>
+                                  </DataBox>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">Gender:</Typography>
+                                      <Typography variant="body1">{user.gender} {editMode && (
+                                            <IconButton
+                                                  onClick={() => handleEditClick('gender')}><IoMdCreate/></IconButton>
+                                      )}</Typography>
+                                  </DataBox>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">Emirates ID:</Typography>
+                                      <Typography variant="body1">{user.emiratesId} {editMode && (
+                                            <IconButton
+                                                  onClick={() => handleEditClick('emiratesId')}><IoMdCreate/></IconButton>
+                                      )}</Typography>
+                                  </DataBox>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">Emirates ID Photo:</Typography>
+                                      {user.emiratesIdPhoto?.endsWith('.pdf') ? (
+                                            <>
+                                                <Link href={user.emiratesIdPhoto} target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      sx={{ml: 1}}>View PDF</Link>
+                                                {editMode && (
+                                                      <IconButton
+                                                            onClick={() => handleImageEditClick('emiratesIdPhoto')}><IoMdCreate/></IconButton>
+                                                )}
+                                            </>
+                                      ) : (
+                                            <Box display="flex" alignItems="center" ml={1}>
+                                                <Avatar src={user.emiratesIdPhoto} alt="Emirates ID Photo"
+                                                        sx={{width: 80, height: 80, mr: 1}}/>
+                                                {editMode && (
+                                                      <IconButton
+                                                            onClick={() => handleImageEditClick('emiratesIdPhoto')}><IoMdCreate/></IconButton>
+                                                )}
+                                                <Tooltip title="View Full Image">
+                                                    <IconButton
+                                                          onClick={() => setFullImageModal(user.emiratesIdPhoto)}><IoMdEye/></IconButton>
+                                                </Tooltip>
+                                            </Box>
+                                      )}
+                                  </DataBox>
+                              </ProfileSection>
                           </Box>
-                          <Typography variant="h6" align="center">Personal Information</Typography>
-                          <Divider sx={{my: 1}}/>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">Name:</Typography>
-                              <Typography variant="body1">{user.name} {editMode && (
-                                    <IconButton onClick={() => handleEditClick('name')}><IoMdCreate/></IconButton>
-                              )}</Typography>
+                      </TabPanel>
+                      <TabPanel value={tabIndex} index={1}>
+                          <Box display="flex" flexDirection="column" alignItems="center" height="100%">
+                              <ProfileSection>
+                                  <Typography variant="h6" align="center">Bank Information</Typography>
+                                  <Divider sx={{my: 1}}/>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">Bank Name:</Typography>
+                                      <Typography variant="body1">{user.bankName} {editMode && (
+                                            <IconButton
+                                                  onClick={() => handleEditClick('bankName')}><IoMdCreate/></IconButton>
+                                      )}</Typography>
+                                  </DataBox>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">Bank User Name:</Typography>
+                                      <Typography variant="body1">{user.bankUserName} {editMode && (
+                                            <IconButton
+                                                  onClick={() => handleEditClick('bankUserName')}><IoMdCreate/></IconButton>
+                                      )}</Typography>
+                                  </DataBox>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">IBAN:</Typography>
+                                      <Typography variant="body1">{user.ibanBank} {editMode && (
+                                            <IconButton
+                                                  onClick={() => handleEditClick('ibanBank')}><IoMdCreate/></IconButton>
+                                      )}</Typography>
+                                  </DataBox>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">IBAN Bank Photo:</Typography>
+                                      {user.ibanBankPhoto?.endsWith('.pdf') ? (
+                                            <>
+                                                <Link href={user.ibanBankPhoto} target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      sx={{ml: 1}}>View PDF</Link>
+                                                {editMode && (
+                                                      <IconButton
+                                                            onClick={() => handleImageEditClick('ibanBankPhoto')}><IoMdCreate/></IconButton>
+                                                )}
+                                            </>
+                                      ) : (
+                                            <Box display="flex" alignItems="center" ml={1}>
+                                                <Avatar src={user.ibanBankPhoto} alt="IBAN Bank Photo"
+                                                        sx={{width: 80, height: 80, mr: 1}}/>
+                                                {editMode && (
+                                                      <IconButton
+                                                            onClick={() => handleImageEditClick('ibanBankPhoto')}><IoMdCreate/></IconButton>
+                                                )}
+                                                <Tooltip title="View Full Image">
+                                                    <IconButton
+                                                          onClick={() => setFullImageModal(user.ibanBankPhoto)}><IoMdEye/></IconButton>
+                                                </Tooltip>
+                                            </Box>
+                                      )}
+                                  </DataBox>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">Bank Approval
+                                          Attachment:</Typography>
+                                      {user.bankApprovalAttachment?.endsWith('.pdf') ? (
+                                            <>
+                                                <Link href={user.bankApprovalAttachment} target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      sx={{ml: 1}}>View PDF</Link>
+                                                {editMode && (
+                                                      <IconButton
+                                                            onClick={() => handleImageEditClick('bankApprovalAttachment')}><IoMdCreate/></IconButton>
+                                                )}
+                                            </>
+                                      ) : (
+                                            <Box display="flex" alignItems="center" ml={1}>
+                                                {!user.bankApprovalAttachment ? "No attacments uploaded" :
+                                                      <Avatar src={user.bankApprovalAttachment}
+                                                              alt="Bank Approval Attachment"
+                                                              sx={{width: 80, height: 80, mr: 1}}/>}
 
-                          </DataBox>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">Email:</Typography>
-                              <Typography variant="body1">{user.email} {editMode && (
-                                    <IconButton onClick={() => handleEditClick('email')}><IoMdCreate/></IconButton>
-                              )}</Typography>
-                          </DataBox>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">Phone:</Typography>
-                              <Typography variant="body1">{user.phone} {editMode && (
-                                    <IconButton onClick={() => handleEditClick('phone')}><IoMdCreate/></IconButton>
-                              )}</Typography>
-                          </DataBox>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">Zone:</Typography>
-                              <Typography variant="body1">{user.zone} {editMode && (
-                                    <IconButton onClick={() => handleEditClick('zone')}><IoMdCreate/></IconButton>
-                              )}</Typography>
-                          </DataBox>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">Gender:</Typography>
-                              <Typography variant="body1">{user.gender} {editMode && (
-                                    <IconButton onClick={() => handleEditClick('gender')}><IoMdCreate/></IconButton>
-                              )}</Typography>
-                          </DataBox>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">Emirates ID:</Typography>
-                              <Typography variant="body1">{user.emiratesId} {editMode && (
-                                    <IconButton onClick={() => handleEditClick('emiratesId')}><IoMdCreate/></IconButton>
-                              )}</Typography>
-                          </DataBox>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">Emirates ID Photo:</Typography>
-                              {user.emiratesIdPhoto?.endsWith('.pdf') ? (
-                                    <>
-                                        <Link href={user.emiratesIdPhoto} target="_blank" rel="noopener noreferrer"
-                                              sx={{ml: 1}}>View PDF</Link>
-                                        {editMode && (
-                                              <IconButton
-                                                    onClick={() => handleImageEditClick('emiratesIdPhoto')}><IoMdCreate/></IconButton>
-                                        )}
-                                    </>
-                              ) : (
-                                    <Box display="flex" alignItems="center" ml={1}>
-                                        <Avatar src={user.emiratesIdPhoto} alt="Emirates ID Photo"
-                                                sx={{width: 80, height: 80, mr: 1}}/>
-                                        {editMode && (
-                                              <IconButton
-                                                    onClick={() => handleImageEditClick('emiratesIdPhoto')}><IoMdCreate/></IconButton>
-                                        )}
-                                        <Tooltip title="View Full Image">
+                                                {editMode && (
+                                                      <IconButton
+                                                            onClick={() => handleImageEditClick('bankApprovalAttachment')}><IoMdCreate/></IconButton>
+                                                )}
+                                                {user.bankApprovalAttachment &&
+                                                      <Tooltip title="View Full Image">
+                                                          <IconButton
+                                                                onClick={() => setFullImageModal(user.bankApprovalAttachment)}><IoMdEye/></IconButton>
+                                                      </Tooltip>}
+                                            </Box>
+                                      )}
+                                  </DataBox>
+                                  <PrintBankDetailsButton user={user}/>
+                              </ProfileSection>
+                          </Box>
+                      </TabPanel>
+                      <TabPanel value={tabIndex} index={2}>
+                          <Box display="flex" flexDirection="column" alignItems="center" height="100%">
+                              <ProfileSection>
+                                  <Typography variant="h6" align="center">Additional Information</Typography>
+                                  <Divider sx={{my: 1}}/>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">Passport Number:</Typography>
+                                      <Typography variant="body1">{user.passportNumber} {editMode && (
                                             <IconButton
-                                                  onClick={() => setFullImageModal(user.emiratesIdPhoto)}><IoMdEye/></IconButton>
-                                        </Tooltip>
-                                    </Box>
-                              )}
-                          </DataBox>
-                      </ProfileSection>
-                  </Box>
-              </TabPanel>
-              <TabPanel value={tabIndex} index={1}>
-                  <Box display="flex" flexDirection="column" alignItems="center" height="100%">
-                      <ProfileSection>
-                          <Typography variant="h6" align="center">Bank Information</Typography>
-                          <Divider sx={{my: 1}}/>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">Bank Name:</Typography>
-                              <Typography variant="body1">{user.bankName} {editMode && (
-                                    <IconButton onClick={() => handleEditClick('bankName')}><IoMdCreate/></IconButton>
-                              )}</Typography>
-                          </DataBox>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">Bank User Name:</Typography>
-                              <Typography variant="body1">{user.bankUserName} {editMode && (
-                                    <IconButton
-                                          onClick={() => handleEditClick('bankUserName')}><IoMdCreate/></IconButton>
-                              )}</Typography>
-                          </DataBox>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">IBAN:</Typography>
-                              <Typography variant="body1">{user.ibanBank} {editMode && (
-                                    <IconButton onClick={() => handleEditClick('ibanBank')}><IoMdCreate/></IconButton>
-                              )}</Typography>
-                          </DataBox>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">IBAN Bank Photo:</Typography>
-                              {user.ibanBankPhoto?.endsWith('.pdf') ? (
-                                    <>
-                                        <Link href={user.ibanBankPhoto} target="_blank" rel="noopener noreferrer"
-                                              sx={{ml: 1}}>View PDF</Link>
-                                        {editMode && (
-                                              <IconButton
-                                                    onClick={() => handleImageEditClick('ibanBankPhoto')}><IoMdCreate/></IconButton>
-                                        )}
-                                    </>
-                              ) : (
-                                    <Box display="flex" alignItems="center" ml={1}>
-                                        <Avatar src={user.ibanBankPhoto} alt="IBAN Bank Photo"
-                                                sx={{width: 80, height: 80, mr: 1}}/>
-                                        {editMode && (
-                                              <IconButton
-                                                    onClick={() => handleImageEditClick('ibanBankPhoto')}><IoMdCreate/></IconButton>
-                                        )}
-                                        <Tooltip title="View Full Image">
-                                            <IconButton onClick={() => setFullImageModal(user.ibanBankPhoto)}><IoMdEye/></IconButton>
-                                        </Tooltip>
-                                    </Box>
-                              )}
-                          </DataBox>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">Bank Approval Attachment:</Typography>
-                              {user.bankApprovalAttachment?.endsWith('.pdf') ? (
-                                    <>
-                                        <Link href={user.bankApprovalAttachment} target="_blank"
-                                              rel="noopener noreferrer"
-                                              sx={{ml: 1}}>View PDF</Link>
-                                        {editMode && (
-                                              <IconButton
-                                                    onClick={() => handleImageEditClick('bankApprovalAttachment')}><IoMdCreate/></IconButton>
-                                        )}
-                                    </>
-                              ) : (
-                                    <Box display="flex" alignItems="center" ml={1}>
-                                        <Avatar src={user.bankApprovalAttachment} alt="Bank Approval Attachment"
-                                                sx={{width: 80, height: 80, mr: 1}}/>
-                                        {editMode && (
-                                              <IconButton
-                                                    onClick={() => handleImageEditClick('bankApprovalAttachment')}><IoMdCreate/></IconButton>
-                                        )}
-                                        <Tooltip title="View Full Image">
+                                                  onClick={() => handleEditClick('passportNumber')}><IoMdCreate/></IconButton>
+                                      )}</Typography>
+                                  </DataBox>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">Passport Photo:</Typography>
+                                      {user.passportPhoto?.endsWith('.pdf') ? (
+                                            <>
+                                                <Link href={user.passportPhoto} target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      sx={{ml: 1}}>View PDF</Link>
+                                                {editMode && (
+                                                      <IconButton
+                                                            onClick={() => handleImageEditClick('passportPhoto')}><IoMdCreate/></IconButton>
+                                                )}
+                                            </>
+                                      ) : (
+                                            <Box display="flex" alignItems="center" ml={1}>
+                                                <Avatar src={user.passportPhoto} alt="Passport Photo"
+                                                        sx={{width: 80, height: 80, mr: 1}}/>
+                                                {editMode && (
+                                                      <IconButton
+                                                            onClick={() => handleImageEditClick('passportPhoto')}><IoMdCreate/></IconButton>
+                                                )}
+                                                <Tooltip title="View Full Image">
+                                                    <IconButton
+                                                          onClick={() => setFullImageModal(user.passportPhoto)}><IoMdEye/></IconButton>
+                                                </Tooltip>
+                                            </Box>
+                                      )}
+                                  </DataBox>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">Graduation Title:</Typography>
+                                      <Typography variant="body1">{user.graduationName} {editMode && (
                                             <IconButton
-                                                  onClick={() => setFullImageModal(user.bankApprovalAttachment)}><IoMdEye/></IconButton>
-                                        </Tooltip>
-                                    </Box>
-                              )}
-                          </DataBox>
-                          <PrintBankDetailsButton user={user}/>
-                      </ProfileSection>
-                  </Box>
-              </TabPanel>
-              <TabPanel value={tabIndex} index={2}>
-                  <Box display="flex" flexDirection="column" alignItems="center" height="100%">
-                      <ProfileSection>
-                          <Typography variant="h6" align="center">Additional Information</Typography>
-                          <Divider sx={{my: 1}}/>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">Passport Number:</Typography>
-                              <Typography variant="body1">{user.passportNumber} {editMode && (
-                                    <IconButton
-                                          onClick={() => handleEditClick('passportNumber')}><IoMdCreate/></IconButton>
-                              )}</Typography>
-                          </DataBox>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">Passport Photo:</Typography>
-                              {user.passportPhoto?.endsWith('.pdf') ? (
-                                    <>
-                                        <Link href={user.passportPhoto} target="_blank" rel="noopener noreferrer"
-                                              sx={{ml: 1}}>View PDF</Link>
-                                        {editMode && (
-                                              <IconButton
-                                                    onClick={() => handleImageEditClick('passportPhoto')}><IoMdCreate/></IconButton>
-                                        )}
-                                    </>
-                              ) : (
-                                    <Box display="flex" alignItems="center" ml={1}>
-                                        <Avatar src={user.passportPhoto} alt="Passport Photo"
-                                                sx={{width: 80, height: 80, mr: 1}}/>
-                                        {editMode && (
-                                              <IconButton
-                                                    onClick={() => handleImageEditClick('passportPhoto')}><IoMdCreate/></IconButton>
-                                        )}
-                                        <Tooltip title="View Full Image">
-                                            <IconButton onClick={() => setFullImageModal(user.passportPhoto)}><IoMdEye/></IconButton>
-                                        </Tooltip>
-                                    </Box>
-                              )}
-                          </DataBox>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">Graduation Title:</Typography>
-                              <Typography variant="body1">{user.graduationName} {editMode && (
-                                    <IconButton
-                                          onClick={() => handleEditClick('graduationName')}><IoMdCreate/></IconButton>
-                              )}</Typography>
+                                                  onClick={() => handleEditClick('graduationName')}><IoMdCreate/></IconButton>
+                                      )}</Typography>
 
-                          </DataBox>
-                          <DataBox>
-                              <Typography variant="body1" color="secondary">Graduation Image:</Typography>
-                              {user.graduationImage?.endsWith('.pdf') ? (
-                                    <>
-                                        <Link href={user.graduationImage} target="_blank" rel="noopener noreferrer"
-                                              sx={{ml: 1}}>View PDF</Link>
-                                        {editMode && (
-                                              <IconButton
-                                                    onClick={() => handleImageEditClick('graduationImage')}><IoMdCreate/></IconButton>
-                                        )}
-                                    </>
-                              ) : (
-                                    <Box display="flex" alignItems="center" ml={1}>
-                                        <Avatar src={user.graduationImage} alt="Graduation Image"
-                                                sx={{width: 80, height: 80, mr: 1}}/>
-                                        {editMode && (
-                                              <IconButton
-                                                    onClick={() => handleImageEditClick('graduationImage')}><IoMdCreate/></IconButton>
-                                        )}
-                                        <Tooltip title="View Full Image">
-                                            <IconButton
-                                                  onClick={() => setFullImageModal(user.graduationImage)}><IoMdEye/></IconButton>
-                                        </Tooltip>
-                                    </Box>
-                              )}
-                          </DataBox>
-                      </ProfileSection>
+                                  </DataBox>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">Graduation Image:</Typography>
+                                      {user.graduationImage?.endsWith('.pdf') ? (
+                                            <>
+                                                <Link href={user.graduationImage} target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      sx={{ml: 1}}>View PDF</Link>
+                                                {editMode && (
+                                                      <IconButton
+                                                            onClick={() => handleImageEditClick('graduationImage')}><IoMdCreate/></IconButton>
+                                                )}
+                                            </>
+                                      ) : (
+                                            <Box display="flex" alignItems="center" ml={1}>
+                                                <Avatar src={user.graduationImage} alt="Graduation Image"
+                                                        sx={{width: 80, height: 80, mr: 1}}/>
+                                                {editMode && (
+                                                      <IconButton
+                                                            onClick={() => handleImageEditClick('graduationImage')}><IoMdCreate/></IconButton>
+                                                )}
+                                                <Tooltip title="View Full Image">
+                                                    <IconButton
+                                                          onClick={() => setFullImageModal(user.graduationImage)}><IoMdEye/></IconButton>
+                                                </Tooltip>
+                                            </Box>
+                                      )}
+                                  </DataBox>
+                              </ProfileSection>
+                          </Box>
+                      </TabPanel>
                   </Box>
-              </TabPanel>
+              </Box>
+              <BottomNavigation
+                    value={tabIndex}
+                    onChange={(event, newValue) => setTabIndex(newValue)}
+                    showLabels
+                    sx={{position: 'fixed', bottom: 0, left: 0, right: 0, display: {xs: 'flex', md: 'none'}}}
+              >
+                  <BottomNavigationAction label="Personal Info" icon={<IoMdPerson/>}/>
+                  <BottomNavigationAction label="Bank Details" icon={<IoMdCash/>}/>
+                  <BottomNavigationAction label="Additional Info" icon={<IoMdInformationCircle/>}/>
+              </BottomNavigation>
 
               <Modal open={openModal} onClose={handleCloseModal}>
                   <ModalContent>

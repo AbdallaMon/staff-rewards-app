@@ -34,7 +34,7 @@ export default function Navbar() {
 
     return (
           <Box sx={{flexGrow: 1}}>
-              <AppBar position="absolute" sx={{zIndex: 10}}>
+              <AppBar position="absolute" sx={{zIndex: 10, backgroundColor: "background.default"}}>
                   <Container maxWidth="xl">
                       <Toolbar>
                           {isLoggedIn ? (
@@ -69,22 +69,22 @@ export default function Navbar() {
                                                     >
                                                         <MenuItem onClick={handleLinksMenuClose}>
                                                             <Link href="/dashboard">
-                                                                <Button color="inherit">Dashboard</Button>
+                                                                <Button color="primary">Dashboard</Button>
                                                             </Link>
                                                         </MenuItem>
                                                         <MenuItem onClick={handleLinksMenuClose}>
                                                             <Link href="/dashboard/attendance">
-                                                                <Button color="inherit">Attendance</Button>
+                                                                <Button color="primary">Attendance</Button>
                                                             </Link>
                                                         </MenuItem>
                                                         <MenuItem onClick={handleLinksMenuClose}>
                                                             <Link href="/dashboard/calendar">
-                                                                <Button color="inherit">Calendar</Button>
+                                                                <Button color="primary">Calendar</Button>
                                                             </Link>
                                                         </MenuItem>
                                                         <MenuItem onClick={handleLinksMenuClose}>
                                                             <Link href="/dashboard/profile">
-                                                                <Button color="inherit">Profile</Button>
+                                                                <Button color="primary">Profile</Button>
                                                             </Link>
                                                         </MenuItem>
                                                     </Menu>
@@ -98,17 +98,17 @@ export default function Navbar() {
                                                 </Box>
                                           ) : (
                                                 <Box display="flex" alignItems="center" gap={2} sx={{flexGrow: 1}}>
-                                                    <Link href="/dashboard" passHref>
-                                                        <Button color="inherit">Dashboard</Button>
+                                                    <Link href="/dashboard">
+                                                        <Button color="primary">Dashboard</Button>
                                                     </Link>
-                                                    <Link href="/dashboard/attendance" passHref>
-                                                        <Button color="inherit">Attendance</Button>
+                                                    <Link href="/dashboard/attendance">
+                                                        <Button color="primary">Attendance</Button>
                                                     </Link>
-                                                    <Link href="/dashboard/calendar" passHref>
-                                                        <Button color="inherit">Calendar</Button>
+                                                    <Link href="/dashboard/calendar">
+                                                        <Button color="primary">Calendar</Button>
                                                     </Link>
-                                                    <Link href="/dashboard/profile" passHref>
-                                                        <Button color="inherit">Profile</Button>
+                                                    <Link href="/dashboard/profile">
+                                                        <Button color="primary">Profile</Button>
                                                     </Link>
                                                     <Box sx={{
                                                         flexGrow: 1,
@@ -123,7 +123,6 @@ export default function Navbar() {
                                 ) : (
                                       <div className={"flex justify-between w-full"}>
                                           <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
-                                              {/*My App*/}
                                           </Typography>
                                           <IconButton
                                                 size="large"
@@ -131,7 +130,7 @@ export default function Navbar() {
                                                 aria-controls="menu-appbar"
                                                 aria-haspopup="true"
                                                 onClick={(event) => handleMenu(event)}
-                                                color="inherit"
+                                                color="primary"
                                           >
                                               <FaUserCircle/>
                                           </IconButton>
@@ -167,7 +166,6 @@ export default function Navbar() {
                           ) : (
                                 <div className={"flex justify-between w-full"}>
                                     <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
-                                        {/*My App*/}
                                     </Typography>
                                     <Button variant="contained" color="tertiary">
                                         <Link href="/login" className={"flex"}>

@@ -81,23 +81,24 @@ const FileUploadForm = () => {
         }
 
         const formData = new FormData();
-        // Object.keys(data).forEach(key => {
-        //     if (data[key]) {
-        //         formData.append(key, data[key]);
-        //     }
-        // });
         Object.keys(fileInputs).forEach(key => {
             if (fileInputs[key]) {
                 formData.append(key, fileInputs[key]);
             }
         });
-        await handleRequestSubmit(formData, setLoading, "employee/public/complete?token=" + token, true, "Sending...", false, "POST");
+        const res = await handleRequestSubmit(formData, setLoading, "employee/public/complete?token=" + token, true, "Sending...", false, "POST");
+        if (res.status === 200) {
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
     };
 
     const handleImageClick = (file) => {
         setModalImage(file);
         setModalOpen(true);
     };
+
     return (
           <Container maxWidth="md"
                      sx={{bgcolor: 'background.paper', p: 3, borderRadius: 2, boxShadow: 3, marginX: 'auto', my: 20}}>
@@ -108,7 +109,7 @@ const FileUploadForm = () => {
                   complete your registration.</Typography>
               <form onSubmit={handleSubmit(onSubmit)}>
                   <Grid container spacing={2}>
-                      {Object.keys(fileInputs).map((field) => (
+                      {fileInputs && Object.keys(fileInputs).map((field) => (
                             <Grid item xs={12} sm={6} key={field}>
                                 <FormControl fullWidth margin="normal">
                                     <label htmlFor={field}>
@@ -120,7 +121,7 @@ const FileUploadForm = () => {
                                         />
                                         <Button variant="outlined" component="span" color="primary" fullWidth
                                                 sx={{textTransform: 'capitalize', py: 1.5}}>
-                                            Upload {field.replace(/([A-Z])/g, ' $1').trim()}
+                                            Upload {field.replace(/([A-Z])/g, ' $1').replace(/(image|photo)$/i, 'document').trim()}
                                         </Button>
                                     </label>
                                     {validationErrors[field] &&

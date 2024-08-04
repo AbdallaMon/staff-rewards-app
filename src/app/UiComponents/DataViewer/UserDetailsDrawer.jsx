@@ -15,11 +15,14 @@ import {
     Modal,
     Button,
     Container,
-    Link
+    Link, Fade
 } from '@mui/material';
 import {FaTimes} from 'react-icons/fa';
 import CreateModal from "@/app/UiComponents/Models/CreateModal";
 import UncompletedModal from "@/app/UiComponents/Models/UncompletedModal";
+import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
+import {useToastContext} from "@/providers/ToastLoadingProvider";
+import {simpleModalStyle} from "@/app/constants";
 
 const fetchUserById = async (userId) => {
     const response = await fetch(`/api/admin/employees/${userId}`);
@@ -36,7 +39,7 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData}) 
     const [rejectModalOpen, setRejectModalOpen] = useState(false);
     const [approveModalOpen, setApproveModalOpen] = useState(false);
     const [uncompletedModalOpen, setUncompletedModalOpen] = useState(false);
-    console.log(userData, "useData")
+    const {setLoading: setSubmitLoading} = useToastContext()
     useEffect(() => {
         if (userId) {
             setLoading(true);
@@ -71,10 +74,14 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData}) 
         onClose();
     };
 
-    const handleApprove = (data) => {
-        setApproveModalOpen(false);
-        setData((prevData) => prevData.filter(user => user.id !== userId));
-        onClose();
+    const handleApprove = async (data) => {
+        const res = await handleRequestSubmit({}, setSubmitLoading, `admin/employees/${userId}/approve`, false, "Approving")
+        if (res.status === 200) {
+
+            setApproveModalOpen(false);
+            setData((prevData) => prevData.filter(user => user.id !== userId));
+            onClose();
+        }
     };
 
     const handleUncompleted = (data) => {
@@ -223,31 +230,38 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData}) 
                                                 BtnColor="secondary"
                                                 href={`admin/employees/${userId}/reject`}
                                           />
-                                          <CreateModal
+                                          <Modal
                                                 open={approveModalOpen}
                                                 onClose={() => setApproveModalOpen(false)}
-                                                handleSubmit={handleApprove}
-                                                title="Approve User"
-                                                BtnColor="primary"
-                                                inputs={[
-                                                    {
-                                                        data: {id: "password", type: "password", label: "Password"},
-                                                        pattern: {
-                                                            required: {
-                                                                value: true,
-                                                                message: "Please provide a password"
-                                                            },
-                                                            pattern: {
-                                                                value: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/,
-                                                                message: "Password must be at least 8 characters long and include a number, a capital letter, and a lowercase letter."
-                                                            }
-                                                        }
-                                                    },
-                                                ]}
-                                                label="Approve"
-                                                extraProps={{formTitle: "Approve User", btnText: "Approve"}}
-                                                href={`admin/employees/${userId}/approve`}
-                                          />
+                                                sx={{
+                                                    z: 999,
+                                                }}
+                                          >
+                                              <Fade in={open}>
+                                                  <Box sx={{...simpleModalStyle}}>
+
+                                                      <Typography variant="h4" mb={2}>
+                                                          Are you sure you want to approve this account?
+                                                      </Typography>
+                                                      <Button onClick={handleApprove} variant="contained">
+                                                          Approve
+                                                      </Button>
+                                                      <Button onClick={() => setApproveModalOpen(false)}
+                                                              variant="contained" color="secondary" sx={{
+                                                          marginLeft: "10px"
+                                                      }}>
+                                                          Cancel
+                                                      </Button>
+                                                  </Box>
+                                              </Fade>
+                                          </Modal>
+                                          <div className={"px-2 mb-1 mt-2"}>
+
+                                              <Button variant="contained" color="primary"
+                                                      onClick={() => setApproveModalOpen(true)}>
+                                                  Approve
+                                              </Button>
+                                          </div>
                                           <div className={"px-2 mb-1 mt-2"}>
                                               <Button variant="contained" color="tertiary"
                                                       onClick={() => setUncompletedModalOpen(true)}>

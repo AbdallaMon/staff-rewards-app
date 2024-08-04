@@ -4,7 +4,6 @@ import {
     Box,
     Card,
     CardContent,
-    CircularProgress,
     Container,
     Grid,
     Typography,
@@ -20,7 +19,7 @@ import {
     TableRow,
     Paper
 } from '@mui/material';
-import {FaChevronDown} from 'react-icons/fa';
+import {FaChevronDown, FaCheckCircle, FaTimesCircle} from 'react-icons/fa';
 import dayjs from 'dayjs';
 import RangeDateComponent from '@/app/UiComponents/FormComponents/MUIInputs/RangeDateComponent';
 import DateComponent from '@/app/UiComponents/FormComponents/MUIInputs/DateChangerComponent';
@@ -47,20 +46,20 @@ const AttendanceHistory = ({userId}) => {
     };
 
     const handleDateChange = (newDate) => {
-        if (loading) return
+        if (loading) return;
 
         setDate(newDate ? dayjs(newDate).format('YYYY-MM-DD') : null);
         updateFilters({date: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, startDate: null, endDate: null});
     };
 
     const handleStartDateChange = (newDate) => {
-        if (loading) return
+        if (loading) return;
         setStartDate(newDate);
         updateFilters({startDate: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, date: null});
     };
 
     const handleEndDateChange = (newDate) => {
-        if (loading) return
+        if (loading) return;
 
         setEndDate(newDate);
         updateFilters({endDate: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, date: null});
@@ -73,6 +72,7 @@ const AttendanceHistory = ({userId}) => {
                 if (response.ok) {
                     const res = await response.json();
                     setData(res.data);
+                    setError("")
                 } else {
                     setError('Failed to fetch attendance data. Please try again later.');
                 }
@@ -88,25 +88,27 @@ const AttendanceHistory = ({userId}) => {
     }, [userId, filters]);
 
 
-    if (error) return <Alert severity="error">{error}</Alert>;
-
-    if (!loading && (!data || data.length === 0)) {
-        return <Typography variant="h6">No attendance data available.</Typography>;
-    }
-
     return (
           <Container>
+
               {loading && <FullScreenLoader/>}
               <Typography variant="h4" gutterBottom>
                   Attendance History
               </Typography>
-              <Box sx={{
-                  display: 'flex', gap: 2, mb: 0, p: 2, justifyContent: "space-between", flexDirection: {
-                      xs: "column",
-                      sm: "column",
-                      md: "row",
-                  }
-              }}>
+              <Box
+                    sx={{
+                        display: 'flex',
+                        gap: 2,
+                        mb: 3,
+                        p: 2,
+                        justifyContent: "space-between",
+                        flexDirection: {
+                            xs: "column",
+                            sm: "column",
+                            md: "row",
+                        }
+                    }}
+              >
                   <RangeDateComponent
                         startDate={startDate}
                         endDate={endDate}
@@ -115,7 +117,9 @@ const AttendanceHistory = ({userId}) => {
                   />
                   <DateComponent date={date} handleDateChange={handleDateChange} label="Select a day"/>
               </Box>
-
+              {!loading && (!data || data.length === 0) ?
+                    <Typography variant="h6">No attendance data available.</Typography> : null}
+              {error && <Alert severity="error">{error}</Alert>}
               <Grid container spacing={3}>
                   {data?.map((dayAttendance) => (
                         <Grid item xs={12} key={dayAttendance.id}>
@@ -128,19 +132,26 @@ const AttendanceHistory = ({userId}) => {
                                             </Typography>
                                         </Grid>
                                         <Grid item xs={6}>
-                                            <Typography>Total Reward: {dayAttendance.totalReward || 'N/A'}</Typography>
+                                            <Typography>
+                                                Total Reward: {dayAttendance.totalReward || 'N/A'}
+                                            </Typography>
                                         </Grid>
                                         <Grid item xs={6}>
-                                            <Typography>Exam Type: {dayAttendance.examType || 'N/A'}</Typography>
+                                            <Typography>
+                                                Exam Type: {dayAttendance.examType || 'N/A'}
+                                            </Typography>
                                         </Grid>
                                         <Grid item xs={6}>
-                                            <Typography>Paid: {dayAttendance.isPaid ? 'Yes' : 'No'}</Typography>
+                                            <Typography className={"flex items-center gap-2"}>
+                                                Paid: {dayAttendance.isPaid ? <FaCheckCircle color="green"/> :
+                                                  <FaTimesCircle color="red"/>}
+                                            </Typography>
                                         </Grid>
                                     </Grid>
 
-                                    <Accordion sx={{mt: 3}}>
+                                    <Accordion sx={{mt: 3}} defaultExpanded>
                                         <AccordionSummary expandIcon={<FaChevronDown/>}>
-                                            <Typography>Show Shifts</Typography>
+                                            <Typography> Shifts</Typography>
                                         </AccordionSummary>
                                         <AccordionDetails>
                                             <Box display="grid" gridTemplateColumns={{xs: '1fr', md: '1fr 1fr'}}

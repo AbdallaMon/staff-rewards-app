@@ -3,7 +3,7 @@ import {useSelector} from "react-redux";
 import React, {useEffect, useState} from "react";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
-import {Box, Button, Card, CardContent, Container, Grid, TextField, Typography} from "@mui/material";
+import {Box, Button, Card, CardContent, Container, Grid, TextField, Typography, Alert} from "@mui/material";
 import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
 import PrintButton from "@/app/UiComponents/Templatese/AttendanceTemplate";
 
@@ -58,18 +58,27 @@ export default function CheckAttendanceAttachments({children}) {
         }
     };
 
-    if (error) return <Typography variant="h6" color="error">{error}</Typography>;
-    if (!loading && !dayAttendances) {
+    if (error) return <Alert severity="error">{error}</Alert>;
+    if (!loading && (!dayAttendances || dayAttendances.length === 0)) {
         return children;
     }
     return (
           <Container>
               {loading && <FullScreenLoader/>}
-              <Typography variant="h4" gutterBottom>
-                  {!loading && "Day attendances that need approval from you"}
-              </Typography>
+              {!loading && dayAttendances?.length > 0 &&
+                    <>
+                        <Typography variant="h4" gutterBottom>
+                            Attendances that need your approval
+                        </Typography>
+                        <Alert severity="warning" sx={{mb: 2}}>
+                            Please upload the necessary attachments to approve your attendance records and view your
+                            attendance
+                            history.
+                        </Alert>
+                    </>
+              }
               <Grid container spacing={3}>
-                  {dayAttendances.map((dayAttendance) => (
+                  {dayAttendances?.map((dayAttendance) => (
                         <Grid item xs={12} md={6} lg={4} key={dayAttendance.id}>
                             <Card>
                                 <CardContent>
@@ -125,9 +134,7 @@ const AttachmentForm = ({dayAttendance, upload}) => {
 
     return (
           <form onSubmit={(e) => upload(e, dayAttendance.id)}>
-              <Box mt={2} sx={{
-                  display: "flex", gap: 2, alignItems: "center"
-              }}>
+              <Box mt={2} sx={{display: "flex", flexDirection: "column", gap: 2, alignItems: "center"}}>
                   <TextField
                         type="file"
                         name="attachment"
@@ -137,7 +144,7 @@ const AttachmentForm = ({dayAttendance, upload}) => {
                         fullWidth
                         onChange={handleFileChange}
                   />
-                  <Box mt={2}>
+                  <Box mt={2} textAlign="center">
                       {file && fileType === 'pdf' && <Typography>{file.name}</Typography>}
                       {file && fileType !== 'pdf' &&
                             <img src={objectURL} alt="attachment preview"
@@ -146,7 +153,7 @@ const AttachmentForm = ({dayAttendance, upload}) => {
                             <Typography color="error">Unsupported file type</Typography>}
                   </Box>
               </Box>
-              <Box mt={2} display="flex" justifyContent="flex-end">
+              <Box mt={2} display="flex" justifyContent="center">
                   <Button type="submit" variant="contained" color="primary" disabled={!file}>
                       Upload Attachment
                   </Button>

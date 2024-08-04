@@ -127,7 +127,7 @@ export async function updateEmployee(employeeId, data) {
             data,
             select: {id: true},
         });
-        return {data: data, status: 200,}
+        return {data: data, status: 200, message: "updated successfully"}
 
     } catch (e) {
         return handlePrismaError(e)
