@@ -12,7 +12,7 @@ import {
     Divider,
     Checkbox
 } from '@mui/material';
-import {styled} from '@mui/system';
+import {styled} from '@mui/material/styles';
 import {useReactToPrint} from 'react-to-print';
 
 const StyledContainer = styled(Box)`
@@ -46,9 +46,10 @@ const SignatureTable = styled(Table)`
 const BankDetailsTemplate = React.forwardRef(({user}, ref) => (
       <StyledContainer ref={ref}>
           <Header>
-              <img src="/path/to/leftLogo.png" alt="Left Logo" width={100}/>
-              <img src="/path/to/middleLogo.png" alt="Middle Logo" width={100}/>
-              <img src="/path/to/rightLogo.png" alt="Right Logo" width={100}/>
+              <img src="/fullLogo.png" alt="Left Logo" style={{
+                  width: "100%"
+              }}/>
+
           </Header>
           <Title>EmSAT Staff Addition Form</Title>
 

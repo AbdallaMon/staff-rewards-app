@@ -13,7 +13,7 @@ import {
     Button,
     Checkbox
 } from '@mui/material';
-import {styled} from '@mui/system';
+import {styled} from '@mui/material/styles';
 import {useReactToPrint} from 'react-to-print';
 
 const StyledContainer = styled(Container)`
