@@ -15,7 +15,7 @@ export const getUnpaidDayAttendanceDates = async (startDate, endDate, centerId) 
 
 
     if (centerId) {
-        where.centerId = centerId;
+        where.centerId = +centerId;
     }
 
     const dates = await prisma.dayAttendance.findMany({
@@ -457,5 +457,56 @@ export async function updateAttendanceRecordsWithLog(dayAttendanceId, body, logg
         };
     } catch (error) {
         return handlePrismaError(error);
+    }
+}
+
+export async function getAttendanceData(date, centerId) {
+    try {
+
+        const where = {
+            date: new Date(date),
+        };
+
+        if (centerId) {
+            where.centerId = +centerId;
+        }
+
+        const attendanceData = await prisma.dayAttendance.findMany({
+            where,
+            select: {
+                date: true,
+                totalReward: true,
+                user: {
+                    select: {
+                        name: true,
+                        emiratesId: true,
+                        center: {
+                            select: {
+                                name: true
+                            }
+                        },
+                        duty: {
+                            select: {
+                                name: true,
+                                amount: true
+                            }
+                        }
+                    }
+                },
+                attendances: {
+                    select: {
+                        shift: {
+                            select: {
+                                name: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        return {data: attendanceData, status: 200};
+    } catch (e) {
+        return handlePrismaError(e)
     }
 }

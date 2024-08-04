@@ -48,7 +48,7 @@ const Dashboard = () => {
     return (
           <Container>
               {loadingDates && <FullScreenLoader/>}
-              <Typography variant="h3" color="primary" p={2}>Unpaid Day Attendances</Typography>
+              <Typography variant="h4" color="primary" p={2}>Unpaid Day Attendances</Typography>
               <div className={"flex items-center justify-between md:flex-row flex-col w-full"}>
 
                   <div className={"w-full mt-[16px]"}>

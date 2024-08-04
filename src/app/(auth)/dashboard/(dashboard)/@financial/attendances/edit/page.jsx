@@ -1,5 +1,5 @@
 "use client";
-import {Box, Button} from "@mui/material";
+import {Box, Button, Typography} from "@mui/material";
 import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
 import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
@@ -110,6 +110,9 @@ export default function Attendance() {
 
     return (
           <div>
+              <Typography variant="h3" color="primary" p={2}>
+                  Edit attendance
+              </Typography>
               <Box sx={{
                   display: 'flex', gap: 2, mb: 0, p: 2, justifyContent: "space-between", flexDirection: {
                       xs: "column",

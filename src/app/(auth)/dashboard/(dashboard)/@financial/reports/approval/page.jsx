@@ -3,7 +3,7 @@
 import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
 import {useEffect, useState} from "react";
-import {Box, Button} from "@mui/material";
+import {Box, Button, Typography} from "@mui/material";
 import {useRouter, useSearchParams} from "next/navigation";
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
 import Link from "next/link";
@@ -106,6 +106,9 @@ export default function UserBankApprovalReports() {
 
     return (
           <div>
+              <Typography variant="h3" color="primary" p={2}>
+                  User Attendances approvals
+              </Typography>
               <Box sx={{
                   display: 'flex', gap: 2, mb: 0, p: 2, justifyContent: "space-between", flexDirection: {
                       xs: "column",
