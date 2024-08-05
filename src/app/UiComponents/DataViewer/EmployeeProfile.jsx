@@ -142,9 +142,6 @@ const ProfilePage = ({userId}) => {
         }
     };
 
-    const handleTabChange = (event, newValue) => {
-        setTabIndex(newValue);
-    };
 
     const toggleEditMode = () => {
         setEditMode(!editMode);
@@ -161,7 +158,9 @@ const ProfilePage = ({userId}) => {
               <Box display={{md: 'flex'}} width="100%">
                   <Box width="25%" mr={2} sx={{
                       display: {md: "block", xs: "none"},
-                      pt: 4
+                      mt: 4,
+                      px: 1,
+                      boxShadow: 1
                   }}>
                       <List component="nav">
                           <ListItem button selected={tabIndex === 0} onClick={() => setTabIndex(0)}>
@@ -249,7 +248,7 @@ const ProfilePage = ({userId}) => {
                                   <DataBox>
                                       <Typography variant="body1" color="secondary">Emirates ID Photo:</Typography>
                                       {user.emiratesIdPhoto?.endsWith('.pdf') ? (
-                                            <>
+                                            <Box display="flex" alignItems="center" ml={1}>
                                                 <Link href={user.emiratesIdPhoto} target="_blank"
                                                       rel="noopener noreferrer"
                                                       sx={{ml: 1}}>View PDF</Link>
@@ -257,7 +256,7 @@ const ProfilePage = ({userId}) => {
                                                       <IconButton
                                                             onClick={() => handleImageEditClick('emiratesIdPhoto')}><IoMdCreate/></IconButton>
                                                 )}
-                                            </>
+                                            </Box>
                                       ) : (
                                             <Box display="flex" alignItems="center" ml={1}>
                                                 <Avatar src={user.emiratesIdPhoto} alt="Emirates ID Photo"
@@ -305,7 +304,7 @@ const ProfilePage = ({userId}) => {
                                   <DataBox>
                                       <Typography variant="body1" color="secondary">IBAN Bank Photo:</Typography>
                                       {user.ibanBankPhoto?.endsWith('.pdf') ? (
-                                            <>
+                                            <Box display="flex" alignItems="center" ml={1}>
                                                 <Link href={user.ibanBankPhoto} target="_blank"
                                                       rel="noopener noreferrer"
                                                       sx={{ml: 1}}>View PDF</Link>
@@ -313,7 +312,7 @@ const ProfilePage = ({userId}) => {
                                                       <IconButton
                                                             onClick={() => handleImageEditClick('ibanBankPhoto')}><IoMdCreate/></IconButton>
                                                 )}
-                                            </>
+                                            </Box>
                                       ) : (
                                             <Box display="flex" alignItems="center" ml={1}>
                                                 <Avatar src={user.ibanBankPhoto} alt="IBAN Bank Photo"
@@ -333,7 +332,7 @@ const ProfilePage = ({userId}) => {
                                       <Typography variant="body1" color="secondary">Bank Approval
                                           Attachment:</Typography>
                                       {user.bankApprovalAttachment?.endsWith('.pdf') ? (
-                                            <>
+                                            <Box display="flex" alignItems="center" ml={1}>
                                                 <Link href={user.bankApprovalAttachment} target="_blank"
                                                       rel="noopener noreferrer"
                                                       sx={{ml: 1}}>View PDF</Link>
@@ -341,7 +340,7 @@ const ProfilePage = ({userId}) => {
                                                       <IconButton
                                                             onClick={() => handleImageEditClick('bankApprovalAttachment')}><IoMdCreate/></IconButton>
                                                 )}
-                                            </>
+                                            </Box>
                                       ) : (
                                             <Box display="flex" alignItems="center" ml={1}>
                                                 {!user.bankApprovalAttachment ? "No attacments uploaded" :
@@ -380,7 +379,7 @@ const ProfilePage = ({userId}) => {
                                   <DataBox>
                                       <Typography variant="body1" color="secondary">Passport Photo:</Typography>
                                       {user.passportPhoto?.endsWith('.pdf') ? (
-                                            <>
+                                            <Box display="flex" alignItems="center" ml={1}>
                                                 <Link href={user.passportPhoto} target="_blank"
                                                       rel="noopener noreferrer"
                                                       sx={{ml: 1}}>View PDF</Link>
@@ -388,7 +387,7 @@ const ProfilePage = ({userId}) => {
                                                       <IconButton
                                                             onClick={() => handleImageEditClick('passportPhoto')}><IoMdCreate/></IconButton>
                                                 )}
-                                            </>
+                                            </Box>
                                       ) : (
                                             <Box display="flex" alignItems="center" ml={1}>
                                                 <Avatar src={user.passportPhoto} alt="Passport Photo"
@@ -415,7 +414,7 @@ const ProfilePage = ({userId}) => {
                                   <DataBox>
                                       <Typography variant="body1" color="secondary">Graduation Image:</Typography>
                                       {user.graduationImage?.endsWith('.pdf') ? (
-                                            <>
+                                            <Box display="flex" alignItems="center" ml={1}>
                                                 <Link href={user.graduationImage} target="_blank"
                                                       rel="noopener noreferrer"
                                                       sx={{ml: 1}}>View PDF</Link>
@@ -423,7 +422,7 @@ const ProfilePage = ({userId}) => {
                                                       <IconButton
                                                             onClick={() => handleImageEditClick('graduationImage')}><IoMdCreate/></IconButton>
                                                 )}
-                                            </>
+                                            </Box>
                                       ) : (
                                             <Box display="flex" alignItems="center" ml={1}>
                                                 <Avatar src={user.graduationImage} alt="Graduation Image"

@@ -98,7 +98,6 @@ const FileUploadForm = () => {
         setModalImage(file);
         setModalOpen(true);
     };
-
     return (
           <Container maxWidth="md"
                      sx={{bgcolor: 'background.paper', p: 3, borderRadius: 2, boxShadow: 3, marginX: 'auto', my: 20}}>
@@ -116,12 +115,12 @@ const FileUploadForm = () => {
                                         <Input
                                               id={field}
                                               type="file"
-                                              accept="image/*,application/pdf"
+                                              accept={field === "photo" ? "image/*" : "image/*,application/pdf"}
                                               onChange={(e) => handleFileChange(e, field)}
                                         />
                                         <Button variant="outlined" component="span" color="primary" fullWidth
                                                 sx={{textTransform: 'capitalize', py: 1.5}}>
-                                            Upload {field.replace(/([A-Z])/g, ' $1').replace(/(image|photo)$/i, 'document').trim()}
+                                            Upload {field === "photo" ? field : field.replace(/([A-Z])/g, ' $1').replace(/(image|photo)$/i, 'document').trim()}
                                         </Button>
                                     </label>
                                     {validationErrors[field] &&

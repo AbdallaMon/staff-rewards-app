@@ -19,7 +19,7 @@ export default function CalendarPage() {
         total,
         setTotal,
         setFilters
-    } = useDataFetcher("center/calendar", false);
+    } = useDataFetcher("employee/private/calendar", false);
     const columns = [
         {name: "date", label: "Date"},
         {name: "examType", label: "Exam Type"}

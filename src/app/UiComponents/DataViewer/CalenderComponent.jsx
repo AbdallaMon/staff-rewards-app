@@ -35,8 +35,8 @@ const CalendarComponent = ({
     const theme = useTheme();
     const renderDay = ({date, view}) => {
         if (view !== 'month') return null;
-        const dayData = data.filter(item => new Date(item.date).toDateString() === date.toDateString());
-        const hasData = dayData.length > 0;
+        const dayData = data?.filter(item => new Date(item.date).toDateString() === date.toDateString());
+        const hasData = dayData && dayData.length > 0;
 
         return (
               <Box
@@ -51,12 +51,14 @@ const CalendarComponent = ({
                         color: hasData ? theme.palette.secondary.contrastText : 'inherit',
                     }}
               >
-                  {dayData.map(item => (
+                  {dayData?.map(item => (
                         <Box key={item.id} sx={{marginTop: '4px'}}>
                             <Typography variant="body2"
                                         sx={{
                                             color: theme.palette.primary.contrastText,
                                             background: theme.palette.secondary.main
+                                            , py: 1,
+                                            borderRadius: 2
                                         }}>
                                 {item[labelKey]} Exam
                             </Typography>

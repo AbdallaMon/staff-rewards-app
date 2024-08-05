@@ -19,6 +19,7 @@ CREATE TABLE `User` (
     `graduationImage` VARCHAR(191) NULL,
     `passportNumber` VARCHAR(191) NULL,
     `passportPhoto` VARCHAR(191) NULL,
+    `bankApprovalAttachment` VARCHAR(191) NULL,
     `photo` VARCHAR(191) NULL,
     `isActive` BOOLEAN NOT NULL DEFAULT true,
     `rating` DOUBLE NULL DEFAULT 0,
@@ -43,8 +44,8 @@ CREATE TABLE `User` (
 CREATE TABLE `Log` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `userId` INTEGER NOT NULL,
-    `attendanceId` INTEGER NOT NULL,
     `action` VARCHAR(191) NULL,
+    `description` TEXT NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`)
@@ -164,9 +165,6 @@ ALTER TABLE `User` ADD CONSTRAINT `User_dutyId_fkey` FOREIGN KEY (`dutyId`) REFE
 
 -- AddForeignKey
 ALTER TABLE `Log` ADD CONSTRAINT `Log_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Log` ADD CONSTRAINT `Log_attendanceId_fkey` FOREIGN KEY (`attendanceId`) REFERENCES `Attendance`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Center` ADD CONSTRAINT `Center_adminUserId_fkey` FOREIGN KEY (`adminUserId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;

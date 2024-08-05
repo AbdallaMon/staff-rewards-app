@@ -8,11 +8,28 @@
 }
 
 .react-calendar__tile--active {
-    background:transparent !important;
+    background: transparent !important;
 }
-.react-calendar__tile{
+
+.react-calendar__tile {
     min-height: 100px !important;
 }
+
 .calendar-tile {
     height: 150px !important;
+}
+
+/* New keyframe animation for hiding */
+@keyframes hideAnimation {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(-100%);
+    }
+}
+
+/* Applying the hide animation */
+.hid-animation {
+    animation: hideAnimation 1s ease-in-out forwards;
 }

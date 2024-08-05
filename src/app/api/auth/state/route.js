@@ -1,15 +1,15 @@
 import {cookies} from "next/headers";
-import jwt from "jsonwebtoken";
+import {jwtVerify} from "jose";
 
 export async function GET() {
-    const SECRET_KEY = process.env.SECRET_KEY;
+    const SECRET_KEY = new TextEncoder().encode(process.env.SECRET_KEY);
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;
     if (!token) {
-        return Response.json({auth: false, message: "No token provided"});
+        return Response.json({auth: false, message: "You are not signed in"});
     }
     try {
-        const decoded = jwt.verify(token, SECRET_KEY);
+        const {payload: decoded} = await jwtVerify(token, SECRET_KEY);
         if (decoded) {
             const {userId, userRole} = decoded;
             const user = {
@@ -25,7 +25,8 @@ export async function GET() {
                 auth: true,
                 role: user.role,
                 emailConfirmed: user.emailConfirmed,
-            });
+                status: 200
+            }, {status: 200});
         } else {
             throw new Error("Invalid token");
         }
