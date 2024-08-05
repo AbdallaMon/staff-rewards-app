@@ -6,6 +6,7 @@ import {useEffect, useState} from "react";
 import {useRouter, useSearchParams} from "next/navigation";
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
 import ShiftAssignmentModal from "@/app/UiComponents/Models/ShiftAssignmentModal";
+import dayjs from "dayjs";
 
 export default function CalendarPage() {
     const {
@@ -73,7 +74,9 @@ export default function CalendarPage() {
             pattern: {required: {value: true, message: "Please select an exam type"}}
         }
     ];
-
+    const isToday = (date) => {
+        return dayjs(date).isSame(dayjs(), 'day');
+    };
     return (
           <div>
               <div className={"grid grid-cols-2 gap-5 items-center my-2 bg-bgSecondary w-full py-2 px-2"}>
@@ -97,8 +100,10 @@ export default function CalendarPage() {
                     labelKey="examType"
                     extraComponent={({item}) => (
                           <>
-                              <ShiftAssignmentModal shifts={shifts} setFilters={setFilters} setData={setData}
-                                                    item={item} label={"Attendees"} href="center/attendance"/>
+                              {isToday(item.date) && (
+                                    <ShiftAssignmentModal shifts={shifts} setFilters={setFilters} setData={setData}
+                                                          item={item} label={"Attendees"} href="center/attendance"/>
+                              )}
                           </>
                     )}
               />

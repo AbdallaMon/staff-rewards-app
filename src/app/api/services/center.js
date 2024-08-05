@@ -54,7 +54,6 @@ export async function fetchUsersByCenterId(centerId, page = 1, limit = 10, filte
             prisma.user.count({where})
         ]);
 
-        console.log(employees, "employess?")
 
         return {
             status: 200,
@@ -260,6 +259,8 @@ export async function updateEmployeeRating(userId, newRating) {
                 email: true,
                 emiratesId: true,
                 rating: true,
+                phone: true,
+                zone: true,
                 center: {
                     select: {
                         name: true,

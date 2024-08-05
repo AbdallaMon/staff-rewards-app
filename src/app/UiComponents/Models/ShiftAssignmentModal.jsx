@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import {
     Box,
     Button,
@@ -11,20 +11,19 @@ import {
     Alert,
 } from "@mui/material";
 import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
-import { handleRequestSubmit } from "@/helpers/functions/handleSubmit";
-import { useToastContext } from "@/providers/ToastLoadingProvider";
-import { simpleModalStyle } from "@/app/constants";
+import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
+import {useToastContext} from "@/providers/ToastLoadingProvider";
+import {simpleModalStyle} from "@/app/constants";
 
-const ShiftAssignmentModal = ({ shifts, setData, label, href, extraProps, item }) => {
+const ShiftAssignmentModal = ({shifts, setData, label, href, extraProps, item}) => {
     const [open, setOpen] = useState(false);
     const [selectedShifts, setSelectedShifts] = useState([]);
-    const { setLoading } = useToastContext();
+    const {setLoading} = useToastContext();
     const [filters, setFilters] = useState({});
     const selectedUserId = filters.userId;
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarSeverity, setSnackbarSeverity] = useState("error");
-
     const handleOpen = () => setOpen(true);
     const handleClose = () => {
         setOpen(false);
@@ -87,10 +86,10 @@ const ShiftAssignmentModal = ({ shifts, setData, label, href, extraProps, item }
               <Button variant="contained" color="secondary" onClick={handleOpen}>
                   {label}
               </Button>
-              <Modal open={open} onClose={handleClose} sx={{ z: 999 }}>
+              <Modal open={open} onClose={handleClose} sx={{z: 999}}>
                   <Fade in={open}>
-                      <Box sx={{ ...simpleModalStyle }}>
-                          <Typography variant="h6" sx={{ mb: 2 }}>
+                      <Box sx={{...simpleModalStyle}}>
+                          <Typography variant="h6" sx={{mb: 2}}>
                               Assign Shifts
                           </Typography>
                           <SearchComponent
@@ -100,7 +99,7 @@ const ShiftAssignmentModal = ({ shifts, setData, label, href, extraProps, item }
                                 renderKeys={["name", "emiratesId", "email"]}
                                 mainKey="emiratesId"
                           />
-                          <Box sx={{ mt: 2, mb: 2 }}>
+                          <Box sx={{mt: 2, mb: 2}}>
                               {shifts.map((shift) => (
                                     <FormControlLabel
                                           key={shift.id}
@@ -125,7 +124,7 @@ const ShiftAssignmentModal = ({ shifts, setData, label, href, extraProps, item }
                     autoHideDuration={6000}
                     onClose={handleSnackbarClose}
               >
-                  <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                  <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{width: '100%'}}>
                       {snackbarMessage}
                   </Alert>
               </Snackbar>
