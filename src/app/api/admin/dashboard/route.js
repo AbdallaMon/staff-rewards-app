@@ -75,8 +75,13 @@ export async function GET(request, response) {
             const rewards = await prisma.dutyReward.aggregate({
                 _sum: {amount: true},
                 where: {
-                    isPaid: true,
-                    ...(centerId && {attendance: {centerId}}),
+                    attendance: {
+                        dayAttendance: {
+                            isPaid: true,
+                            ...(centerId && {centerId}),
+
+                        }
+                    },
                     date: {
                         gte: startOfYear,
                         lte: endOfYear
@@ -90,8 +95,12 @@ export async function GET(request, response) {
             const rewards = await prisma.dutyReward.aggregate({
                 _sum: {amount: true},
                 where: {
-                    isPaid: false,
-                    ...(centerId && {attendance: {centerId}}),
+                    attendance: {
+                        dayAttendance: {
+                            isPaid: false,
+                            ...(centerId && {centerId}),
+                        }
+                    },
                     date: {
                         gte: startOfYear,
                         lte: endOfYear
