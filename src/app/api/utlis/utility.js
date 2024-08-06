@@ -22,19 +22,20 @@ export async function generateResetToken(email, approve = false) {
     });
 
     const resetLink = `${url}/reset?token=${token}`;
-    const emailContent = `
-        <h3>${approve ? "Your account has been approved you can create new password for this email " : "You are receiving this because your admin created a new user account for you with this email:"} ${email}</h3>
-                
-        <p><a href="${resetLink}">Click here to enter your new password</a></p>
-        
-        <p><strong style="color:red">Please note that this link will not be usable after 1 day.</strong></p>
-        
-        <p>If you need to generate a new password, you can do so at any time by visiting <a href="${url}/reset">this link</a>.</p>
+    const emailHtml = `
+        <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5;">
+            <h2 style="color: #7c5e24;">${approve ? "Account Approved" : "Account Created"}</h2>
+            <p>${approve ? "Your account has been approved. You can create a new password for this email:" : "An admin created a new user account for you with this email:"} <strong>${email}</strong></p>
+            <p>Please click on the following link, or paste this into your browser to complete the process:</p>
+            <a href="${resetLink}" style="display: inline-block; margin: 10px 0; padding: 10px 20px; background-color: #7c5e24; color: #ffffff; text-decoration: none; border-radius: 5px;">Create New Password</a>
+            <p><strong style="color: red;">Please note that this link will expire in 1 day.</strong></p>
+            <p>If you need to generate a new password, you can do so at any time by visiting <a href="${url}/reset" style="color: #7c5e24;">this link</a>.</p>
+        </div>
     `;
 
     await sendEmail(
           email,
           "Your Account Details",
-          emailContent
+          emailHtml
     );
 }
