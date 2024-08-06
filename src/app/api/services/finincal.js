@@ -430,19 +430,26 @@ export async function updateAttendanceRecordsWithLog(dayAttendanceId, body, logg
 
         // Create the log entry
         const logDescription = `
-            <p>Attendance records updated by <strong>${logger.name} (${logger.email})</strong></p>
-            <p><strong>Employee :</strong> ${name} (${email}, Emirates ID: ${emiratesId})</p>
-            <p><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</p>
-            <p><strong>Changes:</strong></p>
-            <ul>
-                <li>Previously Attended Shifts: ${oldAttendanceShiftNames.join(", ")}</li>
-                <li>Deleted Attendances: ${deletedShiftNames.join(", ")}</li>
-                <li>New Attendances: ${editedShiftNames.join(", ")}</li>
-                <li>Total Reward Before: ${initialTotalReward}</li>
-                <li>Total Reward After: ${initialTotalReward + totalRewardChange}</li>
-            </ul>
+            <div style="font-family: Arial, sans-serif; color: #333;">
+                <p>Attendance records updated by <strong>${logger.name} (${logger.email})</strong></p>
+                <p><strong>Employee:</strong> ${name} (${email}, Emirates ID: ${emiratesId})</p>
+                <div>
+                    <strong>Changes:</strong>
+                    <ul>
+                        <li><strong>Total Previous Attendances:</strong> ${oldAttendanceShiftNames.join(", ")}</li>
+                        <li><strong>Deleted Attendances:</strong> ${deletedShiftNames.join(", ")}</li>
+                        <li><strong>New Attendances:</strong> ${editedShiftNames.join(", ")}</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>Rewards:</strong>
+                    <ul>
+                        <li><strong>Total Reward Before:</strong> ${initialTotalReward}</li>
+                        <li><strong>Total Reward After:</strong> ${initialTotalReward + totalRewardChange}</li>
+                    </ul>
+                </div>
+            </div>
         `;
-        console.log(logDescription, "logDesritption")
         await prisma.log.create({
             data: {
                 userId: +loggerId,
