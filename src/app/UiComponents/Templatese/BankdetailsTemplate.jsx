@@ -23,6 +23,16 @@ const StyledContainer = styled(Box)`
   margin: 20px auto;
   border: 1px solid #ccc;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  
+  @media print {
+    size: A4;
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    padding: 10mm; /* Adjust as needed */
+    border: none;
+    box-shadow: none;
+  }
 `;
 
 const Header = styled(Box)`
@@ -71,7 +81,7 @@ const BankDetailsTemplate = React.forwardRef(({user}, ref) => (
                       </TableRow>
                       <TableRow>
                           <TableCell style={{border: '1px solid #000'}}>Emirate (Address Line):</TableCell>
-                          <TableCell style={{border: '1px solid #000'}}>{user.zone}</TableCell>
+                          <TableCell style={{border: '1px solid #000'}}>.................................</TableCell>
                       </TableRow>
                   </TableBody>
               </Table>

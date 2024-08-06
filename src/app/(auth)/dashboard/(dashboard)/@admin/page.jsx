@@ -206,7 +206,7 @@ const AdminDashboard = () => {
 
     return (
           <Container>
-              <Typography variant="h4" gutterBottom fontWeight="bold" color="primary">Admin Dashboard (Current
+              <Typography variant="h4" gutterBottom fontWeight="bold" color="primary" mt={2}>Admin Dashboard (Current
                   Year)</Typography>
               <Grid container spacing={3}>
                   <Grid item xs={12}>

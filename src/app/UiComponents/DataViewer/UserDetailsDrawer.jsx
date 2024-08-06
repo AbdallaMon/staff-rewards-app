@@ -40,6 +40,7 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData}) 
     const [approveModalOpen, setApproveModalOpen] = useState(false);
     const [uncompletedModalOpen, setUncompletedModalOpen] = useState(false);
     const {setLoading: setSubmitLoading} = useToastContext()
+
     useEffect(() => {
         if (userId) {
             setLoading(true);
@@ -93,16 +94,34 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData}) 
     const isPdf = (url) => url ? url.toLowerCase().endsWith('pdf') : null
 
     const renderDocument = (label, value) => {
-
+        let renderSecondary = "";
+        switch (label) {
+            case "Emirates ID":
+                renderSecondary = userData.emiratesId;
+                break;
+            case "IBAN":
+                renderSecondary = userData.ibanBank;
+                break;
+            case "Education":
+                renderSecondary = userData.graduationName;
+                break;
+            case "Passport ":
+                renderSecondary = userData.passportNumber;
+                break;
+            default:
+                renderSecondary = "";
+                break;
+        }
         return (
-
               <ListItem>
-                  <ListItemText primary={label} secondary={!value && "N/A"}/>
+                  <ListItemText primary={label} secondary={renderSecondary}/>
                   {value && (
                         isPdf(value) ? (
-                              <Link href={value} target="_blank" sx={{ml: 2}}>
-                                  PDF. Click to open.
-                              </Link>
+                              <>
+                                  <Link href={value} target="_blank" sx={{ml: 2}}>
+                                      PDF. Click to open.
+                                  </Link>
+                              </>
                         ) : (
                               <Avatar
                                     src={value}
@@ -195,8 +214,8 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData}) 
                                         <List>
                                             {renderDocument("Emirates ID", userData.emiratesIdPhoto)}
                                             {renderDocument("IBAN", userData.ibanBankPhoto)}
-                                            {renderDocument("Graduation Name", userData.graduationImage)}
-                                            {renderDocument("Passport Number", userData.passportPhoto)}
+                                            {renderDocument("Education", userData.graduationImage)}
+                                            {renderDocument("Passport ", userData.passportPhoto)}
                                         </List>
                                     </Grid>
                                 </Grid>

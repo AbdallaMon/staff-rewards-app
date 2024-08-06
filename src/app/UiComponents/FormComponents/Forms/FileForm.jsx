@@ -26,6 +26,7 @@ const FileUploadForm = () => {
     );
     const searchParams = useSearchParams()
     const token = searchParams.get("token");
+    const [submitted, setSubmitted] = useState(false)
     const {setLoading} = useToastContext();
     const [fileInputs, setFileInputs] = useState({
         emiratesIdPhoto: null,
@@ -88,11 +89,31 @@ const FileUploadForm = () => {
         });
         const res = await handleRequestSubmit(formData, setLoading, "employee/public/complete?token=" + token, true, "Sending...", false, "POST");
         if (res.status === 200) {
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+            setSubmitted(true)
         }
     };
+
+    if (submitted) {
+        return (
+              <Container maxWidth="md"
+                         sx={{
+                             bgcolor: 'background.paper',
+                             p: 3,
+                             borderRadius: 2,
+                             boxShadow: 3,
+                             marginX: 'auto',
+                             my: 20
+                         }}>
+                  <Typography variant="h6" color="success.main" textAlign="center" gutterBottom>
+                      Your account has been confirmed successfully
+                  </Typography>
+                  <Typography variant="body1" textAlign="center">
+                      We will send u an email once we approve your account details
+                  </Typography>
+              </Container>
+        )
+    }
+
 
     const handleImageClick = (file) => {
         setModalImage(file);

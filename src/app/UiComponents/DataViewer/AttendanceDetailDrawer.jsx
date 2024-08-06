@@ -40,7 +40,6 @@ const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData
     const [editedAttendances, setEditedAttendances] = useState([]);
     const [deletedAttendances, setDeletedAttendances] = useState([]);
     const {setLoading: setSubmitLoading} = useToastContext();
-
     useEffect(() => {
         if (dayAttendanceId) {
             setLoading(true);

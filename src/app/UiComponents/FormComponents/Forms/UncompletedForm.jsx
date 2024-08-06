@@ -59,7 +59,7 @@ const UncompletedForm = () => {
     const [loadingCenters, setLoadingCenters] = useState(true);
     const [incompleteFields, setIncompleteFields] = useState([]);
     const [decoding, setDecoding] = useState(true);
-
+    const [submitted, setSubmitted] = useState(false)
     useEffect(() => {
         const loadDuties = async () => {
             const duties = await fetchOptions('duty');
@@ -144,7 +144,11 @@ const UncompletedForm = () => {
             }
         });
 
-        await handleRequestSubmit(formData, setLoading, `employee/public/complete/${token}`, true, "Sending...", false, "POST");
+        const res = await handleRequestSubmit(formData, setLoading, `employee/public/complete/${token}`, true, "Sending...", false, "POST");
+        if (res.status === 200) {
+            setSubmitted(true)
+        }
+
     };
 
     const handleImageClick = (file) => {
@@ -358,7 +362,26 @@ const UncompletedForm = () => {
     };
 
     if (decoding) return null;
-
+    if (submitted) {
+        return (
+              <Container maxWidth="md"
+                         sx={{
+                             bgcolor: 'background.paper',
+                             p: 3,
+                             borderRadius: 2,
+                             boxShadow: 3,
+                             marginX: 'auto',
+                             my: 20
+                         }}>
+                  <Typography variant="h6" color="success.main" textAlign="center" gutterBottom>
+                      Your new data has been submitted
+                  </Typography>
+                  <Typography variant="body1" textAlign="center">
+                      We will send u an email once we approve your new details
+                  </Typography>
+              </Container>
+        )
+    }
     return (
           <Container maxWidth="md"
                      sx={{bgcolor: 'background.paper', p: 3, borderRadius: 2, boxShadow: 3, marginX: 'auto', my: 20}}>

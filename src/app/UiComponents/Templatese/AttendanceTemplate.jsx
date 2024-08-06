@@ -93,28 +93,6 @@ const AttendanceTemplate = forwardRef(({user, dayAttendance, duties, shifts}, re
                           </TableBody>
                       </Table>
                   </TableContainer>
-                  <TableContainer component={Paper}>
-                      <Table>
-                          <TableHead>
-                              <TableRow>
-                                  <TableCell style={{
-                                      backgroundColor: '#f0f0f0',
-                                      border: '1px solid #ccc'
-                                  }}>Duties</TableCell>
-                                  <TableCell style={{backgroundColor: '#f0f0f0', border: '1px solid #ccc'}}>Reward per
-                                      shift</TableCell>
-                              </TableRow>
-                          </TableHead>
-                          <TableBody>
-                              {duties.map((duty, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell style={{border: '1px solid #ccc'}}>{duty.name}</TableCell>
-                                        <TableCell style={{border: '1px solid #ccc'}}>{duty.amount}</TableCell>
-                                    </TableRow>
-                              ))}
-                          </TableBody>
-                      </Table>
-                  </TableContainer>
               </Box>
               <Box flexGrow={0.4}>
                   <TableContainer component={Paper}>

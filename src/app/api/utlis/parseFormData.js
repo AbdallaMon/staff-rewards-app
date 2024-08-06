@@ -54,7 +54,10 @@ async function parseFormData(req, withDelete) {
                     },
                 });
                 const extenstion = value.type === "application/pdf" ? `?type=pdf&name=${uniqueName}` : `/preview?name=${uniqueName}`
-                const publicUrl = shareResponse.data.ocs.data.url + extenstion;
+                let publicUrl = shareResponse.data.ocs.data.url + extenstion;
+                if (publicUrl.startsWith('http://')) {
+                    publicUrl = publicUrl.replace('http://', 'https://');
+                }
                 results[key] = publicUrl;
             } else {
                 if (key === 'deletedUrl') continue;

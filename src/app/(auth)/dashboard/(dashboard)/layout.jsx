@@ -34,7 +34,6 @@ export default function Layout({center, admin, staff, financial}) {
     }, []);
     if (!res || !res.role) return null;
     const role = res?.role;
-    console.log(role, "role")
     return (
           <HandleAuth>
               {role === "ADMIN" ? admin : role === "EMPLOYEE" ? staff : role === "FINANCIAL_AUDITOR" ? financial : role === "CENTER" ? center : null}{" "}
