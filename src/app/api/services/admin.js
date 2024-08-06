@@ -785,3 +785,97 @@ export async function editFinancialAccount(id, data) {
         return handlePrismaError(error);
     }
 }
+
+
+/// admins
+//// financial accounts
+export async function createAdminAccount(data) {
+
+    try {
+        const user = await prisma.user.create({
+            data: {
+                name: data.name,
+                email: data.email,
+                role: "ADMIN",
+                isActive: true,
+                emailConfirmed: true,
+            },
+        });
+        await generateResetToken(user.email)
+
+        return {status: 200, data: user, message: "Account created successfully and email sent to the account."};
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+export async function fetchAdminsAccounts(page = 1, limit = 10) {
+    const offset = (page - 1) * limit;
+    try {
+        const where = {
+            role: "ADMIN"
+        }
+        const [users, total] = await prisma.$transaction([
+            prisma.user.findMany({
+                where,
+                skip: offset,
+                take: limit,
+                orderBy: {createdAt: 'desc'},
+            }),
+            prisma.user.count({where}),
+        ]);
+
+        return {
+            status: 200,
+            data: users,
+            total,
+            page,
+            limit,
+            message: "Users fetched successfully",
+        };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+export async function deleteAdminAccount(id) {
+    try {
+        const deletedUser = await prisma.user.delete({
+            where: {id: parseInt(id, 10)},
+        });
+        return {status: 200, data: deletedUser, message: "User deleted "};
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+export async function editAdminAccount(id, data) {
+    try {
+
+        const newUser = await prisma.user.update({
+            where: {id: +id},
+            data,
+        });
+        if (data.email) {
+            if (data.email !== newUser.email) {
+                const emailContent = `
+                <h1>Your Account Email Updated</h1>
+                <p>The email for your account has been updated.</p>
+                <p><strong>New Email:</strong> ${data.email}</p>
+                <p><a href="${url}/login">Click here to login</a></p>
+            `;
+
+                // Send email to the supervisor with the new email
+                await sendEmail(
+                      data.email,
+                      "Your Account Email Updated",
+                      emailContent
+                );
+            }
+        }
+
+        return {status: 200, data: newUser, message: "account updated successfully"};
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}

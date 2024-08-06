@@ -48,7 +48,10 @@ const adminLinks = [
     {label: "Configure", href: "/dashboard/configure"},
     {label: "Staff", href: "/dashboard/staff"},
     {label: "Staff requests", href: "/dashboard/staff-requests"},
-    {label: "Financial accounts", href: "/dashboard/financial-accounts"}
+    {label: "Financial accounts", href: "/dashboard/financial-accounts"},
+    {label: "Admins accounts", href: "/dashboard/admins-accounts"},
+    {label: "logs", href: "/dashboard/logs"}
+
 ];
 
 const reportLinks = [
