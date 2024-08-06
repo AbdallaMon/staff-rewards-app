@@ -517,3 +517,36 @@ export async function getAttendanceData(date, centerId) {
         return handlePrismaError(e)
     }
 }
+
+export async function getBankDetailsData(date, centerId) {
+    try {
+        const where = {
+            date: new Date(date),
+        };
+
+        if (centerId) {
+            where.centerId = +centerId;
+        }
+
+        const bankDetailsData = await prisma.dayAttendance.findMany({
+            where,
+            select: {
+                date: true,
+                user: {
+                    select: {
+                        name: true,
+                        email: true,
+                        phone: true,
+                        bankName: true,
+                        bankUserName: true,
+                        ibanBank: true,
+                    },
+                },
+            },
+        });
+
+        return {data: bankDetailsData, status: 200};
+    } catch (e) {
+        return handlePrismaError(e);
+    }
+}

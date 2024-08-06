@@ -31,12 +31,15 @@ export default function CalendarPage() {
 
     const [centers, setCenters] = useState([]);
     const [centerLoading, setCenterLoading] = useState(true);
-    const [modalOpen, setModalOpen] = useState(false);
+    const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
+    const [bankDetailsModalOpen, setBankDetailsModalOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState(null);
     const [selectedCenter, setSelectedCenter] = useState('');
     const [attendanceData, setAttendanceData] = useState([]);
+    const [bankDetailsData, setBankDetailsData] = useState([]);
     const [loadingAttendance, setLoadingAttendance] = useState(false);
-    const [noDataMessage, setNoDataMessage] = useState("")
+    const [loadingBankDetails, setLoadingBankDetails] = useState(false);
+    const [noDataMessage, setNoDataMessage] = useState("");
     const searchParams = useSearchParams();
     const selectedExamType = searchParams.get('examType');
     const router = useRouter();
@@ -70,7 +73,7 @@ export default function CalendarPage() {
 
     const handleDateClick = (item) => {
         setSelectedDate(item.date);
-        setModalOpen(true);
+        setAttendanceModalOpen(true);
     };
 
     const handleFetchAttendance = async () => {
@@ -81,13 +84,25 @@ export default function CalendarPage() {
         if (result.data.length === 0) {
             setNoDataMessage("No data for this center");
         } else {
-            setNoDataMessage("")
+            setNoDataMessage("");
         }
         setLoadingAttendance(false);
     };
 
+    const handleFetchBankDetails = async () => {
+        setLoadingBankDetails(true);
+        const response = await fetch(`/api/finincal/bankdetails/report?date=${selectedDate}&centerId=${selectedCenter}`);
+        const result = await response.json();
+        setBankDetailsData(result.data || []);
+        if (result.data.length === 0) {
+            setNoDataMessage("No data for this center");
+        } else {
+            setNoDataMessage("");
+        }
+        setLoadingBankDetails(false);
+    };
 
-    const handleGenerateExcel = async () => {
+    const handleGenerateAttendanceExcel = async () => {
         const schema = [
             {
                 column: 'No',
@@ -207,6 +222,112 @@ export default function CalendarPage() {
         });
     };
 
+    const handleGenerateBankDetailsExcel = async () => {
+        const schema = [
+            {
+                column: 'No',
+                type: Number,
+                value: item => item.No,
+                fontWeight: 'bold',
+                align: 'center',
+                alignVertical: 'center',
+                width: 5,
+                height: 25,
+                borderColor: '#000000',
+                borderStyle: 'thin'
+            },
+            {
+                column: 'Name',
+                type: String,
+                value: item => item.user.name,
+                fontWeight: 'bold',
+                align: 'center',
+                alignVertical: 'center',
+                width: 30,
+                height: 25,
+                borderColor: '#000000',
+                borderStyle: 'thin'
+            },
+            {
+                column: 'Email',
+                type: String,
+                value: item => item.user.email,
+                fontWeight: 'bold',
+                align: 'center',
+                alignVertical: 'center',
+                width: 30,
+                height: 25,
+                borderColor: '#000000',
+                borderStyle: 'thin'
+            },
+            {
+                column: 'Phone',
+                type: String,
+                value: item => item.user.phone,
+                fontWeight: 'bold',
+                align: 'center',
+                alignVertical: 'center',
+                width: 20,
+                height: 25,
+                borderColor: '#000000',
+                borderStyle: 'thin'
+            },
+            {
+                column: 'Bank Name',
+                type: String,
+                value: item => item.user.bankName,
+                fontWeight: 'bold',
+                align: 'center',
+                alignVertical: 'center',
+                width: 30,
+                height: 25,
+                borderColor: '#000000',
+                borderStyle: 'thin'
+            },
+            {
+                column: 'Bank User Name',
+                type: String,
+                value: item => item.user.bankUserName,
+                fontWeight: 'bold',
+                align: 'center',
+                alignVertical: 'center',
+                width: 30,
+                height: 25,
+                borderColor: '#000000',
+                borderStyle: 'thin'
+            },
+            {
+                column: 'IBAN',
+                type: String,
+                value: item => item.user.ibanBank,
+                fontWeight: 'bold',
+                align: 'center',
+                alignVertical: 'center',
+                width: 30,
+                height: 25,
+                borderColor: '#000000',
+                borderStyle: 'thin'
+            }
+        ];
+
+        const data = bankDetailsData.map((item, index) => ({
+            No: index + 1,
+            user: item.user
+        }));
+
+        await writeXlsxFile(data, {
+            schema,
+            fileName: `Bank_Details_Report_${dayjs(selectedDate).format('YYYY-MM-DD')}.xlsx`,
+            headerStyle: {
+                backgroundColor: '#D3E4FF', // Light blue color
+                fontWeight: 'bold',
+                align: 'center',
+                alignVertical: 'center',
+                height: 30
+            }
+        });
+    };
+
     const filterExamTypes = [
         {id: "TEACHER", name: "Teacher"},
         {id: "GRADUATE", name: "Graduate"}
@@ -233,18 +354,30 @@ export default function CalendarPage() {
                     setFilters={setFilters}
                     labelKey="examType"
                     extraComponent={({item}) => (
-                          <Button color="secondary" variant="contained" onClick={() => {
-                              handleDateClick(item)
-                              setNoDataMessage("")
-                          }}>
-                              Attendances sheet</Button>
+                          <div className={"flex flex-col gap-1 items-center justify-center w-full my-1"}>
+                              <Button color="tertiary" variant="contained" onClick={() => {
+                                  handleDateClick(item);
+                                  setNoDataMessage("");
+                              }}>
+                                  Attendances sheet
+                              </Button>
+                              <Button color="tertiary" variant="contained"
+
+                                      onClick={() => {
+                                          setSelectedDate(item.date);
+                                          setBankDetailsModalOpen(true);
+                                          setNoDataMessage("");
+                                      }}>
+                                  Bank Details sheet
+                              </Button>
+                          </div>
                     )}
               />
               <Modal
-                    open={modalOpen}
+                    open={attendanceModalOpen}
                     onClose={() => {
-                        setAttendanceData([])
-                        setModalOpen(false)
+                        setAttendanceData([]);
+                        setAttendanceModalOpen(false);
                     }}
                     aria-labelledby="modal-modal-title"
                     aria-describedby="modal-modal-description"
@@ -252,16 +385,14 @@ export default function CalendarPage() {
                         z: 999,
                     }}
               >
-                  <Fade in={modalOpen}>
-
+                  <Fade in={attendanceModalOpen}>
                       <Box sx={{...simpleModalStyle}}>
                           <Typography variant="h6" id="modal-modal-title">Select Center
                               for {dayjs(selectedDate).format('YYYY-MM-DD')}</Typography>
                           <FilterSelect options={centers} label={"Centers"}
                                         onChange={(e) => {
-                                            setSelectedCenter(e.target.value)
-                                            setAttendanceData([])
-
+                                            setSelectedCenter(e.target.value);
+                                            setAttendanceData([]);
                                         }} loading={centerLoading}
                                         value={selectedCenter}/>
                           <Button variant="contained" color="primary" onClick={handleFetchAttendance}
@@ -269,7 +400,47 @@ export default function CalendarPage() {
                               {loadingAttendance ? <CircularProgress size={24}/> : "Fetch Attendances"}
                           </Button>
                           {attendanceData.length > 0 && (
-                                <Button variant="contained" color="secondary" onClick={handleGenerateExcel}>
+                                <Button variant="contained" color="secondary" onClick={handleGenerateAttendanceExcel}>
+                                    Generate Excel Report
+                                </Button>
+                          )}
+                          {noDataMessage.length > 0 && (
+                                <Typography variant="body1" color="error">
+                                    {noDataMessage}
+                                </Typography>
+                          )}
+                      </Box>
+                  </Fade>
+              </Modal>
+
+              <Modal
+                    open={bankDetailsModalOpen}
+                    onClose={() => {
+                        setBankDetailsData([]);
+                        setBankDetailsModalOpen(false);
+                    }}
+                    aria-labelledby="modal-modal-title"
+                    aria-describedby="modal-modal-description"
+                    sx={{
+                        z: 999,
+                    }}
+              >
+                  <Fade in={bankDetailsModalOpen}>
+                      <Box sx={{...simpleModalStyle}}>
+                          <Typography variant="h6" id="modal-modal-title">Select Center
+                              for {dayjs(selectedDate).format('YYYY-MM-DD')}</Typography>
+                          <FilterSelect options={centers} label={"Centers"}
+                                        onChange={(e) => {
+                                            setSelectedCenter(e.target.value);
+                                            setBankDetailsData([]);
+                                        }} loading={centerLoading}
+                                        value={selectedCenter}/>
+                          <Button variant="contained" color="primary" onClick={handleFetchBankDetails}
+                                  disabled={loadingBankDetails}>
+                              {loadingBankDetails ? <CircularProgress size={24}/> : "Fetch Bank Details"}
+                          </Button>
+                          {bankDetailsData.length > 0 && (
+                                <Button variant="contained" color="secondary" onClick={handleGenerateBankDetailsExcel}>
                                     Generate Excel Report
                                 </Button>
                           )}
