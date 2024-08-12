@@ -24,7 +24,6 @@ export default function UserBankApprovalReports() {
         setTotal,
         setFilters
     } = useDataFetcher("finincal/reports/attendances", false);
-
     const columns = [
         {name: "user.name", label: "Name"},
         {name: "user.email", label: "Email"},
@@ -169,7 +168,7 @@ export default function UserBankApprovalReports() {
                               {item.attachment?.length > 0 ?
                                     <a href={item.attachment} target="_blank" rel="noopener noreferrer">
                                         <Button>
-                                            Download approval
+                                            Preview approval
                                         </Button>
                                     </a>
                                     : "No attachment uploaded"

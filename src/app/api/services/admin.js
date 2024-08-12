@@ -328,18 +328,23 @@ export async function deleteCenter(id) {
     }
 }
 
-export async function fetchEmployees(page = 1, limit = 10, employRequests = false, rejected = false, centerId) {
+export async function fetchEmployees(page = 1, limit = 10, employRequests = false, rejected = false, centerId, uncompleted) {
     const offset = (page - 1) * limit;
     let requestStatus = employRequests ? "PENDING" : "APPROVED";
     if (rejected) {
         requestStatus = "REJECTED";
     }
+    if (uncompleted) {
+        requestStatus = "UNCOMPLETED";
+    }
     const where = {
         role: 'EMPLOYEE',
         accountStatus: requestStatus,
         centerId: centerId ? parseInt(centerId, 10) : undefined,
-        emailConfirmed: true,
     };
+    if (!uncompleted) {
+        where.emailConfirmed = true;
+    }
     try {
         const [employees, total] = await prisma.$transaction([
             prisma.user.findMany({
@@ -484,7 +489,22 @@ export const approveUser = async (userId) => {
                 accountStatus: 'APPROVED',
             },
         });
-        await generateResetToken(user.email, true)
+        const emailHtml = `
+        <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5;">
+            <h2 style="color: #7c5e24;"> Account Approved </h2>
+            <p> "Your account has been approved , your email is: <strong>${user.email}</strong></p>
+            <div>You can click this button to login directly
+                        <a href="${url}/login" style="display: inline-block; margin: 10px 0; padding: 10px 20px; background-color: #7c5e24; color: #ffffff; text-decoration: none; border-radius: 5px;">Login</a>
+            </div>
+            <p>If you need to generate a new password, you can do so at any time by visiting <a href="${url}/reset" style="color: #7c5e24;">this link</a>.</p>
+        </div>
+    `;
+
+        await sendEmail(
+              user.email,
+              "Your Account Details",
+              emailHtml
+        );
 
         return {status: 200, message: 'User approved successfully and a message sent to the user email '};
     } catch (error) {
@@ -527,18 +547,18 @@ export const uncompletedUser = async (userId, {checks, comments}, baseUrl) => {
             email: user.email,
             checks: checks.map((check) => ({
                 id: check.id,
+                label: check.label,
                 comment: check.comment || 'No comment provided',
             })),
         };
         const SECRET_KEY = process.env.SECRET_KEY;
 
         const token = jwt.sign(tokenPayload, SECRET_KEY, {expiresIn: '30d'});
-
         const emailContent = `
             <h1>Account Registration Incomplete</h1>
             <p>Your account registration is incomplete for the following reasons:</p>
             <ul>
-                ${checks.map(check => `<li><strong>${check.id}:</strong> ${check.comment || 'No comment provided'}</li>`).join('')}
+                ${checks.map(check => `<li><strong>${check.label}:</strong> ${check.comment || 'No comment provided'}</li>`).join('')}
             </ul>
             <p><a href="${baseUrl}/uncompleted?token=${token}">Click here to complete your registration</a></p>
         `;
@@ -877,5 +897,23 @@ export async function editAdminAccount(id, data) {
         return {status: 200, data: newUser, message: "account updated successfully"};
     } catch (error) {
         return handlePrismaError(error);
+    }
+}
+
+export async function createNewPasswordForAdmin(id, data) {
+    try {
+        const hashedPassword = await bcrypt.hash(data.password, 10);
+
+        const newUser = await prisma.user.update({
+            where: {id: +id},
+            data: {
+                password: hashedPassword
+            },
+        });
+        return {status: 200, data: newUser, message: "password updated successfully"};
+
+    } catch (error) {
+        return handlePrismaError(error);
+
     }
 }

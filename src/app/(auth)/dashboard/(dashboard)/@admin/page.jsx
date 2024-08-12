@@ -1,7 +1,7 @@
 "use client";
-import React, {useState, useEffect} from 'react';
-import {Box, Container, Grid, Typography, CircularProgress} from '@mui/material';
-import {Bar} from 'react-chartjs-2';
+import React, {useState, useEffect} from "react";
+import {Box, Container, Grid, Typography, CircularProgress} from "@mui/material";
+import {Bar} from "react-chartjs-2";
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -10,80 +10,127 @@ import {
     Title,
     Tooltip,
     Legend,
-} from 'chart.js';
-import FilterSelect from '@/app/UiComponents/FormComponents/FilterSelect';
-import {useRouter, useSearchParams} from 'next/navigation';
+} from "chart.js";
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
+import {useRouter, useSearchParams} from "next/navigation";
+
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartDataLabels);
 
 const fetchData = async (url) => {
     const response = await fetch(url);
     if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error("Network response was not ok");
     }
     return response.json();
 };
 
 const CardComponent = ({title, value, loading}) => (
       <Box boxShadow={3} p={3} borderRadius={2} bgcolor="#f5f5f5">
-          <Typography variant="h6" gutterBottom fontWeight="bold" color="secondary">{title}</Typography>
-          {loading ? <CircularProgress/> : <Typography variant="h5" fontWeight="medium">{value}</Typography>}
+          <Typography variant="h6" gutterBottom fontWeight="bold" color="secondary">
+              {title}
+          </Typography>
+          {loading ? (
+                <CircularProgress/>
+          ) : (
+                <Typography variant="h5" fontWeight="medium">
+                    {value}
+                </Typography>
+          )}
       </Box>
 );
 
-const BarChartComponent = ({data, loading, title}) => (
-      <Box position="relative" p={2} boxShadow={3} borderRadius={2} bgcolor="#fff" minHeight={300} maxHeight={400}>
-          {loading && (
-                <Box
-                      position="absolute"
-                      top={0}
-                      left={0}
-                      right={0}
-                      bottom={0}
-                      display="flex"
-                      alignItems="center"
-                      justifyContent="center"
-                      bgcolor="rgba(255, 255, 255, 0.7)"
-                      zIndex={2}
-                >
-                    <CircularProgress/>
-                </Box>
-          )}
-          <Typography variant="h6" gutterBottom>{title}</Typography>
-          <Bar data={data}/>
-      </Box>
-);
+const BarChartComponent = ({data, loading, title}) => {
+    const options = {
+        plugins: {
+            datalabels: {
+                anchor: 'end',
+                align: 'top',
+                formatter: (value, context) => {
+                    const label = context.chart.data.labels[context.dataIndex];
+                    return `${label}: ${value}`;
+                },
+                font: {
+                    weight: 'bold',
+                    size: 14,
+                },
+                color: 'black',
+            },
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+            },
+        },
+    };
+
+    return (
+          <Box
+                position="relative"
+                p={2}
+                boxShadow={3}
+                borderRadius={2}
+                bgcolor="#fff"
+                minHeight={300}
+                maxHeight={400}
+          >
+              {loading && (
+                    <Box
+                          position="absolute"
+                          top={0}
+                          left={0}
+                          right={0}
+                          bottom={0}
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                          bgcolor="rgba(255, 255, 255, 0.7)"
+                          zIndex={2}
+                    >
+                        <CircularProgress/>
+                    </Box>
+              )}
+              <Typography variant="h6" gutterBottom>
+                  {title}
+              </Typography>
+              <Bar data={data} options={options}/>
+          </Box>
+    );
+};
 
 const AdminDashboard = () => {
     const [totalCenters, setTotalCenters] = useState(null);
     const [totalUsers, setTotalUsers] = useState(null);
-    const [totalAttendances, setTotalAttendances] = useState(null);
-    const [totalCalendars, setTotalCalendars] = useState(null);
+    const [activeUsers, setActiveUsers] = useState(null);
+    const [uncompletedUsers, setUncompletedUsers] = useState(null);
+    const [pendingUsers, setPendingUsers] = useState(null);
     const [totalRewards, setTotalRewards] = useState(null);
     const [paidRewards, setPaidRewards] = useState(null);
     const [unpaidRewards, setUnpaidRewards] = useState(null);
+    const [comingExams, setComingExams] = useState(null);
+    const [oldExams, setOldExams] = useState(null);
 
     const [loadingCenters, setLoadingCenters] = useState(true);
     const [loadingUsers, setLoadingUsers] = useState(true);
-    const [loadingAttendances, setLoadingAttendances] = useState(true);
-    const [loadingCalendars, setLoadingCalendars] = useState(true);
     const [loadingRewards, setLoadingRewards] = useState(true);
     const [loadingPaidRewards, setLoadingPaidRewards] = useState(true);
     const [loadingUnpaidRewards, setLoadingUnpaidRewards] = useState(true);
+    const [loadingExams, setLoadingExams] = useState(true);
 
     const [centers, setCenters] = useState([]);
     const [centerLoading, setCenterLoading] = useState(true);
     const searchParams = useSearchParams();
-    const selectedCenter = searchParams.get('centerId');
+    const selectedCenter = searchParams.get("centerId");
     const router = useRouter();
 
     const handleCenterChange = (event) => {
         const centerId = event.target.value;
         const params = new URLSearchParams(searchParams);
         if (centerId) {
-            params.set('centerId', centerId);
+            params.set("centerId", centerId);
         } else {
-            params.delete('centerId');
+            params.delete("centerId");
         }
         router.push(`?${params.toString()}`);
     };
@@ -101,51 +148,42 @@ const AdminDashboard = () => {
     }, []);
 
     useEffect(() => {
-        const url = `/api/admin/dashboard?${selectedCenter ? `centerId=${selectedCenter}&` : ''}`;
+        const url = `/api/admin/dashboard?${
+              selectedCenter ? `centerId=${selectedCenter}&` : ""
+        }`;
         fetchData(`${url}totalCenters=true`)
               .then((data) => {
                   setLoadingCenters(true);
-
                   setTotalCenters(data.totalCenters);
                   setLoadingCenters(false);
               })
               .catch((error) => {
-                  console.error('Error fetching centers data:', error);
+                  console.error("Error fetching centers data:", error);
                   setLoadingCenters(false);
               });
 
         fetchData(`${url}totalUsers=true`)
               .then((data) => {
                   setLoadingUsers(true);
-
                   setTotalUsers(data.totalUsers);
                   setLoadingUsers(false);
               })
               .catch((error) => {
-                  console.error('Error fetching users data:', error);
+                  console.error("Error fetching users data:", error);
                   setLoadingUsers(false);
               });
 
-        fetchData(`${url}totalAttendances=true`)
+        fetchData(`${url}userStatus=true`)
               .then((data) => {
-                  setLoadingAttendances(true);
-                  setTotalAttendances(data.totalAttendances);
-                  setLoadingAttendances(false);
+                  setLoadingUsers(true);
+                  setActiveUsers(data.activeUsers);
+                  setUncompletedUsers(data.uncompletedUsers);
+                  setPendingUsers(data.pendingUsers);
+                  setLoadingUsers(false);
               })
               .catch((error) => {
-                  console.error('Error fetching attendances data:', error);
-                  setLoadingAttendances(false);
-              });
-
-        fetchData(`${url}totalCalendars=true`)
-              .then((data) => {
-                  setLoadingCalendars(true);
-                  setTotalCalendars(data.totalCalendars);
-                  setLoadingCalendars(false);
-              })
-              .catch((error) => {
-                  console.error('Error fetching calendars data:', error);
-                  setLoadingCalendars(false);
+                  console.error("Error fetching user status data:", error);
+                  setLoadingUsers(false);
               });
 
         fetchData(`${url}totalRewards=true`)
@@ -155,7 +193,7 @@ const AdminDashboard = () => {
                   setLoadingRewards(false);
               })
               .catch((error) => {
-                  console.error('Error fetching total rewards data:', error);
+                  console.error("Error fetching total rewards data:", error);
                   setLoadingRewards(false);
               });
 
@@ -166,7 +204,7 @@ const AdminDashboard = () => {
                   setLoadingPaidRewards(false);
               })
               .catch((error) => {
-                  console.error('Error fetching paid rewards data:', error);
+                  console.error("Error fetching paid rewards data:", error);
                   setLoadingPaidRewards(false);
               });
 
@@ -177,64 +215,115 @@ const AdminDashboard = () => {
                   setLoadingUnpaidRewards(false);
               })
               .catch((error) => {
-                  console.error('Error fetching unpaid rewards data:', error);
+                  console.error("Error fetching unpaid rewards data:", error);
                   setLoadingUnpaidRewards(false);
+              });
+
+        fetchData(`${url}examsSummary=true`)
+              .then((data) => {
+                  setLoadingExams(true);
+                  setComingExams(data.comingExams);
+                  setOldExams(data.oldExams);
+                  setLoadingExams(false);
+              })
+              .catch((error) => {
+                  console.error("Error fetching exams data:", error);
+                  setLoadingExams(false);
               });
     }, [selectedCenter]);
 
-    const barChartData = {
-        labels: ['Shifts Attended', 'Exams Created'],
+    const userStatusChartData = {
+        labels: ["Active Users", "Uncompleted Users", "Pending Users"],
         datasets: [
             {
-                label: 'Counts',
-                data: [totalAttendances, totalCalendars],
-                backgroundColor: ['#4BC0C0', '#FF6384', '#FF9F40', '#36A2EB'],
+                label: "User Status",
+                data: [activeUsers, uncompletedUsers, pendingUsers],
+                backgroundColor: ["#4BC0C0", "#FF6384", "#FF9F40"],
             },
         ],
     };
 
     const rewardsChartData = {
-        labels: ['Total Rewards', 'Paid Rewards', 'Unpaid Rewards'],
+        labels: ["Total Rewards", "Paid Rewards", "Unpaid Rewards"],
         datasets: [
             {
-                label: 'Rewards',
+                label: "Rewards",
                 data: [totalRewards, paidRewards, unpaidRewards],
-                backgroundColor: ['#FFCE56', '#7D4F50', '#90A4AE'],
+                backgroundColor: ["#FFCE56", "#7D4F50", "#90A4AE"],
             },
         ],
     };
 
     return (
           <Container>
-              <Typography variant="h4" gutterBottom fontWeight="bold" color="primary" mt={2}>Admin Dashboard (Current
-                  Year)</Typography>
+              <Typography
+                    variant="h4"
+                    gutterBottom
+                    fontWeight="bold"
+                    color="primary"
+                    mt={2}
+              >
+                  Admin Dashboard (Current Year)
+              </Typography>
               <Grid container spacing={3}>
                   <Grid item xs={12}>
-                      <FilterSelect options={centers} label={"Centers"} onChange={handleCenterChange}
-                                    loading={centerLoading} value={selectedCenter}/>
+                      <FilterSelect
+                            options={centers}
+                            label={"Centers"}
+                            onChange={handleCenterChange}
+                            loading={centerLoading}
+                            value={selectedCenter}
+                      />
                   </Grid>
                   <Grid item xs={12} md={3}>
-                      <CardComponent title="Total Centers" value={totalCenters} loading={loadingCenters}/>
+                      <CardComponent
+                            title="Total Centers"
+                            value={totalCenters}
+                            loading={loadingCenters}
+                      />
                   </Grid>
                   <Grid item xs={12} md={3}>
-                      <CardComponent title="Total Users" value={totalUsers} loading={loadingUsers}/>
+                      <CardComponent
+                            title="Total Users"
+                            value={totalUsers}
+                            loading={loadingUsers}
+                      />
                   </Grid>
                   <Grid item xs={12} md={3}>
-                      <CardComponent title="Total Shifts Attended" value={totalAttendances}
-                                     loading={loadingAttendances}/>
+                      <CardComponent
+                            title="Coming Exams"
+                            value={comingExams}
+                            loading={loadingExams}
+                      />
                   </Grid>
                   <Grid item xs={12} md={3}>
-                      <CardComponent title="Total Exams Created" value={totalCalendars} loading={loadingCalendars}/>
+                      <CardComponent
+                            title="Old Exams"
+                            value={oldExams}
+                            loading={loadingExams}
+                      />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                      <BarChartComponent data={barChartData}
-                                         loading={loadingCenters || loadingUsers || loadingAttendances || loadingCalendars}
-                                         title="Overall Summary (Counts)"/>
+                      <BarChartComponent
+                            data={userStatusChartData}
+                            loading={
+                                  loadingCenters ||
+                                  loadingUsers ||
+                                  loadingRewards ||
+                                  loadingPaidRewards ||
+                                  loadingUnpaidRewards
+                            }
+                            title="User Status Summary"
+                      />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                      <BarChartComponent data={rewardsChartData}
-                                         loading={loadingRewards || loadingPaidRewards || loadingUnpaidRewards}
-                                         title="Rewards Summary"/>
+                      <BarChartComponent
+                            data={rewardsChartData}
+                            loading={
+                                  loadingRewards || loadingPaidRewards || loadingUnpaidRewards
+                            }
+                            title="Rewards Summary"
+                      />
                   </Grid>
               </Grid>
           </Container>

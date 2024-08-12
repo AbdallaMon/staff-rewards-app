@@ -8,7 +8,11 @@ import {
     Typography,
     Modal,
     Grid,
-    Container, IconButton, Tooltip,
+    Container,
+    IconButton,
+    Tooltip,
+    Snackbar,
+    Alert,
 } from '@mui/material';
 import {styled} from '@mui/material/styles';
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
@@ -21,12 +25,10 @@ const Input = styled('input')({
 });
 
 const FileUploadForm = () => {
-    const {handleSubmit, control, register, setValue, formState: {errors}} = useForm(
-
-    );
-    const searchParams = useSearchParams()
+    const {handleSubmit, control, register, setValue, formState: {errors}} = useForm();
+    const searchParams = useSearchParams();
     const token = searchParams.get("token");
-    const [submitted, setSubmitted] = useState(false)
+    const [submitted, setSubmitted] = useState(false);
     const {setLoading} = useToastContext();
     const [fileInputs, setFileInputs] = useState({
         emiratesIdPhoto: null,
@@ -34,14 +36,31 @@ const FileUploadForm = () => {
         graduationImage: null,
         passportPhoto: null,
         photo: null,
+        cvImage: null,
     });
     const [validationErrors, setValidationErrors] = useState({});
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
 
     const [modalOpen, setModalOpen] = useState(false);
     const [modalImage, setModalImage] = useState(null);
 
     const handleFileChange = (e, field) => {
         const file = e.target.files[0];
+        if (field === "photo" && file && !file.type.startsWith('image/')) {
+            setSnackbarMessage('Only image files are allowed for the photo field');
+            setSnackbarOpen(true);
+            setFileInputs({
+                ...fileInputs,
+                [field]: null
+            });
+            setValidationErrors((prev) => ({
+                ...prev,
+                [field]: 'Only image files are allowed'
+            }));
+            return;
+        }
+
         if (file && (file.type.startsWith('image/') || file.type === 'application/pdf')) {
             setFileInputs({
                 ...fileInputs,
@@ -89,7 +108,7 @@ const FileUploadForm = () => {
         });
         const res = await handleRequestSubmit(formData, setLoading, "employee/public/complete?token=" + token, true, "Sending...", false, "POST");
         if (res.status === 200) {
-            setSubmitted(true)
+            setSubmitted(true);
         }
     };
 
@@ -108,17 +127,21 @@ const FileUploadForm = () => {
                       Your account has been confirmed successfully
                   </Typography>
                   <Typography variant="body1" textAlign="center">
-                      We will send u an email once we approve your account details
+                      We will send you an email once we approve your account details.
                   </Typography>
               </Container>
-        )
+        );
     }
-
 
     const handleImageClick = (file) => {
         setModalImage(file);
         setModalOpen(true);
     };
+
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
+    };
+
     return (
           <Container maxWidth="md"
                      sx={{bgcolor: 'background.paper', p: 3, borderRadius: 2, boxShadow: 3, marginX: 'auto', my: 20}}>
@@ -190,7 +213,6 @@ const FileUploadForm = () => {
                                 }}
                           >
                               <IoMdClose/>
-
                           </IconButton>
                           {modalImage &&
                                 <img src={URL.createObjectURL(modalImage)} alt="Full size"
@@ -200,6 +222,15 @@ const FileUploadForm = () => {
                       </Box>
                   </Modal>
               </form>
+              <Snackbar
+                    open={snackbarOpen}
+                    autoHideDuration={6000}
+                    onClose={handleSnackbarClose}
+              >
+                  <Alert onClose={handleSnackbarClose} severity="error" sx={{width: '100%'}}>
+                      {snackbarMessage}
+                  </Alert>
+              </Snackbar>
           </Container>
     );
 };

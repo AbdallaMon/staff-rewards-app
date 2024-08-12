@@ -31,13 +31,14 @@ const UncompletedModal = ({open, onClose, handleSubmit, title, href}) => {
         "Bank Name": "bankName",
         "Bank Iban": "ibanBank",
         "Emirates ID": "emiratesId",
-        "Graduation Name": "graduationName",
+        "Education": "graduationName",
         "Passport Number": "passportNumber",
         "User Photo": "photo",
-        "Emirates ID Photo": "emiratesIdPhoto",
-        "IBAN Photo": "ibanBankPhoto",
-        "Graduation Image": "graduationImage",
-        "Passport Photo": "passportPhoto"
+        "Emirates ID document": "emiratesIdPhoto",
+        "IBAN document": "ibanBankPhoto",
+        "Graduation document": "graduationImage",
+        "Passport document": "passportPhoto",
+        "Cv document": "cvImage"
     };
 
     const handleCheckChange = (event) => {

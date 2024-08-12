@@ -42,7 +42,9 @@ export const emiratesOptions = [
     {id: "SHARJAH", value: "Sharjah"},
     {id: "AJMAN", value: "Ajman"},
     {id: "UMM_AL_QUWAIN", value: "Umm Al Quwain"},
-    {id: "RAK", value: "Ras Al Khaimah"},
-    {id: "FUJAIRAH", value: "Fujairah"}
+    {id: "RAS_AL_KHAIMAH", value: "Ras Al Khaimah"},
+    {id: "FUJAIRAH", value: "Fujairah"},
+    {id: "AIN", value: "Al ain"}
 ]
+
 export const url = process.env.NEXT_PUBLIC_URL;

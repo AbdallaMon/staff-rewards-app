@@ -99,28 +99,53 @@ const UncompletedForm = () => {
     }, [token]);
     const handleFileChange = (e, field) => {
         const file = e.target.files[0];
-        if (file && (file.type.startsWith('image/') || file.type === 'application/pdf')) {
-            setFileInputs({
-                ...fileInputs,
-                [field]: file
-            });
-            setValue(field, file);
-            setValidationErrors((prev) => ({
-                ...prev,
-                [field]: null
-            }));
+
+        // If the field is 'photo', only accept image files
+        if (field === 'photo') {
+            if (file && file.type.startsWith('image/')) {
+                setFileInputs({
+                    ...fileInputs,
+                    [field]: file
+                });
+                setValue(field, file);
+                setValidationErrors((prev) => ({
+                    ...prev,
+                    [field]: null
+                }));
+            } else {
+                setFileInputs({
+                    ...fileInputs,
+                    [field]: null
+                });
+                setValidationErrors((prev) => ({
+                    ...prev,
+                    [field]: 'Only image files are allowed for the photo field'
+                }));
+            }
         } else {
-            setFileInputs({
-                ...fileInputs,
-                [field]: null
-            });
-            setValidationErrors((prev) => ({
-                ...prev,
-                [field]: 'Only image or PDF files are allowed'
-            }));
+            // For other fields, accept both image and PDF files
+            if (file && (file.type.startsWith('image/') || file.type === 'application/pdf')) {
+                setFileInputs({
+                    ...fileInputs,
+                    [field]: file
+                });
+                setValue(field, file);
+                setValidationErrors((prev) => ({
+                    ...prev,
+                    [field]: null
+                }));
+            } else {
+                setFileInputs({
+                    ...fileInputs,
+                    [field]: null
+                });
+                setValidationErrors((prev) => ({
+                    ...prev,
+                    [field]: 'Only image or PDF files are allowed'
+                }));
+            }
         }
     };
-
     const onSubmit = async (data) => {
         let hasError = false;
         const errors = {};
@@ -155,6 +180,19 @@ const UncompletedForm = () => {
         setModalImage(file);
         setModalOpen(true);
     };
+
+    function replaceImageOrPhoto(field) {
+        // Replace "image" or "photo" with "document" in the key
+        let newKey = field.label
+
+        // Update the label
+        let newLabel = `Upload ${newKey.charAt(0).toUpperCase() + newKey.slice(1).replace(/([A-Z])/g, ' $1').trim()}`;
+
+        return {
+            newKey: newKey,
+            newLabel: newLabel
+        };
+    }
 
     const renderInputField = (field, comment) => {
         switch (field.id) {
@@ -238,6 +276,7 @@ const UncompletedForm = () => {
             case 'graduationImage':
             case 'passportPhoto':
             case 'photo':
+            case 'cvImage':
                 return (
                       <FormControl fullWidth margin="normal" key={field.id}>
                           <label htmlFor={field.id}>
@@ -249,7 +288,7 @@ const UncompletedForm = () => {
                               />
                               <Button variant="outlined" component="span" color="primary" fullWidth
                                       sx={{textTransform: 'capitalize', py: 1.5}}>
-                                  Upload {field.id.charAt(0).toUpperCase() + field.id.slice(1).replace(/([A-Z])/g, ' $1').trim()}
+                                  {replaceImageOrPhoto(field).newLabel}
                               </Button>
                           </label>
                           {validationErrors[field.id] &&
@@ -344,11 +383,11 @@ const UncompletedForm = () => {
                       <Controller
                             name={field.id}
                             control={control}
-                            rules={{required: `${field.id.replace(/([A-Z])/g, ' $1').trim()} is required`}}
+                            rules={{required: `${field.label} is required`}}
                             render={({field: controllerField}) => (
                                   <TextField
                                         {...controllerField}
-                                        label={controllerField.name.charAt(0).toUpperCase() + controllerField.name.slice(1).replace(/([A-Z])/g, ' $1').trim()}
+                                        label={field.label}
                                         fullWidth
                                         margin="normal"
                                         error={!!errors[controllerField.name]}

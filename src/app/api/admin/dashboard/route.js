@@ -11,11 +11,12 @@ export async function GET(request, response) {
     const totalRewards = searchParams.get('totalRewards') ? true : false;
     const paidRewards = searchParams.get('paidRewards') ? true : false;
     const unpaidRewards = searchParams.get('unpaidRewards') ? true : false;
-
+    const examsSummary = searchParams.get('examsSummary') ? true : false;
+    const userStatus = searchParams.get('userStatus') ? true : false
     const currentYear = new Date().getFullYear();
     const startOfYear = new Date(currentYear, 0, 1);
     const endOfYear = new Date(currentYear, 11, 31);
-
+    const today = new Date();
     try {
         const responseData = {};
 
@@ -27,7 +28,6 @@ export async function GET(request, response) {
             responseData.totalUsers = await prisma.user.count({
                 where: {
                     role: "EMPLOYEE",
-                    accountStatus: "APPROVED",
                     ...(centerId && {centerId})
                 }
             });
@@ -120,7 +120,57 @@ export async function GET(request, response) {
                 }
             });
         }
+        if (examsSummary) {
+            const comingExams = await prisma.calendar.count({
+                where: {
+                    date: {
+                        gte: today,
+                        lte: endOfYear,
+                    },
+                },
+            });
 
+            const oldExams = await prisma.calendar.count({
+                where: {
+                    date: {
+                        lte: today,
+                        gte: startOfYear,
+                    },
+                },
+            });
+
+            responseData.comingExams = comingExams;
+            responseData.oldExams = oldExams;
+        }
+
+        if (userStatus) {
+            const activeUsers = await prisma.user.count({
+                where: {
+                    emailConfirmed: true,
+                    role: "EMPLOYEE",
+
+                    accountStatus: "APPROVED",
+                    ...(centerId && {centerId}),
+                }
+            });
+            const uncompletedUsers = await prisma.user.count({
+                where: {
+                    accountStatus: "UNCOMPLETED", role: "EMPLOYEE",
+
+                    ...(centerId && {centerId}),
+                }
+            });
+            const pendingUsers = await prisma.user.count({
+                where: {
+                    accountStatus: "PENDING", role: "EMPLOYEE",
+
+                    ...(centerId && {centerId}),
+                }
+            });
+            responseData.activeUsers = activeUsers;
+            responseData.uncompletedUsers = uncompletedUsers;
+            responseData.pendingUsers = pendingUsers;
+        }
         return Response.json(responseData, {status: 200});
     } catch (error) {
         console.error(error);

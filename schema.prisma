@@ -29,6 +29,7 @@ model User {
   passportNumber       String?   @unique
   passportPhoto        String?
   bankApprovalAttachment String?
+  cvImage           String?
   photo                String?
   isActive             Boolean   @default(true)
   rating               Float?    @default(0)
@@ -193,4 +194,5 @@ enum Emirates {
   RAS_AL_KHAIMAH
   SHARJAH
   UMM_AL_QUWAIN
+  AIN
 }

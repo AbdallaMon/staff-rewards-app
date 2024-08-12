@@ -112,7 +112,7 @@ export default function UserBankApprovalReports() {
                               {item.bankApprovalAttachment?.length > 0 ?
                                     <a href={item.bankApprovalAttachment} target="_blank">
                                         <Button>
-                                            Download approval
+                                            Preview approval
                                         </Button>
                                     </a>
                                     : "No attachment uploaded"

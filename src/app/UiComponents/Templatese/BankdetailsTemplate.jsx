@@ -1,160 +1,91 @@
-import React, {useRef} from 'react';
+import React from 'react';
 import {
-    Box,
-    Typography,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableRow,
-    Paper,
+
     Button,
-    Divider,
-    Checkbox
+
 } from '@mui/material';
-import {styled} from '@mui/material/styles';
-import {useReactToPrint} from 'react-to-print';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
-const StyledContainer = styled(Box)`
-  padding: 20px;
-  background-color: #fff;
-  color: #000;
-  max-width: 800px;
-  margin: 20px auto;
-  border: 1px solid #ccc;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-  
-  @media print {
-    size: A4;
-    width: 210mm;
-    height: 297mm;
-    margin: 0;
-    padding: 10mm; /* Adjust as needed */
-    border: none;
-    box-shadow: none;
-  }
-`;
-
-const Header = styled(Box)`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const Title = styled(Typography)`
-  text-align: center;
-  margin: 20px 0;
-  font-size: 24px;
-  font-weight: bold;
-`;
-
-const SignatureTable = styled(Table)`
-  margin-top: 20px;
-  table-layout: fixed;
-`;
-
-const BankDetailsTemplate = React.forwardRef(({user}, ref) => (
-      <StyledContainer ref={ref}>
-          <Header>
-              <img src="/fullLogo.png" alt="Left Logo" style={{
-                  width: "100%"
-              }}/>
-
-          </Header>
-          <Title>EmSAT Staff Addition Form</Title>
-
-          <Typography variant="h6">Personal Information</Typography>
-          <TableContainer component={Paper}>
-              <Table>
-                  <TableBody>
-                      <TableRow>
-                          <TableCell style={{border: '1px solid #000'}}>Name:</TableCell>
-                          <TableCell style={{border: '1px solid #000'}}>{user.name}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                          <TableCell style={{border: '1px solid #000'}}>Contact Number (mobile):</TableCell>
-                          <TableCell style={{border: '1px solid #000'}}>{user.phone}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                          <TableCell style={{border: '1px solid #000'}}>Email:</TableCell>
-                          <TableCell style={{border: '1px solid #000'}}>{user.email}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                          <TableCell style={{border: '1px solid #000'}}>Emirate (Address Line):</TableCell>
-                          <TableCell style={{border: '1px solid #000'}}>.................................</TableCell>
-                      </TableRow>
-                  </TableBody>
-              </Table>
-          </TableContainer>
-
-          <Typography variant="h6" mt={2}>Banking Details</Typography>
-          <TableContainer component={Paper}>
-              <Table>
-                  <TableBody>
-                      <TableRow>
-                          <TableCell style={{border: '1px solid #000'}}>Emirates ID:</TableCell>
-                          <TableCell style={{border: '1px solid #000'}}>{user.emiratesId}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                          <TableCell style={{border: '1px solid #000'}}>Passport Number:</TableCell>
-                          <TableCell style={{border: '1px solid #000'}}>{user.passportNumber}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                          <TableCell style={{border: '1px solid #000'}}>Name as registered with the bank:</TableCell>
-                          <TableCell style={{border: '1px solid #000'}}>{user.bankUserName}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                          <TableCell style={{border: '1px solid #000'}}>IBAN:</TableCell>
-                          <TableCell style={{border: '1px solid #000'}}>{user.ibanBank}</TableCell>
-                      </TableRow>
-                  </TableBody>
-              </Table>
-          </TableContainer>
-
-          <Box mt={2} p={2} color="red">
-              <Typography>ID copy and screenshot of bank details (name, IBAN, etc.) must be attached along with this
-                  form.</Typography>
-              <Typography>*Name should be exactly as mentioned in the ID selected.</Typography>
-              <Typography>SIGNATURE:</Typography>
-          </Box>
-
-          <Typography variant="h6" mt={2}>FOR OFFICE USE ONLY</Typography>
-          <Divider/>
-          <Typography>System Update Information and Comments:</Typography>
-          <Box display="flex" justifyContent="space-between">
-              <Box display="flex" alignItems="center">
-                  <Checkbox/> Updated on System
-              </Box>
-              <Typography>Entered by: ...................................</Typography>
-          </Box>
-          <Box display="flex" justifyContent="space-between">
-              <Box display="flex" alignItems="center">
-                  <Checkbox/> Not Updated on System
-              </Box>
-              <Typography>Date: .......................................</Typography>
-          </Box>
-          <Box mt={2} border={1} p={3}>
-              <Typography>Comments:</Typography>
-          </Box>
-      </StyledContainer>
-));
-BankDetailsTemplate.displayName = "BankDetailsTemplate"
 
 const PrintBankDetailsButton = ({user}) => {
-    const componentRef = useRef();
-    const handlePrint = useReactToPrint({
-        content: () => componentRef.current,
-    });
+    const handleDownload = () => {
+        const doc = new jsPDF('p', 'pt', 'a4');
+
+        // Add title and images
+        doc.setFontSize(20);
+        doc.text("EmSAT Staff Addition Form", 40, 40);
+        doc.addImage('/fullLogo.png', 'PNG', 40, 60, 510, 60);  // Full width image
+
+        // Add personal details table
+        doc.autoTable({
+            startY: 140,
+            body: [
+                ['Name', user.name],
+                ['Contact Number (mobile)', user.phone],
+                ['Email', user.email],
+                ['Emirate (Address Line)', '.................................'],
+            ],
+            styles: {
+                fontSize: 12,
+                cellPadding: 8,
+            },
+        });
+
+        // Add banking details table
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 20,
+            body: [
+                ['Emirates ID', user.emiratesId],
+                ['Passport Number', user.passportNumber],
+                ['Bank name', user.bankName],
+                ['Name as registered with the bank', user.bankUserName],
+                ['IBAN', user.ibanBank],
+            ],
+            styles: {
+                fontSize: 12,
+                cellPadding: 8,
+            },
+        });
+
+        // Add notice and signature sections
+        doc.setTextColor(211, 47, 47);
+        doc.setFontSize(12);
+        doc.setLineHeightFactor(1.7);
+        doc.text('ID copy and screenshot of bank details (name, IBAN, etc.) must be attached along with this form.', 40, doc.lastAutoTable.finalY + 30);
+        doc.text('*Name should be exactly as mentioned in the ID selected.', 40, doc.lastAutoTable.finalY + 45);
+        doc.setTextColor(0, 0, 0);
+        doc.text('SIGNATURE:', 40, doc.lastAutoTable.finalY + 75); // Added margin-top
+
+        // FOR OFFICE USE ONLY section
+        doc.setFontSize(14);
+        doc.text('FOR OFFICE USE ONLY', 40, doc.lastAutoTable.finalY + 120);
+        doc.setFontSize(12);
+        doc.line(40, doc.lastAutoTable.finalY + 125, 550, doc.lastAutoTable.finalY + 125);
+        doc.text('System Update Information and Comments:', 40, doc.lastAutoTable.finalY + 150);
+
+        // Add checkbox and fields
+        doc.setFontSize(11);
+        doc.text('[ ] Updated on System', 40, doc.lastAutoTable.finalY + 180);
+        doc.text('Entered by: ...................................', 300, doc.lastAutoTable.finalY + 180);
+        doc.text('[ ] Not Updated on System', 40, doc.lastAutoTable.finalY + 210);
+        doc.text('Date: .......................................', 300, doc.lastAutoTable.finalY + 210);
+
+        // Comments section
+        doc.setFontSize(12);
+        doc.text('Comments:', 40, doc.lastAutoTable.finalY + 255);
+        doc.setLineWidth(1);
+        doc.line(40, doc.lastAutoTable.finalY + 260, 550, doc.lastAutoTable.finalY + 260);
+        doc.line(40, doc.lastAutoTable.finalY + 360, 550, doc.lastAutoTable.finalY + 360);
+
+        // Save the PDF
+        doc.save('bank-details-template.pdf');
+    };
 
     return (
-          <>
-              <Button onClick={handlePrint} variant="contained" color="primary">
-                  Download Bank Details Template
-              </Button>
-              <div style={{display: 'none'}}>
-                  <BankDetailsTemplate ref={componentRef} user={user}/>
-              </div>
-          </>
+          <Button onClick={handleDownload} variant="contained" color="primary">
+              Download Bank Details Template
+          </Button>
     );
 };
 

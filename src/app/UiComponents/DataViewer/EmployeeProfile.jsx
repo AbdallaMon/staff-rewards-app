@@ -23,7 +23,7 @@ import {
     List,
     ListItem,
     ListItemIcon,
-    ListItemText
+    ListItemText, Alert, Snackbar
 } from '@mui/material';
 import {styled} from '@mui/material/styles';
 import {useForm, Controller} from 'react-hook-form';
@@ -80,7 +80,8 @@ const ProfilePage = ({userId}) => {
     const {control, handleSubmit, watch, setValue, formState: {errors}} = useForm();
     const {setLoading: setToastLoading} = useToastContext();
     const [tabIndex, setTabIndex] = useState(0);
-
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
     useEffect(() => {
         const loadUserDetails = async () => {
             const data = await fetchUserDetails(userId);
@@ -129,19 +130,32 @@ const ProfilePage = ({userId}) => {
             handleCloseModal();
         }
     };
-
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
+    };
     const handleImageSubmit = async (data) => {
+        const file = data[currentImageField];
+
+        // Check if the current field is 'photo' and enforce image-only file type
+        if (currentImageField === 'photo' && file && !file.type.startsWith('image/')) {
+            setSnackbarMessage('Only image files are allowed for the photo field');
+            setSnackbarOpen(true);
+            return;
+        }
+
         const formData = new FormData();
-        formData.append(currentImageField, data[currentImageField]);
-        formData.append("deletedUrl", user[currentImageField])
+        formData.append(currentImageField, file);
+        formData.append("deletedUrl", user[currentImageField]);
+
         const res = await handleRequestSubmit(
-              formData, setToastLoading, `employee/private/${user.id}`, true, "Uploading...", null, "PUT");
+              formData, setToastLoading, `employee/private/${user.id}`, true, "Uploading...", null, "PUT"
+        );
+
         if (res.status === 200) {
-            setUser((prev) => ({...prev, ...res.data}))
+            setUser((prev) => ({...prev, ...res.data}));
             handleCloseImageModal();
         }
     };
-
 
     const toggleEditMode = () => {
         setEditMode(!editMode);
@@ -155,6 +169,16 @@ const ProfilePage = ({userId}) => {
               <Button onClick={toggleEditMode} variant="contained" color="primary" sx={{mb: 2}}>
                   {editMode ? "Exit Edit Mode" : "Enter Edit Mode"}
               </Button>
+              <Snackbar
+                    open={snackbarOpen}
+                    autoHideDuration={6000}
+                    onClose={handleSnackbarClose}
+                    anchorOrigin={{vertical: 'top', horizontal: 'center'}}
+              >
+                  <Alert onClose={handleSnackbarClose} severity="error" sx={{width: '100%'}}>
+                      {snackbarMessage}
+                  </Alert>
+              </Snackbar>
               <Box display={{md: 'flex'}} width="100%">
                   <Box width="25%" mr={2} sx={{
                       display: {md: "block", xs: "none"},
@@ -213,8 +237,7 @@ const ProfilePage = ({userId}) => {
                                   <DataBox>
                                       <Typography variant="body1" color="secondary">Email:</Typography>
                                       <Typography variant="body1">{user.email} {editMode && (
-                                            <IconButton
-                                                  onClick={() => handleEditClick('email')}><IoMdCreate/></IconButton>
+                                            <Typography variant="subtitle2">not editable</Typography>
                                       )}</Typography>
                                   </DataBox>
                                   <DataBox>
@@ -241,20 +264,19 @@ const ProfilePage = ({userId}) => {
                                   <DataBox>
                                       <Typography variant="body1" color="secondary">Emirates ID:</Typography>
                                       <Typography variant="body1">{user.emiratesId} {editMode && (
-                                            <IconButton
-                                                  onClick={() => handleEditClick('emiratesId')}><IoMdCreate/></IconButton>
+                                            <Typography variant="subtitle2">not editable</Typography>
+
                                       )}</Typography>
                                   </DataBox>
                                   <DataBox>
-                                      <Typography variant="body1" color="secondary">Emirates ID Photo:</Typography>
+                                      <Typography variant="body1" color="secondary">Emirates ID document:</Typography>
                                       {user.emiratesIdPhoto?.endsWith('.pdf') ? (
                                             <Box display="flex" alignItems="center" ml={1}>
                                                 <Link href={user.emiratesIdPhoto} target="_blank"
                                                       rel="noopener noreferrer"
                                                       sx={{ml: 1}}>View PDF</Link>
                                                 {editMode && (
-                                                      <IconButton
-                                                            onClick={() => handleImageEditClick('emiratesIdPhoto')}><IoMdCreate/></IconButton>
+                                                      <Typography variant="subtitle2">not editable</Typography>
                                                 )}
                                             </Box>
                                       ) : (
@@ -262,8 +284,7 @@ const ProfilePage = ({userId}) => {
                                                 <Avatar src={user.emiratesIdPhoto} alt="Emirates ID Photo"
                                                         sx={{width: 80, height: 80, mr: 1}}/>
                                                 {editMode && (
-                                                      <IconButton
-                                                            onClick={() => handleImageEditClick('emiratesIdPhoto')}><IoMdCreate/></IconButton>
+                                                      <Typography variant="subtitle2">not editable</Typography>
                                                 )}
                                                 <Tooltip title="View Full Image">
                                                     <IconButton
@@ -283,34 +304,33 @@ const ProfilePage = ({userId}) => {
                                   <DataBox>
                                       <Typography variant="body1" color="secondary">Bank Name:</Typography>
                                       <Typography variant="body1">{user.bankName} {editMode && (
-                                            <IconButton
-                                                  onClick={() => handleEditClick('bankName')}><IoMdCreate/></IconButton>
+                                            <Typography variant="subtitle2">not editable</Typography>
                                       )}</Typography>
                                   </DataBox>
                                   <DataBox>
                                       <Typography variant="body1" color="secondary">Bank User Name:</Typography>
                                       <Typography variant="body1">{user.bankUserName} {editMode && (
-                                            <IconButton
-                                                  onClick={() => handleEditClick('bankUserName')}><IoMdCreate/></IconButton>
+                                            <Typography variant="subtitle2">not editable</Typography>
                                       )}</Typography>
                                   </DataBox>
                                   <DataBox>
                                       <Typography variant="body1" color="secondary">IBAN:</Typography>
-                                      <Typography variant="body1">{user.ibanBank} {editMode && (
-                                            <IconButton
-                                                  onClick={() => handleEditClick('ibanBank')}><IoMdCreate/></IconButton>
-                                      )}</Typography>
+                                      <Typography
+                                            variant="body1">    {user.ibanBank.startsWith("AE") ? user.ibanBank : `AE${user.ibanBank}`}
+                                          {editMode && (
+                                                <Typography variant="subtitle2">not editable</Typography>
+                                          )}</Typography>
                                   </DataBox>
                                   <DataBox>
-                                      <Typography variant="body1" color="secondary">IBAN Bank Photo:</Typography>
+                                      <Typography variant="body1" color="secondary">IBAN Bank document:</Typography>
                                       {user.ibanBankPhoto?.endsWith('.pdf') ? (
                                             <Box display="flex" alignItems="center" ml={1}>
                                                 <Link href={user.ibanBankPhoto} target="_blank"
                                                       rel="noopener noreferrer"
                                                       sx={{ml: 1}}>View PDF</Link>
                                                 {editMode && (
-                                                      <IconButton
-                                                            onClick={() => handleImageEditClick('ibanBankPhoto')}><IoMdCreate/></IconButton>
+                                                      <Typography variant="subtitle2">not editable</Typography>
+
                                                 )}
                                             </Box>
                                       ) : (
@@ -318,8 +338,8 @@ const ProfilePage = ({userId}) => {
                                                 <Avatar src={user.ibanBankPhoto} alt="IBAN Bank Photo"
                                                         sx={{width: 80, height: 80, mr: 1}}/>
                                                 {editMode && (
-                                                      <IconButton
-                                                            onClick={() => handleImageEditClick('ibanBankPhoto')}><IoMdCreate/></IconButton>
+                                                      <Typography variant="subtitle2">not editable</Typography>
+
                                                 )}
                                                 <Tooltip title="View Full Image">
                                                     <IconButton
@@ -377,7 +397,7 @@ const ProfilePage = ({userId}) => {
                                       )}</Typography>
                                   </DataBox>
                                   <DataBox>
-                                      <Typography variant="body1" color="secondary">Passport Photo:</Typography>
+                                      <Typography variant="body1" color="secondary">Passport document:</Typography>
                                       {user.passportPhoto?.endsWith('.pdf') ? (
                                             <Box display="flex" alignItems="center" ml={1}>
                                                 <Link href={user.passportPhoto} target="_blank"
@@ -404,7 +424,7 @@ const ProfilePage = ({userId}) => {
                                       )}
                                   </DataBox>
                                   <DataBox>
-                                      <Typography variant="body1" color="secondary">Graduation Title:</Typography>
+                                      <Typography variant="body1" color="secondary">Education :</Typography>
                                       <Typography variant="body1">{user.graduationName} {editMode && (
                                             <IconButton
                                                   onClick={() => handleEditClick('graduationName')}><IoMdCreate/></IconButton>
@@ -412,7 +432,7 @@ const ProfilePage = ({userId}) => {
 
                                   </DataBox>
                                   <DataBox>
-                                      <Typography variant="body1" color="secondary">Graduation Image:</Typography>
+                                      <Typography variant="body1" color="secondary">Education document:</Typography>
                                       {user.graduationImage?.endsWith('.pdf') ? (
                                             <Box display="flex" alignItems="center" ml={1}>
                                                 <Link href={user.graduationImage} target="_blank"
@@ -438,6 +458,35 @@ const ProfilePage = ({userId}) => {
                                             </Box>
                                       )}
                                   </DataBox>
+
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">CV document:</Typography>
+                                      {user.cvImage?.endsWith('.pdf') ? (
+                                            <Box display="flex" alignItems="center" ml={1}>
+                                                <Link href={user.cvImage} target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      sx={{ml: 1}}>View PDF</Link>
+                                                {editMode && (
+                                                      <IconButton
+                                                            onClick={() => handleImageEditClick('cvImage')}><IoMdCreate/></IconButton>
+                                                )}
+                                            </Box>
+                                      ) : (
+                                            <Box display="flex" alignItems="center" ml={1}>
+                                                <Avatar src={user.cvImage} alt="Graduation Image"
+                                                        sx={{width: 80, height: 80, mr: 1}}/>
+                                                {editMode && (
+                                                      <IconButton
+                                                            onClick={() => handleImageEditClick('cvImage')}><IoMdCreate/></IconButton>
+                                                )}
+                                                <Tooltip title="View Full Image">
+                                                    <IconButton
+                                                          onClick={() => setFullImageModal(user.cvImage)}><IoMdEye/></IconButton>
+                                                </Tooltip>
+                                            </Box>
+                                      )}
+                                  </DataBox>
+
                               </ProfileSection>
                           </Box>
                       </TabPanel>
@@ -475,7 +524,7 @@ const ProfilePage = ({userId}) => {
                                                       label={`Edit ${currentField.charAt(0).toUpperCase() + currentField.slice(1)}`}
                                                       error={!!errors[currentField]}
                                                 >
-                                                    {currentField === 'zone' && ['ABU_DHABI', 'AJMAN', 'DUBAI', 'FUJAIRAH', 'RAS_AL_KHAIMAH', 'SHARJAH', 'UMM_AL_QUWAIN'].map(zone => (
+                                                    {currentField === 'zone' && ['ABU_DHABI', 'AJMAN', 'DUBAI', 'FUJAIRAH', 'RAS_AL_KHAIMAH', 'SHARJAH', 'UMM_AL_QUWAIN', "AIN"].map(zone => (
                                                           <MenuItem key={zone} value={zone}>{zone}</MenuItem>
                                                     ))}
                                                     {currentField === 'gender' && ['MALE', 'FEMALE'].map(gender => (
@@ -495,12 +544,14 @@ const ProfilePage = ({userId}) => {
                                                   margin="normal"
                                                   label={`Edit ${currentField.charAt(0).toUpperCase() + currentField.slice(1)}`}
                                                   error={!!errors[currentField]}
+                                                  type={currentField === 'phone' ? 'number' : 'text'}
+
                                                   helperText={errors[currentField] ? errors[currentField].message : ''}
                                                   InputProps={{
                                                       startAdornment: currentField === 'ibanBank' &&
                                                             <InputAdornment position="start">AE</InputAdornment>,
                                                   }}
-                                                  value={field.value}
+                                                  value={currentField === 'ibanBank' && field.value.startsWith('AE') ? field.value.substring(2) : field.value}
                                                   onChange={(e) => {
                                                       if (currentField === "ibanBank") {
                                                           if (e.target.value.length === 22) return;

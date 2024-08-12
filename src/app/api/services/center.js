@@ -513,3 +513,138 @@ export async function updateAttendanceRecords(dayAttendanceId, body) {
         return handlePrismaError(error);
     }
 }
+
+export async function deleteAttendanceRecord(dayAttendanceId) {
+    dayAttendanceId = +dayAttendanceId
+    try {
+        // Delete related DutyRewards
+        await prisma.dutyReward.deleteMany({
+            where: {
+                attendanceId: {
+                    in: (await prisma.attendance.findMany({
+                        where: {dayAttendanceId},
+                        select: {id: true}
+                    })).map(attendance => attendance.id)
+                }
+            }
+        });
+
+        // Delete related Attendance records
+        await prisma.attendance.deleteMany({
+            where: {
+                dayAttendanceId
+            }
+        });
+
+        // Delete DayAttendance record
+        await prisma.dayAttendance.delete({
+            where: {
+                id: +dayAttendanceId
+            }
+        });
+        return {
+            status: 200, message: "Attendance deleted successfullu"
+        }
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+export async function deleteAttendanceRecordWithLog(dayAttendanceId, loggerId) {
+    dayAttendanceId = +dayAttendanceId;
+    try {
+        // Get the details of the records to be deleted for logging
+        const existingDayAttendance = await prisma.dayAttendance.findUnique({
+            where: {id: dayAttendanceId},
+            include: {
+                attendances: {
+                    include: {
+                        dutyRewards: true,
+                        shift: true,
+                    },
+                },
+                // Include user details to get the user who had the records
+                user: true,
+            },
+        });
+
+        if (!existingDayAttendance) {
+            return {
+                status: 404,
+                message: "DayAttendance record not found.",
+            };
+        }
+
+        // Prepare log data
+        const logger = await prisma.user.findUnique({
+            where: {id: +loggerId},
+            select: {name: true, email: true},
+        });
+
+        if (!logger) {
+            return {
+                status: 400,
+                message: "Logger not found.",
+            };
+        }
+
+        const deletedAttendances = existingDayAttendance.attendances;
+        const deletedDutyRewards = deletedAttendances.flatMap(attendance => attendance.dutyRewards);
+
+        // Calculate total reward change
+        const totalRewardChange = deletedDutyRewards.reduce((sum, reward) => sum + reward.amount, 0);
+
+        // Prepare the log description
+        const logDescription = `
+            <div style="font-family: Arial, sans-serif; color: #333;">
+                <p>Attendance records deleted by <strong>${logger.name} (${logger.email})</strong></p>
+                <p><strong>Deleted for User:</strong> ${existingDayAttendance.user.name} (${existingDayAttendance.user.email})</p>
+                <div>
+                    <strong>Deleted Records:</strong>
+                    <ul>
+                        <li><strong>Shifts:</strong> ${deletedAttendances.map(att => `${att.shift.name}`).join(", ")}</li>
+                        <li><strong>Duty Rewards Total:</strong> ${totalRewardChange}</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+
+
+        // Delete related DutyRewards
+        await prisma.dutyReward.deleteMany({
+            where: {
+                attendanceId: {
+                    in: deletedAttendances.map(attendance => attendance.id),
+                },
+            },
+        });
+
+        // Delete related Attendance records
+        await prisma.attendance.deleteMany({
+            where: {
+                dayAttendanceId,
+            },
+        });
+
+        // Delete DayAttendance record
+        await prisma.dayAttendance.delete({
+            where: {
+                id: dayAttendanceId,
+            },
+        });
+        await prisma.log.create({
+            data: {
+                userId: +loggerId,
+                action: 'DELETE_ATTENDANCE',
+                description: logDescription,
+            },
+        });
+
+        return {
+            status: 200,
+            message: "Attendance deleted successfully",
+        };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}

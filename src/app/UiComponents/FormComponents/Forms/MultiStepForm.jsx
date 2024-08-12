@@ -14,12 +14,11 @@ import {
     InputLabel,
     FormControl,
     CircularProgress,
-    useMediaQuery,
     Grid, InputAdornment
 } from '@mui/material';
-import {useTheme} from '@mui/material/styles';
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
+import PasswordField from "@/app/UiComponents/FormComponents/MUIInputs/PasswordField";
 
 const fetchOptions = async (id) => {
     const response = await fetch(`/api/index?id=${id}`);
@@ -34,7 +33,8 @@ const zones = [
     'FUJAIRAH',
     'RAS_AL_KHAIMAH',
     'SHARJAH',
-    'UMM_AL_QUWAIN'
+    'UMM_AL_QUWAIN',
+    "AIN"
 ];
 
 const genders = ['MALE', 'FEMALE'];
@@ -46,7 +46,6 @@ const MultiStepForm = () => {
     const [centerOptions, setCenterOptions] = useState([]);
     const [loadingDuties, setLoadingDuties] = useState(true);
     const [loadingCenters, setLoadingCenters] = useState(true);
-    const theme = useTheme();
     const [isSubmitted, setIsSubmitted] = useState(false);
     const {setLoading} = useToastContext();
     const [submit, setSubmit] = useState(false);
@@ -76,10 +75,52 @@ const MultiStepForm = () => {
     ];
 
     const stepFieldGroups = [
-        ['name', 'emiratesId', 'email', 'zone', 'gender', 'graduationName', 'phone'],
+        ['name', 'emiratesId', 'email', 'password', 'confirmPassword', 'zone', 'gender', 'graduationName', 'phone'],
         ['dutyId', 'centerId'],
         ['bankName', 'bankUserName', 'ibanBank']
     ];
+
+    const passwordInputs = [
+        {
+            data: {
+                id: "password",
+                type: "password",
+                label: "Password",
+                name: "password",
+            },
+            pattern: {
+                required: {
+                    value: true,
+                    message: "Please enter your password",
+                },
+                pattern: {
+                    value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d!@#$%^&*()_+~`|}{[\]:;?><,./-=]{8,}$/,
+                    message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and be at least 8 characters long",
+                },
+            },
+        },
+        {
+            data: {
+                id: "confirmPassword",
+                type: "password",
+                label: "Confirm Password",
+                name: "confirmPassword",
+            },
+            pattern: {
+                required: {
+                    value: true,
+                    message: "Please confirm your password",
+                },
+                validate: {
+                    matchesPreviousPassword: (value) => {
+                        const password = document.getElementById("password").value;
+                        return password === value || "Passwords do not match";
+                    },
+                },
+            },
+        },
+    ];
+
 
     const isStepValid = async () => {
         const stepFields = stepFieldGroups[activeStep];
@@ -176,8 +217,9 @@ const MultiStepForm = () => {
                             Your form has been successfully submitted!
                         </Typography>
                         <Typography variant="body1" color="success.dark" textAlign="center" gutterBottom>
-                            A confirmation link has been sent to your email please follow the url to confirm your
-                            account
+                            A confirmation link has been sent to your email account to complete your registration.
+                            Please review your email, and make sure to check your junk or spam folder if you do not see
+                            it in your inbox.
                         </Typography>
                     </>
               ) : (
@@ -200,7 +242,7 @@ const MultiStepForm = () => {
                                             rules={{
                                                 required: 'Name is required',
                                                 pattern: {
-                                                    value: /^[a-zA-Z]+ [a-zA-Z]+ [a-zA-Z]+$/,
+                                                    value: /^([a-zA-Z]+ ){2,}[a-zA-Z]+$/,
                                                     message: 'Please enter at least three names'
                                                 }
                                             }}
@@ -285,6 +327,25 @@ const MultiStepForm = () => {
                                                   />
                                             )}
                                       />
+                                      <PasswordField
+                                            control={control}
+                                            name="password"
+                                            label="Password"
+                                            errors={errors}
+                                            validationRules={passwordInputs[0].pattern}
+                                      />
+
+                                      <PasswordField
+                                            control={control}
+                                            name="confirmPassword"
+                                            label="Confirm Password"
+                                            errors={errors}
+                                            validationRules={{
+                                                ...passwordInputs[1].pattern,
+                                                validate: (value) => value === watch('password') || "Passwords do not match",
+                                            }}
+                                      />
+
                                       <Controller
                                             name="zone"
                                             control={control}

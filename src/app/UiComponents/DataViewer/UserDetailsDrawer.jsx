@@ -214,8 +214,11 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData}) 
                                         <List>
                                             {renderDocument("Emirates ID", userData.emiratesIdPhoto)}
                                             {renderDocument("IBAN", userData.ibanBankPhoto)}
+
                                             {renderDocument("Education", userData.graduationImage)}
                                             {renderDocument("Passport ", userData.passportPhoto)}
+                                            {renderDocument("CV ", userData.cvImage)}
+
                                         </List>
                                     </Grid>
                                 </Grid>

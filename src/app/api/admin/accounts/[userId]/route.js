@@ -1,7 +1,16 @@
 import {
+    createNewPasswordForAdmin,
     deleteAdminAccount,
     editAdminAccount,
 } from "@/app/api/services/admin";
+
+export async function POST(request, response) {
+    const {userId} = response.params;
+    const body = await request.json();
+    const data = await createNewPasswordForAdmin(+userId, body);
+    return Response.json(data, {status: 200});
+
+}
 
 export async function PUT(request, response) {
     const {userId} = response.params;

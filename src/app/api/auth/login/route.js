@@ -50,6 +50,13 @@ export async function POST(request) {
 
             });
         }
+        if (!user.password) {
+            return Response.json({
+                message: "No password found in the database please click forget password and add a new password",
+                auth: false, status: 500,
+
+            });
+        }
         const validPassword = await bcrypt.compare(body.password, user.password);
 
         if (!validPassword) {

@@ -1,199 +1,99 @@
-import React, {forwardRef, useRef} from 'react';
+import React from 'react';
 import {
-    Container,
-    Box,
-    Typography,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
     Button,
-    Checkbox
 } from '@mui/material';
-import {styled} from '@mui/material/styles';
-import {useReactToPrint} from 'react-to-print';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
-const StyledContainer = styled(Container)`
-  padding: 20px;
-  background-color: #fff;
-  color: #000;
-  max-width: 800px;
-  margin: 20px auto;
-  border: 1px solid #ccc;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-`;
+const PrintButton = ({user, dayAttendance, shifts}) => {
+    const handleDownload = () => {
+        const doc = new jsPDF('p', 'pt', 'a4');
 
-const Header = styled(Box)`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
+        // Add title and images
+        doc.setFontSize(16);
+        doc.text("EmSAT/PLD Exam Claim Form", 40, 40);
+        doc.addImage('/certLogo.png', 'PNG', 40, 60, 150, 40); // Increased width for left logo
+        doc.addImage('/examLogo.png', 'PNG', 450, 60, 100, 40);
 
-const Title = styled(Typography)`
-  text-align: center;
-  margin: 20px 0;
-  font-size: 24px;
-  font-weight: bold;
-`;
+        // Add personal details table without header
+        doc.autoTable({
+            startY: 110,
+            body: [
+                ['Full Name', user.name || "No name found"],
+                ['Duty', user.duty?.name || "No duty found"],
+                ['Test Date', new Date(dayAttendance.date).toLocaleDateString()]
+            ],
+            theme: 'grid', // No borders
+            styles: {cellPadding: 8}, // Add padding around text in the table cells
+            margin: {left: 40, top: 10}
+        });
 
-const SignatureTable = styled(Table)`
-  margin-top: 20px;
-  table-layout: fixed;
-`;
+        // Calculate total rewards
+        const totalRewards = dayAttendance.attendances.reduce(
+              (acc, attendance) => acc + attendance.dutyRewards.reduce((acc, reward) => acc + reward.amount, 0),
+              0
+        );
 
-const AttendanceTemplate = forwardRef(({user, dayAttendance, duties, shifts}, ref) => (
-      <StyledContainer ref={ref}>
-          <Header>
-              <img src="/certLogo.png" alt="CERT Logo" width={100}/>
-              <img src="/examLogo.png" alt="Exam Logo" width={100}/>
-          </Header>
-          <Title>EmSAT/PLD Exam Claim Form</Title>
-          <Box display="flex" justifyContent="space-between" mt={1}>
+        // Add attended shifts table with total rewards in the footer
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 15,
+            head: [['Shift', 'Duration (hours)', 'Reward']],
+            body: dayAttendance.attendances.map(attendance => [
+                attendance.shift.name,
+                attendance.shift.duration,
+                attendance.dutyRewards.reduce((acc, reward) => acc + reward.amount, 0)
+            ]),
+            foot: [[{content: 'Total Rewards', colSpan: 2, styles: {halign: 'right'}}, totalRewards]],
+            margin: {top: 5},
+            theme: 'grid',
+            styles: {cellPadding: 8},  // Add padding around text in the table cells
+        });
 
-              <Box>
-                  <Typography>FullName: {user.name || "No name found"}</Typography>
-                  <Typography>Duty: {user.duty?.name || "No duty found"}</Typography>
-              </Box>
+        // Add all shifts table with padding
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 17,
+            head: [['Shift', 'Timing (hours)']],
+            body: shifts.map(shift => [
+                shift.name,
+                shift.duration
+            ]),
+            margin: {top: 5},
+            theme: 'grid',
+            styles: {cellPadding: 8},  // Add padding around text in the table cells
+        });
 
-              <Box>
-                  <Typography>Test date: {new Date(dayAttendance.date).toLocaleDateString()}</Typography>
-              </Box>
-          </Box>
+        // Add signature and confirmation section
+        doc.setFontSize(10); // Reduced font size for signature section
+        doc.text("I confirm that the information provided above is accurate.", 40, doc.lastAutoTable.finalY + 30);
+        doc.text("Employee Signature:", 40, doc.lastAutoTable.finalY + 60);
+        doc.text("Site Supervisor Name:", 300, doc.lastAutoTable.finalY + 60);
 
-          <Box display="flex" mt={2} gap={2}>
-              <Box flexGrow={1} display="flex" flexDirection="column" gap={2}>
-                  <TableContainer component={Paper}>
-                      <Table>
-                          <TableHead>
-                              <TableRow>
-                                  <TableCell
-                                        style={{backgroundColor: '#f0f0f0', border: '1px solid #ccc'}}>Shift</TableCell>
-                                  <TableCell style={{backgroundColor: '#f0f0f0', border: '1px solid #ccc'}}>Duration
-                                      (hours)</TableCell>
-                                  <TableCell style={{
-                                      backgroundColor: '#f0f0f0',
-                                      border: '1px solid #ccc'
-                                  }}>Reward</TableCell>
-                              </TableRow>
-                          </TableHead>
-                          <TableBody>
-                              {dayAttendance.attendances.map((attendance, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell
-                                              style={{border: '1px solid #ccc'}}>{attendance.shift.name}</TableCell>
-                                        <TableCell
-                                              style={{border: '1px solid #ccc'}}>{attendance.shift.duration}</TableCell>
-                                        <TableCell
-                                              style={{border: '1px solid #ccc'}}>{attendance.dutyRewards.reduce((acc, reward) => acc + reward.amount, 0)}</TableCell>
-                                    </TableRow>
-                              ))}
-                          </TableBody>
-                      </Table>
-                  </TableContainer>
-              </Box>
-              <Box flexGrow={0.4}>
-                  <TableContainer component={Paper}>
-                      <Table>
-                          <TableHead>
-                              <TableRow>
-                                  <TableCell
-                                        style={{backgroundColor: '#f0f0f0', border: '1px solid #ccc'}}>Shift</TableCell>
-                                  <TableCell style={{backgroundColor: '#f0f0f0', border: '1px solid #ccc'}}>Timing
-                                      (hours)</TableCell>
-                              </TableRow>
-                          </TableHead>
-                          <TableBody>
-                              {shifts.map((shift, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell style={{border: '1px solid #ccc'}}>{shift.name}</TableCell>
-                                        <TableCell style={{border: '1px solid #ccc'}}>{shift.duration}</TableCell>
-                                    </TableRow>
-                              ))}
-                          </TableBody>
-                      </Table>
-                  </TableContainer>
-              </Box>
-          </Box>
+        // Add divider
+        doc.setLineWidth(2);
+        doc.line(40, doc.lastAutoTable.finalY + 110, 550, doc.lastAutoTable.finalY + 110);
 
-          <Box mt={3}>
-              <label>
-                  <Checkbox/> I confirm that the information provided above is accurate. I understand
-                  that failing to do will result in delaying/holding the payment.
-              </label>
-          </Box>
+        // Add footer section for CERT use
+        doc.text("For CERT use only", 40, doc.lastAutoTable.finalY + 135);
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 145,
+            head: [['Centre Manager', 'Signature', 'Date']],
+            body: [
+                ['Director', '', ''],
+                ['Signature', '', '']
+            ],
+            margin: {top: 2},
+            theme: 'grid',
+            styles: {cellPadding: 8},  // Add padding around text in the table cells
+        });
 
-          <SignatureTable>
-              <TableBody>
-                  <TableRow>
-                      <TableCell style={{border: '1px solid #ccc'}}>
-                          <Typography>Employee Signature:</Typography>
-                          <Box mt={2} borderBottom="1px solid #000"></Box>
-                      </TableCell>
-                      <TableCell colSpan={2} style={{border: '1px solid #ccc'}}>
-                          <Typography>Site Supervisor Name:</Typography>
-                          <Box mt={2} borderBottom="1px solid #000"></Box>
-                          <Typography mt={2}>Site Supervisor Signature:</Typography>
-                          <Box mt={2} borderBottom="1px solid #000"></Box>
-                      </TableCell>
-                      <TableCell style={{border: '1px solid #ccc'}}>
-                          <Typography>Date:</Typography>
-                          <Box mt={2} borderBottom="1px solid #000"></Box>
-                      </TableCell>
-                  </TableRow>
-              </TableBody>
-          </SignatureTable>
-
-          <Box mt={3}>
-              <Typography variant="h6">For CERT use only</Typography>
-              <TableContainer component={Paper}>
-                  <Table>
-                      <TableHead>
-                          <TableRow>
-                              <TableCell style={{backgroundColor: '#f0f0f0', border: '1px solid #ccc'}}>Centre
-                                  Manager</TableCell>
-                              <TableCell
-                                    style={{backgroundColor: '#f0f0f0', border: '1px solid #ccc'}}>Signature</TableCell>
-                              <TableCell style={{backgroundColor: '#f0f0f0', border: '1px solid #ccc'}}>Date</TableCell>
-                          </TableRow>
-                      </TableHead>
-                      <TableBody>
-                          <TableRow>
-                              <TableCell style={{border: '1px solid #ccc'}}>Director</TableCell>
-                              <TableCell style={{border: '1px solid #ccc'}}></TableCell>
-                              <TableCell style={{border: '1px solid #ccc'}}></TableCell>
-                          </TableRow>
-                          <TableRow>
-                              <TableCell style={{border: '1px solid #ccc'}}>Signature</TableCell>
-                              <TableCell style={{border: '1px solid #ccc'}}></TableCell>
-                              <TableCell style={{border: '1px solid #ccc'}}></TableCell>
-                          </TableRow>
-                      </TableBody>
-                  </Table>
-              </TableContainer>
-          </Box>
-      </StyledContainer>
-));
-AttendanceTemplate.displayName = "AttendanceTemplate";
-
-const PrintButton = ({user, dayAttendance, duties, shifts}) => {
-    const componentRef = useRef();
-    const handlePrint = useReactToPrint({
-        content: () => componentRef.current,
-    });
+        // Save the PDF
+        doc.save('attendance-template.pdf');
+    };
 
     return (
-          <>
-              <Button onClick={handlePrint} variant="contained" color="primary">
-                  Print Attendance Template
-              </Button>
-              <div style={{display: 'none'}}>
-                  <AttendanceTemplate ref={componentRef} user={user} dayAttendance={dayAttendance} duties={duties}
-                                      shifts={shifts}/>
-              </div>
-          </>
+          <Button onClick={handleDownload} variant="contained" color="primary">
+              Download Attendance Template
+          </Button>
     );
 };
 

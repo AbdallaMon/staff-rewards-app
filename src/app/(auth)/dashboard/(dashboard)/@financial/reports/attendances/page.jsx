@@ -123,7 +123,7 @@ export default function CalendarPage() {
                 fontWeight: 'bold',
                 align: 'center',
                 alignVertical: 'center',
-                width: 30,
+                width: 32,
                 height: 25,
                 borderColor: '#000000',
                 borderStyle: 'thin'
@@ -135,7 +135,7 @@ export default function CalendarPage() {
                 fontWeight: 'bold',
                 align: 'center',
                 alignVertical: 'center',
-                width: 20,
+                width: 22,
                 height: 25,
                 borderColor: '#000000',
                 borderStyle: 'thin'
@@ -147,7 +147,7 @@ export default function CalendarPage() {
                 fontWeight: 'bold',
                 align: 'center',
                 alignVertical: 'center',
-                width: 15,
+                width: 32,
                 height: 25,
                 borderColor: '#000000',
                 borderStyle: 'thin'
@@ -243,7 +243,7 @@ export default function CalendarPage() {
                 fontWeight: 'bold',
                 align: 'center',
                 alignVertical: 'center',
-                width: 30,
+                width: 32,
                 height: 25,
                 borderColor: '#000000',
                 borderStyle: 'thin'
@@ -255,7 +255,7 @@ export default function CalendarPage() {
                 fontWeight: 'bold',
                 align: 'center',
                 alignVertical: 'center',
-                width: 30,
+                width: 35,
                 height: 25,
                 borderColor: '#000000',
                 borderStyle: 'thin'
@@ -291,7 +291,7 @@ export default function CalendarPage() {
                 fontWeight: 'bold',
                 align: 'center',
                 alignVertical: 'center',
-                width: 30,
+                width: 32,
                 height: 25,
                 borderColor: '#000000',
                 borderStyle: 'thin'
@@ -303,7 +303,7 @@ export default function CalendarPage() {
                 fontWeight: 'bold',
                 align: 'center',
                 alignVertical: 'center',
-                width: 30,
+                width: 32,
                 height: 25,
                 borderColor: '#000000',
                 borderStyle: 'thin'

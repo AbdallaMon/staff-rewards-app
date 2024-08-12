@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Fade, Modal, Button, Typography} from "@mui/material";
+import {Box, Fade, Modal, Button, Typography} from "@mui/material";
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 import {simpleModalStyle} from "@/app/constants";
@@ -17,7 +17,6 @@ export default function DeleteModal({
 
     const handleDeleteOrArchive = async () => {
         const url = archive ? `${href}/${item.id}` : `${href}/${item.id}`;
-        console.log(url,"url")
         const method = archive ? "PATCH" : "DELETE";
         const message = archive ? "Archiving..." : "Deleting...";
 
@@ -40,15 +39,16 @@ export default function DeleteModal({
                     closeAfterTransition
               >
                   <Fade in={open}>
-                      <Box sx={{ ...simpleModalStyle }}>
+                      <Box sx={{...simpleModalStyle}}>
                           <Typography variant="h6" component="h2">
                               {archive ? "Are you sure you want to archive this item?" : "Are you sure you want to delete this item?"}
                           </Typography>
-                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                              <Button variant="contained" color={archive ? "warning" : "secondary"} onClick={handleDeleteOrArchive}>
+                          <Box sx={{display: 'flex', justifyContent: 'flex-end', marginTop: '16px'}}>
+                              <Button variant="contained" color={archive ? "warning" : "secondary"}
+                                      onClick={handleDeleteOrArchive}>
                                   {archive ? "Archive" : "Delete"}
                               </Button>
-                              <Button variant="contained" onClick={handleClose} sx={{ marginLeft: '8px' }}>
+                              <Button variant="contained" onClick={handleClose} sx={{marginLeft: '8px'}}>
                                   Cancel
                               </Button>
                           </Box>

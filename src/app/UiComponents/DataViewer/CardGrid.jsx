@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
     Box,
     Button,
@@ -21,6 +21,7 @@ import EditModal from "@/app/UiComponents/Models/EditModal";
 import DeleteModal from "@/app/UiComponents/Models/DeleteModal";
 import dayjs from 'dayjs';
 import CalendarComponent from "@/app/UiComponents/DataViewer/CalenderComponent";
+import {isTodayOrYesterday} from "@/helpers/functions/utlity";
 
 export default function AdminTable({
                                        data,
@@ -47,6 +48,7 @@ export default function AdminTable({
                                        setFilters,
                                        labelKey,
                                        editButtonText = "Edit" // Default value is "Edit"
+                                       , checkDates
                                    }) {
     const ExtraComponent = extraComponent;
     const [editOpen, setEditOpen] = useState(false);
@@ -107,7 +109,7 @@ export default function AdminTable({
     };
 
     return (
-          <Box sx={{ padding: '16px' }}>
+          <Box sx={{padding: '16px'}}>
               {isCalendar ? (
                     <CalendarComponent
                           data={data}
@@ -130,14 +132,21 @@ export default function AdminTable({
                                 <TableHead>
                                     <TableRow>
                                         {columns.map((column) => (
-                                              <TableCell key={column.name} sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
+                                              <TableCell key={column.name}
+                                                         sx={{fontWeight: 'bold', backgroundColor: '#f0f0f0'}}>
                                                   {column.label}
                                               </TableCell>
                                         ))}
-                                        {withEdit && <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>{editButtonText}</TableCell>}
-                                        {withDelete && <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Delete</TableCell>}
-                                        {withArchive && <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Archive</TableCell>}
-                                        {ExtraComponent && <TableCell sx={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>Extra</TableCell>}
+                                        {withEdit && <TableCell sx={{
+                                            fontWeight: 'bold',
+                                            backgroundColor: '#f0f0f0'
+                                        }}>{editButtonText}</TableCell>}
+                                        {withDelete && <TableCell
+                                              sx={{fontWeight: 'bold', backgroundColor: '#f0f0f0'}}>Delete</TableCell>}
+                                        {withArchive && <TableCell
+                                              sx={{fontWeight: 'bold', backgroundColor: '#f0f0f0'}}>Archive</TableCell>}
+                                        {ExtraComponent && <TableCell
+                                              sx={{fontWeight: 'bold', backgroundColor: '#f0f0f0'}}>Extra</TableCell>}
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
@@ -154,23 +163,45 @@ export default function AdminTable({
                                                               variant="contained"
                                                               color="primary"
                                                               onClick={() => handleEditOpen(item)}
-                                                              sx={{ textTransform: 'none' }}
+                                                              sx={{textTransform: 'none'}}
                                                         >
                                                             {editButtonText}
                                                         </Button>
                                                     </TableCell>
                                               )}
                                               {withDelete && (
-                                                    <TableCell>
-                                                        <Button
-                                                              variant="contained"
-                                                              color="secondary"
-                                                              onClick={() => handleDeleteOpen(item)}
-                                                              sx={{ textTransform: 'none' }}
-                                                        >
-                                                            Delete
-                                                        </Button>
-                                                    </TableCell>
+                                                    <>
+                                                        {checkDates ?
+
+                                                              <TableCell>
+                                                                  {isTodayOrYesterday(item.date) ? (
+                                                                        <Button
+                                                                              variant="contained"
+                                                                              color="secondary"
+                                                                              onClick={() => handleDeleteOpen(item)}
+                                                                              sx={{textTransform: 'none'}}
+                                                                        >
+                                                                            Delete
+                                                                        </Button>
+                                                                  ) : (
+                                                                        <span>
+                                                                                You can&apos;t delete this.
+                                                                             </span>
+                                                                  )}
+                                                              </TableCell>
+                                                              :
+                                                              <TableCell>
+                                                                  <Button
+                                                                        variant="contained"
+                                                                        color="secondary"
+                                                                        onClick={() => handleDeleteOpen(item)}
+                                                                        sx={{textTransform: 'none'}}
+                                                                  >
+                                                                      Delete
+                                                                  </Button>
+                                                              </TableCell>
+                                                        }
+                                                    </>
                                               )}
                                               {withArchive && (
                                                     <TableCell>
@@ -178,7 +209,7 @@ export default function AdminTable({
                                                               variant="contained"
                                                               color="warning"
                                                               onClick={() => handleArchiveOpen(item)}
-                                                              sx={{ textTransform: 'none' }}
+                                                              sx={{textTransform: 'none'}}
                                                         >
                                                             Archive
                                                         </Button>
@@ -211,15 +242,15 @@ export default function AdminTable({
                                   onChange={handlePageChange}
                                   color="primary"
                             />
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Typography variant="body2" sx={{ marginRight: '8px' }}>
+                            <Box sx={{display: 'flex', alignItems: 'center'}}>
+                                <Typography variant="body2" sx={{marginRight: '8px'}}>
                                     Number of items per page:
                                 </Typography>
                                 <FormControl variant="outlined" size="small">
                                     <Select
                                           value={limit}
                                           onChange={handleLimitChange}
-                                          sx={{ backgroundColor: 'white' }}
+                                          sx={{backgroundColor: 'white'}}
                                     >
                                         {[1, 20, 50, 100].map((size) => (
                                               <MenuItem key={size} value={size}>
@@ -265,8 +296,8 @@ export default function AdminTable({
                           archive={true}
                     />
               )}
-              <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loading}>
-                  <CircularProgress color="inherit" />
+              <Backdrop sx={{color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1}} open={loading}>
+                  <CircularProgress color="inherit"/>
               </Backdrop>
           </Box>
     );

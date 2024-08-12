@@ -4,6 +4,7 @@ import {sendEmail} from "@/app/api/utlis/sendMail";
 import {createToken} from "@/app/api/utlis/tokens";
 import {Prisma} from "@prisma/client";
 import {handlePrismaError} from "@/app/api/utlis/prismaError";
+import bcrypt from "bcrypt";
 
 export async function createEmployeeRequest(data) {
     try {
@@ -12,6 +13,12 @@ export async function createEmployeeRequest(data) {
         data.emailConfirmed = false;
         data.accountStatus = "PENDING"
         data.role = "EMPLOYEE"
+        if (data.password) {
+            const hashedPassword = bcrypt.hashSync(data.password, 8);
+            delete data.confirmPassword;
+            data.password = hashedPassword
+        }
+
         if (data.ibanBank) {
             data.ibanBank = "AE" + data.ibanBank;
         }
@@ -30,7 +37,10 @@ export async function createEmployeeRequest(data) {
         `;
         await sendEmail(user.email, 'Confirm your account', emailContent);
 
-        return {status: 200, message: 'A confirmation link sent to your account please confirm it'};
+        return {
+            status: 200,
+            message: 'A confirmation link has been sent to your email account to complete your registration. Please review your email, and make sure to check your junk or spam folder if you do not see it in your inbox.'
+        };
     } catch (e) {
         if (e instanceof Prisma.PrismaClientKnownRequestError) {
 
@@ -48,6 +58,9 @@ export async function completeRegisterAndConfirmUser(data, userId) {
         data.accountStatus = "PENDING"
         if (data.centerId) {
             data.centerId = +data.centerId;
+        }
+        if (data.ibanBank) {
+            data.ibanBank = "AE" + data.ibanBank
         }
         if (data.dutyId) {
             data.dutyId = +data.dutyId;

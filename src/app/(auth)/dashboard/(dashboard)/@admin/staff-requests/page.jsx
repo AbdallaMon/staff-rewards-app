@@ -10,7 +10,18 @@ import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
 import {useRouter, useSearchParams} from "next/navigation";
 
 export default function EmployeesRequest() {
-    const { data, loading, setData, page, setPage, limit, setLimit, total, setTotal ,setFilters} = useDataFetcher("admin/employees/requests", false);
+    const {
+        data,
+        loading,
+        setData,
+        page,
+        setPage,
+        limit,
+        setLimit,
+        total,
+        setTotal,
+        setFilters
+    } = useDataFetcher("admin/employees/requests", false);
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [centers, setCenters] = useState([]);
@@ -18,16 +29,16 @@ export default function EmployeesRequest() {
     const selectedCenter = searchParams.get('centerId');
     const router = useRouter();
     const columns = [
-        { name: "name", label: "Name" },
-        { name: "email", label: "Email" },
-        { name: "center.name", label: "Center" },
-        { name: "emiratesId", label: "Emirates ID" },
-        { name: "duty.name", label: "Duty" },
+        {name: "name", label: "Name"},
+        {name: "email", label: "Email"},
+        {name: "center.name", label: "Center"},
+        {name: "emiratesId", label: "Emirates ID"},
+        {name: "duty.name", label: "Duty"},
     ];
-    const [centerLoading,setCenterLoading] = useState(true);
-    useEffect(()=>{
-        setFilters({centerId:selectedCenter});
-    },[selectedCenter])
+    const [centerLoading, setCenterLoading] = useState(true);
+    useEffect(() => {
+        setFilters({centerId: selectedCenter});
+    }, [selectedCenter])
 
     async function fetchCenters() {
         setCenterLoading(true);
@@ -36,12 +47,14 @@ export default function EmployeesRequest() {
         setCenters(result.data || []);
         setCenterLoading(false);
     }
+
     async function handleFetchSelectItem() {
         await fetchCenters();
     }
-        useEffect(()=>{
-            handleFetchSelectItem();
-        },[])
+
+    useEffect(() => {
+        handleFetchSelectItem();
+    }, [])
     const handleRowClick = (userId) => {
         setSelectedUserId(userId);
         setDrawerOpen(true);
@@ -63,19 +76,29 @@ export default function EmployeesRequest() {
     };
     return (
           <div>
-              <div className={"grid grid-cols-2 gap-5  items-center justify-between"}>
+              <div className={"grid grid-cols-1 md:grid-cols-3 gap-5  items-center justify-between"}>
 
-              <FilterSelect options={centers} label={"Centers"} onChange={handleCenterChange} loading={centerLoading} value={selectedCenter} />
 
-              <Link href="/dashboard/staff-requests/rejected" sx={{
-                  mt: 2,
-                    display: "flex",
+                  <Link href="/dashboard/staff-requests/rejected" sx={{
+                      mt: 2,
+                      display: "flex",
 
-              }}>
-                    <Button  color="primary">
-                       See Rejected Requests
-                    </Button>
-                </Link>
+                  }}>
+                      <Button color="primary">
+                          See Rejected Requests
+                      </Button>
+                  </Link>
+                  <Link href="/dashboard/staff-requests/uncompleted" sx={{
+                      mt: 2,
+                      display: "flex",
+
+                  }}>
+                      <Button color="primary">
+                          See uncompleted Requests
+                      </Button>
+                  </Link>
+                  <FilterSelect options={centers} label={"Centers"} onChange={handleCenterChange}
+                                loading={centerLoading} value={selectedCenter}/>
               </div>
 
               <AdminTable
@@ -89,7 +112,7 @@ export default function EmployeesRequest() {
                     total={total}
                     setTotal={setTotal}
                     loading={loading}
-                    extraComponent={({ item }) => (
+                    extraComponent={({item}) => (
                           <Button onClick={() => handleRowClick(item.id)}>Edit Request</Button>
                     )}
               />

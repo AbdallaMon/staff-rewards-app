@@ -1,7 +1,7 @@
 import {
     createAdminAccount,
-    createFinancialAccount, fetchAdminsAccounts,
-    fetchFinancialAccounts
+    fetchAdminsAccounts,
+
 } from "@/app/api/services/admin";
 
 export async function GET(request) {

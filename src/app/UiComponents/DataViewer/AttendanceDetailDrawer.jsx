@@ -14,22 +14,26 @@ import {
     Divider,
     Modal,
     Container,
-    Link,
     Checkbox,
     Button
 } from '@mui/material';
 import {FaTimes, FaEdit} from 'react-icons/fa';
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
+import {isTodayOrYesterday} from "@/helpers/functions/utlity";
 
-const fetchAttendanceById = async (dayAttendanceId, center) => {
-    const response = await fetch(center ? `/api/center/attendance/${dayAttendanceId}` : `/api/finincal/attendance/${dayAttendanceId}`);
+const fetchAttendanceById = async (dayAttendanceId, center, admin) => {
+    let href = center ? `/api/center/attendance/${dayAttendanceId}` : `/api/finincal/attendance/${dayAttendanceId}`
+    if (admin) {
+        href = `/api/admin/attendance/${dayAttendanceId}`
+    }
+    const response = await fetch(href);
     const result = await response.json();
     return result;
 };
 
 
-const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData, finincalId}) => {
+const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData, finincalId, admin}) => {
     const [attendanceData, setAttendanceData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -44,7 +48,7 @@ const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData
         if (dayAttendanceId) {
             setLoading(true);
             setError(null);
-            fetchAttendanceById(dayAttendanceId, center).then(response => {
+            fetchAttendanceById(dayAttendanceId, center, admin).then(response => {
                 if (response.status === 200) {
                     const attendances = response.data.attendances.reduce((acc, attendance) => {
                         acc[attendance.shiftId] = true;
@@ -98,7 +102,10 @@ const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData
         }
     };
     const handleSubmit = async () => {
-        const href = center ? `center/attendance/${dayAttendanceId}` : `finincal/attendance/${dayAttendanceId}?userId=${finincalId}`;
+        let href = center ? `center/attendance/${dayAttendanceId}` : `finincal/attendance/${dayAttendanceId}?userId=${finincalId}`;
+        if (admin) {
+            href = `admin/attendance/${dayAttendanceId}`
+        }
         const dutyAmount = attendanceData.user.duty.amount;
         const otherData = {
             centerId: attendanceData.centerId,
@@ -136,7 +143,7 @@ const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData
         }
     };
 
-    const isToday = new Date().toDateString() === new Date(attendanceData?.date).toDateString();
+    const isToday = isTodayOrYesterday(attendanceData?.date)
     return (
           <>
               <Drawer anchor="bottom" open={open} onClose={onClose} sx={{}}>

@@ -107,7 +107,7 @@ export default function Attendance() {
         setSelectedAttendanceId(attendanceId);
         setDrawerOpen(true);
     };
-
+    console.log(user, "user")
     return (
           <div>
               <Typography variant="h3" color="primary" p={2}>
@@ -156,6 +156,8 @@ export default function Attendance() {
                     setTotal={setTotal}
                     setData={setData}
                     loading={loading}
+                    withDelete={true}
+                    deleteHref={`/finincal/attendance`}
                     extraComponent={({item}) => (
                           <Button onClick={() => handleRowClick(item.id)}>View Details</Button>
                     )}
