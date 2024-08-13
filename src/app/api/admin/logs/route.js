@@ -1,7 +1,6 @@
-import {PrismaClient} from '@prisma/client';
 import dayjs from 'dayjs';
+import prisma from "@/lib/pirsma/prisma";
 
-const prisma = new PrismaClient();
 
 export async function GET(request) {
     const searchParams = request.nextUrl.searchParams;

@@ -328,7 +328,7 @@ export async function deleteCenter(id) {
     }
 }
 
-export async function fetchEmployees(page = 1, limit = 10, employRequests = false, rejected = false, centerId, uncompleted) {
+export async function fetchEmployees(page = 1, limit = 10, employRequests = false, rejected = false, centerId, uncompleted, dutyId, userId) {
     const offset = (page - 1) * limit;
     let requestStatus = employRequests ? "PENDING" : "APPROVED";
     if (rejected) {
@@ -345,6 +345,12 @@ export async function fetchEmployees(page = 1, limit = 10, employRequests = fals
     if (!uncompleted) {
         where.emailConfirmed = true;
     }
+    if (dutyId) {
+        where.dutyId = +dutyId
+    }
+    if (userId) {
+        where.id = +userId;
+    }
     try {
         const [employees, total] = await prisma.$transaction([
             prisma.user.findMany({
@@ -358,6 +364,13 @@ export async function fetchEmployees(page = 1, limit = 10, employRequests = fals
                     email: true,
                     emiratesId: true,
                     rating: true,
+                    zone: true,
+                    phone: true,
+                    bankName: true,
+                    bankUserName: true,
+                    ibanBank: true,
+                    graduationName: true,
+                    passportNumber: true,
                     center: {
                         select: {
                             name: true,
@@ -411,6 +424,9 @@ export async function EditEmploy(employId, data) {
     if (data.dutyId) {
         data.dutyId = parseInt(data.dutyId, 10);
     }
+    if (data.rating) {
+        data.rating = parseInt(data.rating, 10);
+    }
     try {
         const updatedEmploy = await prisma.user.update({
             where: {id: parseInt(employId, 10)},
@@ -423,6 +439,13 @@ export async function EditEmploy(employId, data) {
                 email: true,
                 emiratesId: true,
                 rating: true,
+                zone: true,
+                phone: true,
+                bankName: true,
+                bankUserName: true,
+                ibanBank: true,
+                graduationName: true,
+                passportNumber: true,
                 center: {
                     select: {
                         name: true,

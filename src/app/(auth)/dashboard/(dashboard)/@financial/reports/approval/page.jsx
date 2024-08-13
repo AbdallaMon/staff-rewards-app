@@ -3,13 +3,16 @@
 import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
 import {useEffect, useState} from "react";
-import {Box, Button, Typography} from "@mui/material";
+import {Box, Button, Menu, MenuItem, Typography} from "@mui/material";
 import {useRouter, useSearchParams} from "next/navigation";
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
-import Link from "next/link";
 import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
 import RangeDateComponent from "@/app/UiComponents/FormComponents/MUIInputs/RangeDateComponent";
 import dayjs from "dayjs";
+import DownloadButton from "@/app/UiComponents/Buttons/DownloadButton";
+import ReminderButton from "@/app/UiComponents/Buttons/ReminderButton";
+import {FiFilter} from "react-icons/fi";
+import RemoveAttendanceButton from "@/app/UiComponents/Buttons/RemoveAttendanceButton";
 
 export default function UserBankApprovalReports() {
     const {
@@ -32,7 +35,6 @@ export default function UserBankApprovalReports() {
         {name: "user.emiratesId", label: "Emirates ID"},
         {name: "date", label: "Attendance date"}
     ];
-
     const now = dayjs();
     const firstDayOfMonth = now.startOf('month').format('YYYY-MM-DD');
     const lastDayOfMonth = now.endOf('month').format('YYYY-MM-DD');
@@ -40,15 +42,16 @@ export default function UserBankApprovalReports() {
     const [startDate, setStartDate] = useState(firstDayOfMonth);
     const [endDate, setEndDate] = useState(lastDayOfMonth);
     const [centers, setCenters] = useState([]);
-    const [type, setType] = useState(''); // New state for type filter
+    const [type, setType] = useState('');
     const searchParams = useSearchParams();
     const selectedCenter = searchParams.get('centerId');
     const router = useRouter();
     const [resetTrigger, setResetTrigger] = useState(null);
     const [centerLoading, setCenterLoading] = useState(true);
+    const [anchorEl, setAnchorEl] = useState(null);
 
     useEffect(() => {
-        setFilters({centerId: selectedCenter});
+        updateFilters({centerId: selectedCenter});
     }, [selectedCenter]);
 
     async function fetchCenters() {
@@ -76,13 +79,13 @@ export default function UserBankApprovalReports() {
         }));
     };
 
-    async function handleFetchSelectItem() {
-        await fetchCenters();
-    }
-
     useEffect(() => {
         handleFetchSelectItem();
     }, []);
+
+    async function handleFetchSelectItem() {
+        await fetchCenters();
+    }
 
     const handleCenterChange = (event) => {
         const centerId = event.target.value;
@@ -92,7 +95,7 @@ export default function UserBankApprovalReports() {
         } else {
             params.delete('centerId');
         }
-        setFilters({userId: null});
+        updateFilters({userId: null})
         setResetTrigger((prev) => !prev);
         router.push(`?${params.toString()}`);
     };
@@ -103,55 +106,94 @@ export default function UserBankApprovalReports() {
         updateFilters({type: type});
     };
 
+    const handleFilterClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleFilterClose = () => {
+        setAnchorEl(null);
+    };
     return (
           <div>
               <Typography variant="h3" color="primary" p={2}>
                   User Attendances approvals
               </Typography>
               <Box sx={{
-                  display: 'flex', gap: 2, mb: 0, p: 2, justifyContent: "space-between", flexDirection: {
+                  display: 'flex',
+                  gap: 2,
+                  mb: 0,
+                  p: 2,
+                  justifyContent: "space-between",
+                  flexDirection: {
                       xs: "column",
                       sm: "column",
                       md: "row",
-                  }
+                  },
+                  flexWrap: "wrap"
               }}>
-                  <div className={"mt-2"}>
-                      <SearchComponent
-                            apiEndpoint={"/api/index?id=user&center=" + selectedCenter}
-                            setFilters={setFilters}
-                            inputLabel="Search User By EmiratesId"
-                            renderKeys={["name", "emiratesId", "email"]}
-                            mainKey="emiratesId"
-                            resetTrigger={resetTrigger}
-                      />
-                  </div>
-                  <div className={"min-w-[300px] md:min-w-[350px] lg:min-w-[400px] mt-2"}>
+                  <SearchComponent
+                        apiEndpoint={"/api/index?id=user&center=" + selectedCenter}
+                        setFilters={setFilters}
+                        inputLabel="Search User By EmiratesId"
+                        renderKeys={["name", "emiratesId", "email"]}
+                        mainKey="emiratesId"
+                        resetTrigger={resetTrigger}
+                  />
 
-                      <RangeDateComponent
-                            startDate={startDate}
-                            endDate={endDate}
-                            handleStartDateChange={handleStartDateChange}
-                            handleEndDateChange={handleEndDateChange}
-                      />
-                  </div>
-                  <FilterSelect
-                        options={centers}
-                        label={"Centers"}
-                        onChange={handleCenterChange}
-                        loading={centerLoading}
-                        value={selectedCenter}
-                  />
-                  <FilterSelect
-                        options={[
-                            {id: 'uploaded', name: 'Uploaded'},
-                            {id: 'non-uploaded', name: 'Non-uploaded'}
-                        ]}
-                        label={"Attachment Status"}
-                        onChange={handleTypeChange}
-                        value={type}
-                        loading={false}
-                  />
+                  <Button
+                        variant="outlined"
+                        startIcon={<FiFilter/>}
+                        onClick={handleFilterClick}
+                  >
+                      filters
+                  </Button>
+
+                  <Menu
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl)}
+                        onClose={handleFilterClose}
+                        PaperProps={{
+                            style: {
+                                width: '300px',
+                            },
+                        }}
+                  >
+                      <MenuItem>
+                          <RangeDateComponent
+                                startDate={startDate}
+                                endDate={endDate}
+                                handleStartDateChange={handleStartDateChange}
+                                handleEndDateChange={handleEndDateChange}
+                          />
+                      </MenuItem>
+                      <MenuItem>
+                          <FilterSelect
+                                options={centers}
+                                label={"Centers"}
+                                onChange={handleCenterChange}
+                                loading={centerLoading}
+                                value={selectedCenter}
+                          />
+                      </MenuItem>
+                      <MenuItem>
+                          <FilterSelect
+                                options={[
+                                    {id: 'uploaded', name: 'Uploaded'},
+                                    {id: 'non-uploaded', name: 'Non-uploaded'}
+                                ]}
+                                label={"Attachment Status"}
+                                onChange={handleTypeChange}
+                                value={type}
+                                loading={false}
+                          />
+                      </MenuItem>
+                  </Menu>
+                  {centers &&
+                        <ReminderButton centers={centers}/>
+                  }
+                  <DownloadButton data={data}/>
               </Box>
+
               <AdminTable
                     data={data}
                     columns={columns}
@@ -164,13 +206,17 @@ export default function UserBankApprovalReports() {
                     setData={setData}
                     loading={loading}
                     extraComponent={({item}) => (
+
                           <>
                               {item.attachment?.length > 0 ?
-                                    <a href={item.attachment} target="_blank" rel="noopener noreferrer">
-                                        <Button>
-                                            Preview approval
-                                        </Button>
-                                    </a>
+                                    <>
+                                        <a href={item.attachment} target="_blank" rel="noopener noreferrer">
+                                            <Button>
+                                                Preview approval
+                                            </Button>
+                                        </a>
+                                        <RemoveAttendanceButton item={item} setData={setData}/>
+                                    </>
                                     : "No attachment uploaded"
                               }
                           </>

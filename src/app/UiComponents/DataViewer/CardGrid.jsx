@@ -296,7 +296,7 @@ export default function AdminTable({
                           archive={true}
                     />
               )}
-              <Backdrop sx={{color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1}} open={loading}>
+              <Backdrop sx={{color: '#fff', zIndex: 6000000}} open={loading}>
                   <CircularProgress color="inherit"/>
               </Backdrop>
           </Box>

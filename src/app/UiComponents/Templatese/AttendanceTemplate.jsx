@@ -4,6 +4,7 @@ import {
 } from '@mui/material';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import dayjs from 'dayjs';
 
 const PrintButton = ({user, dayAttendance, shifts}) => {
     const handleDownload = () => {
@@ -21,7 +22,7 @@ const PrintButton = ({user, dayAttendance, shifts}) => {
             body: [
                 ['Full Name', user.name || "No name found"],
                 ['Duty', user.duty?.name || "No duty found"],
-                ['Test Date', new Date(dayAttendance.date).toLocaleDateString()]
+                ['Test Date', dayjs(dayAttendance.date).format('DD/MM/YYYY')] // Format the date
             ],
             theme: 'grid', // No borders
             styles: {cellPadding: 8}, // Add padding around text in the table cells

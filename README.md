@@ -7,7 +7,7 @@
 <!-- - remove overall summary -->
 <!-- - users status chart -->
 <!-- - uncompleted tab -->
-- admin edit users profile( no attachments)
+<!-- - admin edit users profile( no attachments) -->
 <!-- - admin can edit attendance -->
 <!-- - can delete dayAttendance -->
 
@@ -15,9 +15,15 @@
 - staff
 - reminder to all non uploaded attachments
 - edit and reminder if no signature
+<!-- - download all attachment links -->
 
 ---- center
 - view attendance attachment
+
+
+<!-- -- add filter by duty -->
+
+
 <!-- $2b$10$UsY5bEAErH9PGymKdqDl..YGWnhN61cku9lMqRIvK6s8y.D3Hc38K   -->
 <!-- Moe@#01022923659 -->
 backup path =/var/backups/mysql/center-management-system/center-management-system-$(date +\%F).sql

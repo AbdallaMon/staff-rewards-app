@@ -6,6 +6,7 @@ import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {Box, Button, Card, CardContent, Container, Grid, TextField, Typography, Alert} from "@mui/material";
 import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
 import PrintButton from "@/app/UiComponents/Templatese/AttendanceTemplate";
+import dayjs from 'dayjs';
 
 export default function CheckAttendanceAttachments({children}) {
     let {data} = useSelector((state) => state.auth);
@@ -83,7 +84,7 @@ export default function CheckAttendanceAttachments({children}) {
                             <Card>
                                 <CardContent>
                                     <Typography variant="h6">
-                                        Date: {new Date(dayAttendance.date).toLocaleDateString()}
+                                        Date: {dayjs(dayAttendance.date).format('DD/MM/YYYY')}
                                     </Typography>
                                     <Box mt={2}>
                                         <PrintButton

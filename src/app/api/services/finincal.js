@@ -168,6 +168,7 @@ export async function getUserDayAttendancesApprovals(page, limit, filters) {
                     attachment: true,
                     user: {
                         select: {
+                            id: true,
                             name: true,
                             email: true,
                             emiratesId: true,

@@ -38,7 +38,12 @@ const SearchComponent = ({apiEndpoint, setFilters, inputLabel, renderKeys, mainK
         setSelectedItem(newValue);
         if (newValue) {
             setSearchTerm(newValue[mainKey] || "");
-            setFilters((prevFilters) => ({...prevFilters, userId: newValue.id, duty: newValue.duty}));
+            setFilters((prevFilters) => ({
+                ...prevFilters,
+                userId: newValue.id,
+                duty: newValue.duty,
+                name: newValue.name
+            }));
         } else {
             setSearchTerm("");
             setFilters((prevFilters) => ({...prevFilters, userId: null}));
