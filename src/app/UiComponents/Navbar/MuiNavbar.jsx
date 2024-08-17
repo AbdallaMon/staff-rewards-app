@@ -48,7 +48,7 @@ export default function Navbar() {
                                                           aria-controls="links-menu-appbar"
                                                           aria-haspopup="true"
                                                           onClick={handleLinksMenu}
-                                                          color="inherit"
+                                                          color="primary"
                                                     >
                                                         <FaBars/>
                                                     </IconButton>

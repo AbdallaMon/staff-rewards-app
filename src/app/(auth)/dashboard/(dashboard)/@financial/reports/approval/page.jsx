@@ -30,7 +30,7 @@ export default function UserBankApprovalReports() {
     const columns = [
         {name: "user.name", label: "Name"},
         {name: "user.email", label: "Email"},
-        {name: "user.center.name", label: "Center"},
+        {name: "attendances[0].center.name", label: "Center"},
         {name: "user.phone", label: "Phone"},
         {name: "user.emiratesId", label: "Emirates ID"},
         {name: "date", label: "Attendance date"}

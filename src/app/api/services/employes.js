@@ -215,6 +215,7 @@ export async function getEmployeeAttendance(employeeId, filters) {
             const nonAttendedShifts = allShifts.filter(
                   (shift) => !attendedShiftIds.includes(shift.id)
             );
+
             return {...dayAttendance, nonAttendedShifts};
         });
 

@@ -9,6 +9,7 @@ import {useRouter, useSearchParams} from "next/navigation";
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
 import {emiratesOptions} from "@/app/constants";
 import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
+import AssingNewDutyModal from "@/app/UiComponents/Models/AssingNewDutyModal";
 
 export default function STAFF() {
     const {
@@ -141,6 +142,13 @@ export default function STAFF() {
     const handleDutiesChange = (event) => {
         setSelectedDuty(event.target.value)
     }
+    const handleUpdateDuties = (userId, updatedDuties) => {
+        setData(prevData =>
+              prevData.map(item =>
+                    item.id === userId ? {...item, additionalDuties: updatedDuties} : item
+              )
+        );
+    };
     return (
           <div>
               <div className={"flex flex-wrap gap-4 items-center px-3"}>
@@ -183,7 +191,15 @@ export default function STAFF() {
                     loading={loading}
                     editHref={"admin/employees"}
                     extraComponent={({item}) => (
-                          <Button onClick={() => handleRowClick(item.id)}>View Details</Button>
+                          <div>
+
+                              <Button onClick={() => handleRowClick(item.id)}>View Details</Button>
+                              <AssingNewDutyModal
+                                    selectedItem={item}
+                                    allDuties={duties}
+                                    onUpdate={handleUpdateDuties}
+                              />
+                          </div>
                     )}
               />
               <UserDetailDrawer

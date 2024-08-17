@@ -10,18 +10,16 @@ const PrintButton = ({user, dayAttendance, shifts}) => {
     const handleDownload = () => {
         const doc = new jsPDF('p', 'pt', 'a4');
 
-        // Add title and images
         doc.setFontSize(16);
         doc.text("EmSAT/PLD Exam Claim Form", 40, 40);
         doc.addImage('/certLogo.png', 'PNG', 40, 60, 150, 40); // Increased width for left logo
         doc.addImage('/examLogo.png', 'PNG', 450, 60, 100, 40);
 
-        // Add personal details table without header
         doc.autoTable({
             startY: 110,
             body: [
                 ['Full Name', user.name || "No name found"],
-                ['Duty', user.duty?.name || "No duty found"],
+                ['Duty', dayAttendance.attendances[0]?.dutyRewards[0]?.duty.name || "No duty found"],
                 ['Test Date', dayjs(dayAttendance.date).format('DD/MM/YYYY')] // Format the date
             ],
             theme: 'grid', // No borders

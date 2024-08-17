@@ -16,7 +16,7 @@ export default function CheckAttendanceAttachments({children}) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const {setLoading: setToastLoading} = useToastContext();
-
+    console.log(dayAttendances, "dayAttendances")
     useEffect(() => {
         const fetchDayAttendances = async () => {
             try {

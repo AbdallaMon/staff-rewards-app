@@ -6,7 +6,6 @@ import {useEffect, useState} from "react";
 import {useRouter, useSearchParams} from "next/navigation";
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
 import ShiftAssignmentModal from "@/app/UiComponents/Models/ShiftAssignmentModal";
-import dayjs from "dayjs";
 import {isTodayOrYesterday} from "@/helpers/functions/utlity";
 
 export default function CalendarPage() {
@@ -26,6 +25,20 @@ export default function CalendarPage() {
         {name: "date", label: "Date"},
         {name: "examType", label: "Exam Type"}
     ];
+    const [centers, setCenters] = useState([]);
+    const [centerLoading, setCenterLoading] = useState(true);
+
+    const fetchCenters = async () => {
+        setCenterLoading(true);
+        const response = await fetch("/api/index?id=center");
+        const result = await response.json();
+        setCenters(result.data || []);
+        setCenterLoading(false);
+    };
+
+    useEffect(() => {
+        fetchCenters();
+    }, []);
     const [shifts, setShifts] = useState([]); // Add state to hold shifts data
 
     useEffect(() => {
@@ -101,7 +114,10 @@ export default function CalendarPage() {
                           <>
                               {isTodayOrYesterday(item.date) && (
                                     <ShiftAssignmentModal shifts={shifts} setFilters={setFilters} setData={setData}
-                                                          item={item} label={"Attendees"} href="center/attendance"/>
+                                                          item={item} label={"Attendees"} href="center/attendance"
+                                                          centers={centers}
+                                                          centerLoading={centerLoading}
+                                    />
                               )}
                           </>
                     )}

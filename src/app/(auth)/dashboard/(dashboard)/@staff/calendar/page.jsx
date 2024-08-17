@@ -5,7 +5,6 @@ import useDataFetcher from "@/helpers/hooks/useDataFetcher";
 import {useEffect, useState} from "react";
 import {useRouter, useSearchParams} from "next/navigation";
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
-import ShiftAssignmentModal from "@/app/UiComponents/Models/ShiftAssignmentModal";
 
 export default function CalendarPage() {
     const {

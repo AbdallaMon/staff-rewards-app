@@ -37,6 +37,7 @@ model User {
   duty                 Duty?     @relation(fields: [dutyId], references: [id])
   attendance           Attendance[]
   dutyRewards          DutyReward[]
+  additionalDuties     UserAdditionalDuties[] // Relation to UserAdditionalDuties
   dayAttendances       DayAttendance[]
   centerAdmin          Center?   @relation("CenterAdmin")
   createdAt            DateTime  @default(now())
@@ -49,7 +50,15 @@ model User {
   rejectedReason       String?
   logs                 Log[]
 }
+model UserAdditionalDuties {
+  userId Int
+  dutyId Int
 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  duty Duty @relation(fields: [dutyId], references: [id], onDelete: Cascade)
+
+  @@id([userId, dutyId])
+}
 model Log {
   id           Int       @id @default(autoincrement())
   userId       Int
@@ -93,6 +102,7 @@ model Duty {
   name         String
   rewards      DutyReward[]
   amount       Float
+  additionalUsers UserAdditionalDuties[]  // Relation to UserAdditionalDuties
   users        User[]
   archived     Boolean       @default(false)
   createdAt    DateTime      @default(now())
@@ -115,7 +125,6 @@ model DayAttendance {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @default(now())
   deletedAt     DateTime?
-   @@unique([userId, date, centerId])
 }
 
 model DutyReward {
@@ -151,6 +160,7 @@ model Attendance {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @default(now())
   deletedAt       DateTime?
+  @@unique([userId, shiftId, date])
 }
 
 model Calendar {

@@ -10,7 +10,7 @@ const modelMap = {
     // Add other models as needed
 };
 
-export async function getIndexedData(index, query, filters, centerId, center) {
+export async function getIndexedData(index, query, filters, centerId, center, otherDuty) {
     const model = modelMap[index];
 
     if (!model) {
@@ -33,6 +33,7 @@ export async function getIndexedData(index, query, filters, centerId, center) {
         if (center && center !== "null") {
             where.centerId = +center;
         }
+
     }
     const select = {
         id: true, name: true
@@ -41,6 +42,17 @@ export async function getIndexedData(index, query, filters, centerId, center) {
         select.emiratesId = true
         select.email = true
         select.duty = true
+        if (otherDuty && otherDuty !== "null") {
+            select.additionalDuties = {
+                select: {
+                    duty: {
+                        select: {
+                            id: true, name: true, amount: true,
+                        }
+                    }
+                }
+            }
+        }
     }
     if (index === "shift") {
         select.duration = true
@@ -67,6 +79,7 @@ export async function GET(request) {
     const filters = JSON.parse(searchParams.get('filters') || '{}');
     const centerIdFlag = searchParams.get('centerId') === 'true';
     const center = searchParams.get("center")
+    const otherDuty = searchParams.get("otherDuty")
     let centerId = null;
 
     if (centerIdFlag) {
@@ -94,7 +107,7 @@ export async function GET(request) {
     }
 
     try {
-        const result = await getIndexedData(index, query, filters, centerId, center);
+        const result = await getIndexedData(index, query, filters, centerId, center, otherDuty);
         return Response.json(result, {status: 200});
     } catch (error) {
         return Response.json({

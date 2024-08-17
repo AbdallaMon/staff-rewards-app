@@ -24,13 +24,13 @@ import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 import {simpleModalStyle} from "@/app/constants";
 
-const fetchUserById = async (userId) => {
-    const response = await fetch(`/api/admin/employees/${userId}`);
+const fetchUserById = async (userId, isCenter) => {
+    const response = await fetch(`/api/${isCenter ? "center" : "admin"}/employees/${userId}`);
     const result = await response.json();
     return result;
 };
 
-const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData}) => {
+const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData, isCenter}) => {
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -45,7 +45,7 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData}) 
         if (userId) {
             setLoading(true);
             setError(null);
-            fetchUserById(userId).then(response => {
+            fetchUserById(userId, isCenter).then(response => {
                 if (response.status === 200) {
                     setUserData(response.data);
                 } else {

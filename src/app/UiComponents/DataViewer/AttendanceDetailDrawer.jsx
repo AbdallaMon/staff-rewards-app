@@ -106,14 +106,16 @@ const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData
         if (admin) {
             href = `admin/attendance/${dayAttendanceId}`
         }
-        const dutyAmount = attendanceData.user.duty.amount;
+        const dutyAmount = attendanceData.attendances[0].dutyRewards[0].duty.amount || attendanceData.user.duty.amount
+        const dutyId = attendanceData.attendances[0].dutyRewards[0].duty.id || attendanceData.user.duty.id
+        const dutyName = attendanceData.attendances[0].dutyRewards[0].duty.name || attendanceData.user.duty.name
         const otherData = {
             centerId: attendanceData.centerId,
             userId: attendanceData.userId,
-            dutyId: attendanceData.user.duty.id,
+            dutyId: dutyId,
+            dutyName: dutyName,
             amount: dutyAmount,
             date: attendanceData.date,
-            dutyName: attendanceData.user.duty.name,
             name: attendanceData.user.name,
             email: attendanceData.user.email,
             emiratesId: attendanceData.user.emiratesId,
@@ -158,7 +160,12 @@ const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData
                             </Box>
                       )}
                       {!loading && error && (
-                            <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%'}}>
+                            <Box sx={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                height: 'fit-content'
+                            }}>
                                 <Typography variant="h6">{error}</Typography>
                             </Box>
                       )}

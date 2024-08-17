@@ -23,7 +23,6 @@ const Dashboard = () => {
             setCenters(response.data.data);
         });
     }, []);
-    console.log(dates, "dates")
     const handleFetchDates = () => {
         setLoadingDates(true);
         axios.get(`/api/finincal?startDate=${startDate}&endDate=${endDate}&centerId=${centerId}`)

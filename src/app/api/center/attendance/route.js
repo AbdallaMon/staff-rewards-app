@@ -41,7 +41,7 @@ export async function POST(request) {
         if (!decoded) {
             return NextResponse.json({status: 400, message: "Your session ended please relogin"}, {status: 400});
         }
-        const {centerId} = decoded;
+        let {centerId} = decoded;
 
 
         const result = await createAttendanceRecord({

@@ -14,12 +14,10 @@ export async function PUT(request, response) {
     const {attendanceId} = response.params
     const body = await request.json();
     // dayAttendanceId, editedAttendances, deletedAttendances, userId, amount, date, centerId, examType
-    const data = await updateAttendanceRecords(+attendanceId, body);
-    return Response.json({
-        message: "Attendance updated successfully",
-        status: data.status,
-        data
-    }, {status: data.status});
+    const res = await updateAttendanceRecords(+attendanceId, body);
+    return Response.json(
+          res
+          , {status: res.status});
 }
 
 export async function DELETE(request, response) {

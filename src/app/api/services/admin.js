@@ -352,6 +352,7 @@ export async function fetchEmployees(page = 1, limit = 10, employRequests = fals
         where.id = +userId;
     }
     try {
+
         const [employees, total] = await prisma.$transaction([
             prisma.user.findMany({
                 where: where,
@@ -371,6 +372,18 @@ export async function fetchEmployees(page = 1, limit = 10, employRequests = fals
                     ibanBank: true,
                     graduationName: true,
                     passportNumber: true,
+                    additionalDuties: {
+                        select: {
+                            duty: {
+                                select: {
+                                    name: true,
+                                    id: true,
+                                }
+                            },
+                            userId: true,
+                            dutyId: true,
+                        }
+                    },
                     center: {
                         select: {
                             name: true,
@@ -497,6 +510,43 @@ export async function getUserById(id) {
         }
 
         return {status: 200, data: user, message: "User fetched successfully"};
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+
+export async function addUserDuties(userId, dutyIds) {
+    try {
+        // Create records in the join table for each duty
+        const duties = dutyIds.map(dutyId => ({
+            userId,
+            dutyId,
+        }));
+
+        await prisma.userAdditionalDuties.createMany({
+            data: duties,
+            skipDuplicates: true,
+        });
+
+        return {status: 200, data: duties, message: "Duties assigned successfully."};
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+export async function removeUserDuty(userId, dutyId) {
+    try {
+        const duty = await prisma.userAdditionalDuties.delete({
+            where: {
+                userId_dutyId: {
+                    userId,
+                    dutyId,
+                },
+            },
+        });
+
+        return {status: 200, data: duty, message: "Duty removed successfully."};
     } catch (error) {
         return handlePrismaError(error);
     }

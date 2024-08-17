@@ -100,7 +100,6 @@ export async function fetchAttendanceByCenterId(centerId, page, limit, filters =
         } else if (filters.endDate) {
             const endDate = new Date(filters.endDate);
             endDate.setHours(23, 59, 59, 999);  // Ensure endDate includes the entire day
-
             where.date = {
                 lte: endDate
             };
@@ -208,7 +207,9 @@ export async function fetchAttendanceDetailsByDayAttendanceId(dayAttendanceId) {
                                 amount: true,
                                 duty: {
                                     select: {
+                                        id: true,
                                         name: true,
+                                        amount: true
                                     },
                                 },
                             },
@@ -299,20 +300,28 @@ export async function updateEmployeeRating(userId, newRating) {
 
 export async function createAttendanceRecord({userId, shiftIds, duty, date, centerId, examType}) {
     try {
-        const existingDayAttendance = await prisma.dayAttendance.findFirst({
+        const existingAttendances = await prisma.attendance.findMany({
             where: {
                 userId: +userId,
                 date: new Date(date).toISOString(),
                 centerId: +centerId,
+                shiftId: {in: shiftIds},
+            },
+            include: {
+                shift: {
+                    select: {name: true},
+                },
             },
         });
 
-        if (existingDayAttendance) {
+        if (existingAttendances.length > 0) {
+            const existingShiftNames = existingAttendances.map((attendance) => attendance.shift.name).join(", ");
             return {
                 status: 400,
-                message: "Attendance for this user on this date already exists.",
+                message: `The following shifts have already been attended: ${existingShiftNames}. Please change or edit these shifts.`,
             };
         }
+
         const attendanceRecords = await Promise.all(
               shiftIds.map(async (shiftId) => {
                   // Create attendance record
@@ -332,8 +341,8 @@ export async function createAttendanceRecord({userId, shiftIds, duty, date, cent
                           date: new Date(date),
                           user: {
                               connect: {
-                                  id: +userId
-                              }
+                                  id: +userId,
+                              },
                           },
                           attendance: {
                               connect: {
@@ -356,37 +365,21 @@ export async function createAttendanceRecord({userId, shiftIds, duty, date, cent
                   return {attendance, dutyReward};
               })
         );
-
         // Calculate total reward for the day
         const totalReward = attendanceRecords.reduce((sum, record) => sum + record.dutyReward.amount, 0);
 
-        const dayAttendance = await prisma.dayAttendance.upsert({
-            where: {
-                userId_date_centerId: {
-                    userId: +userId,
-                    date: new Date(date).toISOString(), // Use full ISO-8601 string
-                    centerId: +centerId,
-                },
-            },
-            update: {
-                totalReward: {
-                    increment: totalReward,
-                },
-                attendances: {
-                    connect: attendanceRecords.map(record => ({id: record.attendance.id})),
-                },
-            },
-            create: {
+        const dayAttendance = await prisma.dayAttendance.create({
+            data: {
                 userId: +userId,
                 centerId: +centerId,
-                date: new Date(date).toISOString(), // Use full ISO-8601 string
+                date: new Date(date).toISOString(),
                 examType,
                 totalReward,
                 attendances: {
-                    connect: attendanceRecords.map(record => ({id: record.attendance.id})),
+                    connect: attendanceRecords.map((record) => ({id: record.attendance.id})),
                 },
             },
-        });
+        })
 
         const user = await prisma.user.findUnique({where: {id: +userId}, select: {email: true, name: true}});
         if (user && user.email) {
@@ -409,6 +402,12 @@ export async function createAttendanceRecord({userId, shiftIds, duty, date, cent
             message: "Attendance created successfully",
         };
     } catch (error) {
+        if (error.code === 'P2002' && error.meta && error.meta.target === 'Attendance_userId_shiftId_date_unique') {
+            return {
+                status: 400,
+                message: `Attendance record already exists for the selected shift on the specified date.`,
+            };
+        }
         return handlePrismaError(error);
     }
 }
@@ -417,7 +416,8 @@ export async function createAttendanceRecord({userId, shiftIds, duty, date, cent
 ///// edit attendance //////
 
 export async function updateAttendanceRecords(dayAttendanceId, body) {
-    const {editedAttendances, deletedAttendances, userId, amount, date, centerId, examType, dutyId} = body
+    const {editedAttendances, deletedAttendances, userId, amount, date, centerId, dutyId} = body;
+
     try {
         // Verify that the dayAttendance exists
         const existingDayAttendance = await prisma.dayAttendance.findUnique({
@@ -433,7 +433,6 @@ export async function updateAttendanceRecords(dayAttendanceId, body) {
 
         let totalReward = 0;
 
-        // Delete the specified attendance records and their related duty rewards
         await Promise.all(deletedAttendances.map(async (shiftId) => {
             const attendance = await prisma.attendance.findFirst({
                 where: {
@@ -462,8 +461,6 @@ export async function updateAttendanceRecords(dayAttendanceId, body) {
                 });
             }
         }));
-
-        // Create new attendance records for the specified shifts
         const attendanceRecords = await Promise.all(
               editedAttendances.map(async (shiftId) => {
                   const attendance = await prisma.attendance.create({
@@ -504,12 +501,18 @@ export async function updateAttendanceRecords(dayAttendanceId, body) {
             },
         });
 
-
         return {
             status: 200,
             message: "Attendance records updated successfully",
         };
     } catch (error) {
+
+        if (error.code === 'P2002' && error.meta && error.meta.target === 'Attendance_userId_shiftId_date_unique') {
+            return {
+                status: 400,
+                message: `Attendance record already exists for the selected shift on the specified date.`,
+            };
+        }
         return handlePrismaError(error);
     }
 }
@@ -546,6 +549,7 @@ export async function deleteAttendanceRecord(dayAttendanceId) {
             status: 200, message: "Attendance deleted successfullu"
         }
     } catch (error) {
+        console.log(error, "error")
         return handlePrismaError(error);
     }
 }

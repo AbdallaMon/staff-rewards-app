@@ -166,6 +166,15 @@ export async function getUserDayAttendancesApprovals(page, limit, filters) {
                     id: true,
                     date: true,
                     attachment: true,
+                    attendances: {
+                        select: {
+                            center: {
+                                select: {
+                                    name: true,
+                                }
+                            }
+                        }
+                    },
                     user: {
                         select: {
                             id: true,
@@ -173,6 +182,7 @@ export async function getUserDayAttendancesApprovals(page, limit, filters) {
                             email: true,
                             emiratesId: true,
                             phone: true,
+
                             center: {
                                 select: {
                                     name: true,
@@ -484,6 +494,11 @@ export async function getAttendanceData(date, centerId) {
             select: {
                 date: true,
                 totalReward: true,
+                center: {
+                    select: {
+                        name: true
+                    }
+                },
                 user: {
                     select: {
                         name: true,

@@ -101,13 +101,25 @@ export default function AdminTable({
     const totalPages = Math.ceil(total / limit);
 
     const getPropertyValue = (item, propertyPath) => {
-        const value = propertyPath.split('.').reduce((acc, part) => acc && acc[part], item);
+        const value = propertyPath.split('.').reduce((acc, part) => {
+            if (acc) {
+                const arrayIndexMatch = part.match(/(\w+)\[(\d+)\]/);
+                if (arrayIndexMatch) {
+                    const arrayName = arrayIndexMatch[1];
+                    const index = parseInt(arrayIndexMatch[2], 10);
+                    return acc[arrayName] && acc[arrayName][index];
+                } else {
+                    return acc[part];
+                }
+            }
+            return undefined;
+        }, item);
+
         if (propertyPath.toLowerCase().includes('date') && dayjs(value).isValid()) {
             return dayjs(value).format('YYYY-MM-DD');
         }
         return value;
     };
-
     return (
           <Box sx={{padding: '16px'}}>
               {isCalendar ? (

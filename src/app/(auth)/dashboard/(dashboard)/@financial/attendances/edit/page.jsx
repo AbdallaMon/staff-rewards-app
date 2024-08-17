@@ -107,7 +107,6 @@ export default function Attendance() {
         setSelectedAttendanceId(attendanceId);
         setDrawerOpen(true);
     };
-    console.log(user, "user")
     return (
           <div>
               <Typography variant="h3" color="primary" p={2}>

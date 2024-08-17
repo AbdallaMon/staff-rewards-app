@@ -42,7 +42,8 @@ const SearchComponent = ({apiEndpoint, setFilters, inputLabel, renderKeys, mainK
                 ...prevFilters,
                 userId: newValue.id,
                 duty: newValue.duty,
-                name: newValue.name
+                name: newValue.name,
+                additionalDuties: newValue.additionalDuties
             }));
         } else {
             setSearchTerm("");

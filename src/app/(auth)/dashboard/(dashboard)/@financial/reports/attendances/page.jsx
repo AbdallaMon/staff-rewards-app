@@ -101,7 +101,6 @@ export default function CalendarPage() {
         }
         setLoadingBankDetails(false);
     };
-
     const handleGenerateAttendanceExcel = async () => {
         const schema = [
             {
@@ -141,9 +140,21 @@ export default function CalendarPage() {
                 borderStyle: 'thin'
             },
             {
-                column: 'Center',
+                column: 'Employee center',
                 type: String,
                 value: student => student.user.center.name,
+                fontWeight: 'bold',
+                align: 'center',
+                alignVertical: 'center',
+                width: 32,
+                height: 25,
+                borderColor: '#000000',
+                borderStyle: 'thin'
+            },
+            {
+                column: 'Attended at',
+                type: String,
+                value: student => student.center.name,
                 fontWeight: 'bold',
                 align: 'center',
                 alignVertical: 'center',
@@ -206,7 +217,8 @@ export default function CalendarPage() {
             No: index + 1,
             user: item.user,
             attendances: item.attendances,
-            totalReward: item.totalReward
+            totalReward: item.totalReward,
+            center: item.center
         }));
 
         await writeXlsxFile(data, {

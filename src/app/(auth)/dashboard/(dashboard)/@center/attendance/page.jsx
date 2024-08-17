@@ -1,13 +1,14 @@
 "use client";
-import {Box, Button} from "@mui/material";
+import {Box, Button, Checkbox, FormControlLabel} from "@mui/material";
 import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
 import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
-import {useState} from "react";
+import React, {useState} from "react";
 import dayjs from "dayjs";
 import AttendanceDetailDrawer from "@/app/UiComponents/DataViewer/AttendanceDetailDrawer";
 import RangeDateComponent from "@/app/UiComponents/FormComponents/MUIInputs/RangeDateComponent";
 import DateComponent from "@/app/UiComponents/FormComponents/MUIInputs/DateChangerComponent";
+import RemoveAttendanceButton from "@/app/UiComponents/Buttons/RemoveAttendanceButton";
 
 export default function Attendance() {
     const {
@@ -25,6 +26,7 @@ export default function Attendance() {
     const now = dayjs();
     const firstDayOfMonth = now.startOf('month').format('YYYY-MM-DD');
     const lastDayOfMonth = now.endOf('month').format('YYYY-MM-DD');
+    const [otherCenters, setOtherCenters] = useState(null);
 
     const [startDate, setStartDate] = useState(firstDayOfMonth);
     const [endDate, setEndDate] = useState(lastDayOfMonth);
@@ -73,13 +75,25 @@ export default function Attendance() {
                       md: "row",
                   }
               }}>
-                  <SearchComponent
-                        apiEndpoint="/api/index?id=user&centerId=true"
-                        setFilters={setFilters}
-                        inputLabel="Search User By EmiratesId"
-                        renderKeys={["name", "emiratesId", "email"]}
-                        mainKey="emiratesId"
-                  />
+                  <div className={"flex flex-col gap-1"}>
+
+                      <FormControlLabel
+                            control={
+                                <Checkbox
+                                      checked={otherCenters}
+                                      onChange={(e) => setOtherCenters(e.target.checked)}
+                                />
+                            }
+                            label="Search in other centers"
+                      />
+                      <SearchComponent
+                            apiEndpoint={`/api/index?id=user&centerId=${!otherCenters}`}
+                            setFilters={setFilters}
+                            inputLabel="Search User By EmiratesId"
+                            renderKeys={["name", "emiratesId", "email"]}
+                            mainKey="emiratesId"
+                      />
+                  </div>
                   <RangeDateComponent
                         startDate={startDate}
                         endDate={endDate}
@@ -105,7 +119,21 @@ export default function Attendance() {
                     checkDates={true}
                     loading={loading}
                     extraComponent={({item}) => (
-                          <Button onClick={() => handleRowClick(item.id)}>View Details</Button>
+                          <div className={"flex gap-5 items-center"}>
+
+                              {item.attachment?.length > 0 ?
+                                    <>
+                                        <a href={item.attachment} target="_blank" rel="noopener noreferrer">
+                                            <Button>
+                                                Preview approval
+                                            </Button>
+                                        </a>
+                                        <RemoveAttendanceButton item={item} setData={setData}/>
+                                    </>
+                                    : "No approval uploaded"
+                              }
+                              <Button onClick={() => handleRowClick(item.id)}>View Details</Button>
+                          </div>
                     )}
               />
               <AttendanceDetailDrawer

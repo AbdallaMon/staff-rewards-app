@@ -9,6 +9,10 @@ import {
     Typography,
     Snackbar,
     Alert,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
 } from "@mui/material";
 import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
@@ -24,11 +28,17 @@ const ShiftAssignmentModal = ({shifts, setData, label, href, extraProps, item}) 
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarSeverity, setSnackbarSeverity] = useState("error");
+    const [otherCenters, setOtherCenters] = useState(null);
+    const [attendAdditionalDuty, setAttendAdditionalDuty] = useState(false);
+    const [selectedAdditionalDuty, setSelectedAdditionalDuty] = useState(null);
+
     const handleOpen = () => setOpen(true);
     const handleClose = () => {
         setOpen(false);
         setSelectedShifts([]);
         setFilters({});
+        setAttendAdditionalDuty(false);
+        setSelectedAdditionalDuty(null);
     };
 
     const handleShiftChange = (shiftId) => {
@@ -47,16 +57,17 @@ const ShiftAssignmentModal = ({shifts, setData, label, href, extraProps, item}) 
             return;
         }
 
-        if (!filters.duty) {
+        if (!filters.duty && !selectedAdditionalDuty) {
             setSnackbarMessage("This user is not assigned to a role currently. Contact the administrator.");
             setSnackbarSeverity("error");
             setSnackbarOpen(true);
             return;
         }
+
         const formData = {
             userId: selectedUserId,
             shiftIds: selectedShifts,
-            duty: filters.duty,
+            duty: attendAdditionalDuty && selectedAdditionalDuty ? selectedAdditionalDuty : filters.duty,
             date: item.date,
             examType: item.examType,
         };
@@ -92,13 +103,50 @@ const ShiftAssignmentModal = ({shifts, setData, label, href, extraProps, item}) 
                           <Typography variant="h6" sx={{mb: 2}}>
                               Assign Shifts
                           </Typography>
+                          <FormControlLabel
+                                control={
+                                    <Checkbox
+                                          checked={otherCenters}
+                                          onChange={(e) => setOtherCenters(e.target.checked)}
+                                    />
+                                }
+                                label="Search in other centers"
+                          />
                           <SearchComponent
-                                apiEndpoint="/api/index?id=user&centerId=true"
+                                apiEndpoint={`/api/index?id=user&otherDuty=true&centerId=${!otherCenters}`}
                                 setFilters={setFilters}
                                 inputLabel="Search User By EmiratesId"
                                 renderKeys={["name", "emiratesId", "email"]}
                                 mainKey="emiratesId"
                           />
+                          {filters.additionalDuties?.length > 0 && (
+                                <Box sx={{mt: 2}}>
+                                    <FormControlLabel
+                                          control={
+                                              <Checkbox
+                                                    checked={attendAdditionalDuty}
+                                                    onChange={(e) => setAttendAdditionalDuty(e.target.checked)}
+                                              />
+                                          }
+                                          label="Attend Another Duty?"
+                                    />
+                                    {attendAdditionalDuty && (
+                                          <FormControl fullWidth sx={{mt: 2}}>
+                                              <InputLabel>Select Another Duty</InputLabel>
+                                              <Select
+                                                    value={selectedAdditionalDuty}
+                                                    onChange={(e) => setSelectedAdditionalDuty(e.target.value)}
+                                              >
+                                                  {filters.additionalDuties.map((dutyObj, index) => (
+                                                        <MenuItem key={index} value={dutyObj.duty}>
+                                                            {dutyObj.duty.name}
+                                                        </MenuItem>
+                                                  ))}
+                                              </Select>
+                                          </FormControl>
+                                    )}
+                                </Box>
+                          )}
                           <Box sx={{mt: 2, mb: 2}}>
                               {shifts.map((shift) => (
                                     <FormControlLabel
