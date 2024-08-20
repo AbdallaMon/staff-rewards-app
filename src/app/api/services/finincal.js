@@ -281,6 +281,7 @@ export async function fetchAttendanceForFinincial(page, limit, filters = {}) {
                     examType: true,
                     totalReward: true,
                     id: true,
+                    attachment: true,
                     user: {
                         select: {
                             name: true,

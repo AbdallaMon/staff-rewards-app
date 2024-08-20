@@ -32,6 +32,7 @@ import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
 import PrintBankDetailsButton from "@/app/UiComponents/Templatese/BankdetailsTemplate";
+import SignatureComponent from "@/app/UiComponents/FormComponents/Signature";
 
 const Input = styled('input')({
     display: 'none',
@@ -293,6 +294,7 @@ const ProfilePage = ({userId}) => {
                                             </Box>
                                       )}
                                   </DataBox>
+                                  <SignatureComponent user={user}/>
                               </ProfileSection>
                           </Box>
                       </TabPanel>

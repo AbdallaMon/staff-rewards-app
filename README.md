@@ -19,7 +19,7 @@
 
 ---- center
 <!-- - view attendance attachment(uploaded or not) -->
-- profile
+<!-- - profile -->
 <!-- - center in report -->
 <!-- - search all users -->
 
@@ -37,22 +37,4 @@ mohamed.ellnagar@outlook.com
 
 // query in the db later
 
-CREATE TABLE UserAdditionalDuties (
-    userId INT NOT NULL,
-    dutyId INT NOT NULL,
-    PRIMARY KEY (userId, dutyId),
-    FOREIGN KEY (userId) REFERENCES User(id) ON DELETE CASCADE,
-    FOREIGN KEY (dutyId) REFERENCES Duty(id) ON DELETE CASCADE
-);
-
-
-
-ALTER TABLE `dayattendance`
-
-ALTER TABLE `dayattendance` DROP FOREIGN KEY `DayAttendance_centerId_fkey`;
-ALTER TABLE `dayattendance` DROP FOREIGN KEY `DayAttendance_userId_fkey`;
-ALTER TABLE `dayattendance` DROP INDEX `DayAttendance_userId_date_centerId_key`;
-
-ALTER TABLE `Attendance`
-ADD CONSTRAINT `Attendance_userId_shiftId_date_centerId_unique`
-UNIQUE (`userId`, `shiftId`, `date`);
+ALTER TABLE `User` ADD COLUMN `signature` VARCHAR(255) NULL;

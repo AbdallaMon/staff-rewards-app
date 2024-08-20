@@ -5,6 +5,7 @@ import {createToken} from "@/app/api/utlis/tokens";
 import {Prisma} from "@prisma/client";
 import {handlePrismaError} from "@/app/api/utlis/prismaError";
 import bcrypt from "bcrypt";
+import {Buffer} from "buffer";
 
 export async function createEmployeeRequest(data) {
     try {
@@ -251,11 +252,26 @@ export async function getUserDayAttendancesWithoutAttachment(userId) {
                         name: true,
                         emiratesId: true,
                         duty: true,
+                        signature: true,
                     },
                 },
                 center: true,
             },
         });
+        if (dayAttendances.length > 0 && dayAttendances[0].user.signature) {
+            // Fetch the signature and convert to Base64
+            const signatureUrl = dayAttendances[0].user.signature;
+            const signatureResponse = await fetch(signatureUrl);
+
+            if (signatureResponse.ok) {
+                const buffer = await signatureResponse.arrayBuffer();
+                const base64Signature = Buffer.from(buffer).toString('base64');
+                dayAttendances[0].user.signature = `data:image/png;base64,${base64Signature}`;
+            } else {
+                dayAttendances[0].user.signature = null; // Handle the case where fetching the signature fails
+            }
+        }
+
         return {status: 200, data: dayAttendances.length > 0 ? dayAttendances : null};
     } catch (e) {
         return {status: 500, error: 'Failed to fetch day attendances'};

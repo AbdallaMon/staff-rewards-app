@@ -1,39 +1,62 @@
-"use client";
 import {useSelector} from "react-redux";
 import React, {useEffect, useState} from "react";
-import {useToastContext} from "@/providers/ToastLoadingProvider";
-import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
-import {Box, Button, Card, CardContent, Container, Grid, TextField, Typography, Alert} from "@mui/material";
+import {
+    Box,
+    Card,
+    CardContent,
+    Container,
+    Grid,
+    Typography,
+    Alert,
+    Button,
+    Dialog,
+    DialogContent,
+    DialogActions,
+    Checkbox,
+    FormControlLabel,
+    IconButton
+} from "@mui/material";
+import {IoMdClose} from "react-icons/io";
 import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
-import PrintButton from "@/app/UiComponents/Templatese/AttendanceTemplate";
+import SignatureDialog from "@/app/UiComponents/Models/SignatureDialog";
+import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import dayjs from 'dayjs';
+import {Worker, Viewer} from '@react-pdf-viewer/core';
+import '@react-pdf-viewer/core/lib/styles/index.css';
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import {useToastContext} from "@/providers/ToastLoadingProvider";
 
 export default function CheckAttendanceAttachments({children}) {
     let {data} = useSelector((state) => state.auth);
     const [dayAttendances, setDayAttendances] = useState([]);
-    const [duties, setDuties] = useState([]);
     const [shifts, setShifts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const {setLoading: setToastLoading} = useToastContext();
-    console.log(dayAttendances, "dayAttendances")
+    const [signatureUrl, setSignatureUrl] = useState(null);
+    const [pdfBlob, setPdfBlob] = useState(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [selectedAttendance, setSelectedAttendance] = useState(null);
+    const [confirmChecked, setConfirmChecked] = useState(false);
+    const [isPdfLoading, setIsPdfLoading] = useState(false);
+    const [signatureDialog, setSignatureDialog] = useState(false)
+
     useEffect(() => {
         const fetchDayAttendances = async () => {
             try {
-                const [dayAttendancesRes, dutiesRes, shiftsRes] = await Promise.all([
+                const [dayAttendancesRes, shiftsRes] = await Promise.all([
                     fetch(`/api/employee/private/${data.id}/day-attendances`),
-                    fetch(`/api/index?id=duty`),
                     fetch(`/api/index?id=shift`),
                 ]);
 
                 const dayAttendancesData = await dayAttendancesRes.json();
-                const dutiesData = await dutiesRes.json();
                 const shiftsData = await shiftsRes.json();
 
-                if (dayAttendancesRes.ok && dutiesRes.ok && shiftsRes.ok) {
+                if (dayAttendancesRes.ok && shiftsRes.ok) {
                     setDayAttendances(dayAttendancesData.data);
-                    setDuties(dutiesData.data);
                     setShifts(shiftsData.data);
+                    setSignatureUrl(dayAttendancesData.data[0].user.signature);
                 } else {
                     setError('Failed to fetch data.');
                 }
@@ -47,37 +70,134 @@ export default function CheckAttendanceAttachments({children}) {
         fetchDayAttendances();
     }, [data.id]);
 
-    const upload = async (e, dayAttendanceId) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
+    const handleApprove = async () => {
+        const formData = new FormData();
+        formData.append('attachment', pdfBlob, 'attendance-template.pdf');
 
-        const res = await handleRequestSubmit(formData, setToastLoading, `employee/private/${data.id}/day-attendances/${dayAttendanceId}/attachment`, true, "Uploading", false, "POST");
+        const res = await handleRequestSubmit(
+              formData,
+              setToastLoading,
+              `employee/private/${data.id}/day-attendances/${selectedAttendance.id}/attachment`,
+              true,
+              "Uploading",
+              false,
+              "POST"
+        );
 
         if (res.status === 200) {
-            const newData = dayAttendances.filter((day) => +day.id !== +dayAttendanceId);
+            const newData = dayAttendances.filter((day) => +day.id !== +selectedAttendance.id);
             setDayAttendances(newData);
+            setIsDialogOpen(false);
         }
+    };
+
+    const generatePdf = async (dayAttendance) => {
+        setIsPdfLoading(true);
+        setSelectedAttendance(dayAttendance);
+        const doc = new jsPDF('p', 'pt', 'a4');
+        doc.setFontSize(16);
+        doc.text("EmSAT/PLD Exam Claim Form", 40, 40);
+        doc.addImage('/certLogo.png', 'PNG', 40, 60, 150, 40); // Left logo
+        doc.addImage('/examLogo.png', 'PNG', 450, 60, 100, 40); // Right logo
+
+        doc.autoTable({
+            startY: 110,
+            body: [
+                ['Full Name', dayAttendance.user.name || "No name found"],
+                ['Duty', dayAttendance.attendances[0]?.dutyRewards[0]?.duty.name || "No duty found"],
+                ['Test Date', dayjs(dayAttendance.date).format('DD/MM/YYYY')] // Format the date
+            ],
+            theme: 'grid',
+            styles: {cellPadding: 8}, // Add padding around text in the table cells
+            margin: {left: 40, top: 10}
+        });
+
+        const totalRewards = dayAttendance.attendances.reduce(
+              (acc, attendance) => acc + attendance.dutyRewards.reduce((acc, reward) => acc + reward.amount, 0),
+              0
+        );
+
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 15,
+            head: [['Shift', 'Duration (hours)', 'Reward']],
+            body: dayAttendance.attendances.map(attendance => [
+                attendance.shift.name,
+                attendance.shift.duration,
+                attendance.dutyRewards.reduce((acc, reward) => acc + reward.amount, 0)
+            ]),
+            foot: [[{content: 'Total Rewards', colSpan: 2, styles: {halign: 'right'}}, totalRewards]],
+            margin: {top: 5},
+            theme: 'grid',
+            styles: {cellPadding: 8},  // Add padding around text in the table cells
+        });
+
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 17,
+            head: [['Shift', 'Timing (hours)']],
+            body: shifts.map(shift => [
+                shift.name,
+                shift.duration
+            ]),
+            margin: {top: 5},
+            theme: 'grid',
+            styles: {cellPadding: 8},  // Add padding around text in the table cells
+        });
+
+        doc.setFontSize(10);
+
+        const checkboxImg = new Image();
+        checkboxImg.src = '/checkbox.png';
+        doc.addImage(checkboxImg, 'PNG', 40, doc.lastAutoTable.finalY + 30, 10, 10); // Adjust size and position
+        doc.text("I confirm that the information provided above is accurate.", 55, doc.lastAutoTable.finalY + 40);
+        doc.text("Employee Signature:", 40, doc.lastAutoTable.finalY + 70);
+        doc.addImage(signatureUrl, 'PNG', 40, doc.lastAutoTable.finalY + 80, 100, 30); // Smaller image size
+
+        finalizePdf(doc);
+    };
+
+    const finalizePdf = (doc) => {
+        doc.text("Site Supervisor Name:", 300, doc.lastAutoTable.finalY + 70);
+
+        doc.setLineWidth(2);
+        doc.line(40, doc.lastAutoTable.finalY + 115, 550, doc.lastAutoTable.finalY + 115);
+
+        doc.text("For CERT use only", 40, doc.lastAutoTable.finalY + 135);
+        doc.autoTable({
+            startY: doc.lastAutoTable.finalY + 145,
+            head: [['Centre Manager', 'Signature', 'Date']],
+            body: [
+                ['Director', '', ''],
+                ['Signature', '', '']
+            ],
+            margin: {top: 2},
+            theme: 'grid',
+            styles: {cellPadding: 8},  // Add padding around text in the table cells
+        });
+
+        const pdfBlob = doc.output('blob');
+        setPdfBlob(pdfBlob);
+        setIsPdfLoading(false);
+        setIsDialogOpen(true);
     };
 
     if (error) return <Alert severity="error">{error}</Alert>;
     if (!loading && (!dayAttendances || dayAttendances.length === 0)) {
         return children;
     }
+
     return (
           <Container>
-              {loading && <FullScreenLoader/>}
-              {!loading && dayAttendances?.length > 0 &&
+              {(loading || isPdfLoading) && <FullScreenLoader/>}
+              {!loading && dayAttendances?.length > 0 && (
                     <>
                         <Typography variant="h4" gutterBottom>
                             Attendances that need your approval
                         </Typography>
                         <Alert severity="warning" sx={{mb: 2}}>
-                            Please upload the necessary attachments to approve your attendance records and view your
-                            attendance
-                            history.
+                            Please review the attendance records and approve them.
                         </Alert>
                     </>
-              }
+              )}
               <Grid container spacing={3}>
                   {dayAttendances?.map((dayAttendance) => (
                         <Grid item xs={12} md={6} lg={4} key={dayAttendance.id}>
@@ -87,78 +207,107 @@ export default function CheckAttendanceAttachments({children}) {
                                         Date: {dayjs(dayAttendance.date).format('DD/MM/YYYY')}
                                     </Typography>
                                     <Box mt={2}>
-                                        <PrintButton
-                                              user={dayAttendance.user}
-                                              dayAttendance={dayAttendance}
-                                              duties={duties}
-                                              shifts={shifts}
-                                        />
+                                        {signatureUrl ? (
+                                              <>
+                                                  <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        sx={{mt: 2}}
+                                                        onClick={() => generatePdf(dayAttendance)}
+                                                  >
+                                                      View and Approve
+                                                  </Button>
+                                              </>
+                                        ) : (
+                                              <>
+                                                  <Typography variant="body2" color="error">
+                                                      You do not have a signature yet. Please create one to proceed.
+                                                  </Typography>
+                                                  <Button variant="contained" color="primary"
+                                                          onClick={() => setSignatureDialog(true)}>
+                                                      Add Your Signature
+                                                  </Button>
+                                                  <SignatureDialog
+                                                        user={data}
+                                                        open={signatureDialog}
+                                                        onClose={() => setSignatureDialog(false)}
+                                                        onSignatureSaved={(url) => {
+                                                            setSignatureUrl(url);
+                                                            setSignatureDialog(false);
+                                                        }}
+                                                  />
+                                              </>
+                                        )}
                                     </Box>
-                                    <AttachmentForm
-                                          dayAttendance={dayAttendance}
-                                          upload={upload}
-                                    />
                                 </CardContent>
                             </Card>
                         </Grid>
                   ))}
               </Grid>
+
+              <Dialog fullScreen open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
+                  <DialogContent style={{padding: 0}}>
+                      {pdfBlob && (
+
+                            <Box
+                                  sx={{
+                                      width: '100%',
+                                      height: '100%',
+                                      overflow: 'auto',
+                                      border: '1px solid #ddd',
+                                      display: 'flex',
+                                      justifyContent: 'center',
+                                      alignItems: 'center',
+                                      backgroundColor: '#f0f0f0',
+                                      position: 'relative',
+                                  }}
+                            >
+
+                                <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                                    <Viewer fileUrl={URL.createObjectURL(pdfBlob)}/>
+                                </Worker>
+                                <IconButton
+                                      color="inherit"
+                                      onClick={() => setIsDialogOpen(false)}
+                                      sx={{
+                                          position: 'fixed',
+                                          top: '1rem',
+                                          right: '1rem',
+                                          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                          color: 'white',
+                                      }}
+                                >
+                                    <IoMdClose/>
+                                </IconButton>
+                            </Box>
+                      )}
+                  </DialogContent>
+                  <DialogActions>
+                      <ApprovalSection
+                            confirmChecked={confirmChecked}
+                            setConfirmChecked={setConfirmChecked}
+                            handleApprove={handleApprove}
+                      />
+                  </DialogActions>
+              </Dialog>
           </Container>
     );
 }
 
-const AttachmentForm = ({dayAttendance, upload}) => {
-    const [file, setFile] = useState(null);
-    const [fileType, setFileType] = useState(null);
-    const [objectURL, setObjectURL] = useState(null);
-
-    const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
-        if (selectedFile) {
-            const fileExtension = selectedFile.name.split('.').pop().toLowerCase();
-            if (fileExtension === 'pdf' || ['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
-                setFile(selectedFile);
-                setFileType(fileExtension);
-                if (fileExtension !== 'pdf') {
-                    const url = URL.createObjectURL(selectedFile);
-                    setObjectURL(url);
-                } else {
-                    setObjectURL(null);
-                }
-            } else {
-                setFile(null);
-                setFileType(null);
-                setObjectURL(null);
-            }
-        }
-    };
-
-    return (
-          <form onSubmit={(e) => upload(e, dayAttendance.id)}>
-              <Box mt={2} sx={{display: "flex", flexDirection: "column", gap: 2, alignItems: "center"}}>
-                  <TextField
-                        type="file"
-                        name="attachment"
-                        accept="application/pdf, image/*"
-                        id={`attachment-${dayAttendance.id}`}
-                        required
-                        fullWidth
-                        onChange={handleFileChange}
-                  />
-                  <Box mt={2} textAlign="center">
-                      {file && fileType === 'pdf' && <Typography>{file.name}</Typography>}
-                      {file && fileType !== 'pdf' &&
-                            <img src={objectURL} alt="attachment preview"
-                                 style={{maxWidth: "200px", maxHeight: "300px"}}/>}
-                      {fileType && !['pdf', 'jpg', 'jpeg', 'png', 'gif'].includes(fileType) &&
-                            <Typography color="error">Unsupported file type</Typography>}
-                  </Box>
-              </Box>
-              <Box mt={2} display="flex" justifyContent="center">
-                  <Button type="submit" variant="contained" color="primary" disabled={!file}>
-                      Upload Attachment
-                  </Button>
-              </Box>
-          </form>
-    );
-};
+const ApprovalSection = ({confirmChecked, setConfirmChecked, handleApprove}) => (
+      <>
+          <FormControlLabel
+                control={<Checkbox checked={confirmChecked}
+                                   onChange={(e) => setConfirmChecked(e.target.checked)}/>}
+                label="I confirm that the information provided above is accurate."
+          />
+          <Button
+                variant="contained"
+                color="success"
+                onClick={handleApprove}
+                disabled={!confirmChecked}
+          >
+              Approve and Submit
+          </Button>
+      </>
+);

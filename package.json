@@ -15,6 +15,7 @@
     "@mui/material": "^5.16.5",
     "@mui/x-date-pickers": "^7.11.1",
     "@prisma/client": "^5.17.0",
+    "@react-pdf-viewer/core": "^3.12.0",
     "@reduxjs/toolkit": "^2.2.6",
     "archiver": "^7.0.1",
     "axios": "^1.7.3",
@@ -41,7 +42,7 @@
     "react-hook-form": "^7.52.1",
     "react-icons": "^5.2.1",
     "react-redux": "^9.1.2",
-    "react-to-print": "^2.15.1",
+    "react-signature-canvas": "^1.0.6",
     "react-toastify": "^10.0.5",
     "uuid": "^10.0.0",
     "write-excel-file": "^2.0.5"

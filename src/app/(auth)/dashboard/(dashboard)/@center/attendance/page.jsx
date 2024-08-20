@@ -65,7 +65,6 @@ export default function Attendance() {
         setSelectedAttendanceId(attendanceId);
         setDrawerOpen(true);
     };
-
     return (
           <div>
               <Box sx={{
@@ -125,12 +124,10 @@ export default function Attendance() {
                                     <>
                                         <a href={item.attachment} target="_blank" rel="noopener noreferrer">
                                             <Button>
-                                                Preview approval
-                                            </Button>
+                                                View the document </Button>
                                         </a>
-                                        <RemoveAttendanceButton item={item} setData={setData}/>
                                     </>
-                                    : "No approval uploaded"
+                                    : "Not signed yet."
                               }
                               <Button onClick={() => handleRowClick(item.id)}>View Details</Button>
                           </div>

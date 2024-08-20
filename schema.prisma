@@ -31,6 +31,7 @@ model User {
   bankApprovalAttachment String?
   cvImage           String?
   photo                String?
+  signature            String?
   isActive             Boolean   @default(true)
   rating               Float?    @default(0)
   dutyId               Int?

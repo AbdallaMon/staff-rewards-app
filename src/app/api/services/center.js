@@ -130,13 +130,13 @@ export async function fetchAttendanceByCenterId(centerId, page, limit, filters =
                     date: true,
                     examType: true,
                     totalReward: true,
+                    attachment: true,
                     id: true,
                     user: {
                         select: {
                             name: true,
                             emiratesId: true,
                             rating: true,
-
                         },
                     },
                     _count: {
@@ -157,6 +157,7 @@ export async function fetchAttendanceByCenterId(centerId, page, limit, filters =
             numberOfShifts: record._count.attendances,
             reward: record.totalReward,
             id: record.id,
+            attachment: record.attachment
         }));
 
         return {

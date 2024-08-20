@@ -212,12 +212,11 @@ export default function UserBankApprovalReports() {
                                     <>
                                         <a href={item.attachment} target="_blank" rel="noopener noreferrer">
                                             <Button>
-                                                Preview approval
-                                            </Button>
+                                                View the document </Button>
                                         </a>
                                         <RemoveAttendanceButton item={item} setData={setData}/>
                                     </>
-                                    : "No attachment uploaded"
+                                    : "Not signed yet."
                               }
                           </>
                     )}
