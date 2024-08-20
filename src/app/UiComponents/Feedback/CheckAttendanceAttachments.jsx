@@ -260,6 +260,7 @@ export default function CheckAttendanceAttachments({children}) {
                                       alignItems: 'center',
                                       backgroundColor: '#f0f0f0',
                                       position: 'relative',
+                                      py: 10
                                   }}
                             >
 
@@ -295,7 +296,7 @@ export default function CheckAttendanceAttachments({children}) {
 }
 
 const ApprovalSection = ({confirmChecked, setConfirmChecked, handleApprove}) => (
-      <>
+      <div className={"max:sm:flex flex-col gap-5 items-center justify-center"}>
           <FormControlLabel
                 control={<Checkbox checked={confirmChecked}
                                    onChange={(e) => setConfirmChecked(e.target.checked)}/>}
@@ -309,5 +310,5 @@ const ApprovalSection = ({confirmChecked, setConfirmChecked, handleApprove}) => 
           >
               Approve and Submit
           </Button>
-      </>
+      </div>
 );
