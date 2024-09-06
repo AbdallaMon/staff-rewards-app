@@ -71,7 +71,9 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData, i
 
     const handleReject = (data) => {
         setRejectModalOpen(false);
-        setData((prevData) => prevData.filter(user => user.id !== userId));
+        if (setData) {
+            setData((prevData) => prevData.filter(user => user.id !== userId));
+        }
         onClose();
     };
 
@@ -80,14 +82,18 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData, i
         if (res.status === 200) {
 
             setApproveModalOpen(false);
-            setData((prevData) => prevData.filter(user => user.id !== userId));
+            if (setData) {
+                setData((prevData) => prevData.filter(user => user.id !== userId));
+            }
             onClose();
         }
     };
 
-    const handleUncompleted = (data) => {
+    const handleUncompleted = () => {
         setUncompletedModalOpen(false);
-        setData((prevData) => prevData.filter(user => user.id !== userId));
+        if (setData) {
+            setData((prevData) => prevData.filter(user => user.id !== userId));
+        }
         onClose();
     };
 

@@ -329,7 +329,7 @@ export async function deleteCenter(id) {
     }
 }
 
-export async function fetchEmployees(page = 1, limit = 10, employRequests = false, rejected = false, centerId, uncompleted, dutyId, userId) {
+export async function fetchEmployees(page = 1, limit = 10, employRequests = false, rejected = false, centerId, uncompleted, dutyId, userId, pending) {
     const offset = (page - 1) * limit;
     let requestStatus = employRequests ? "PENDING" : "APPROVED";
     if (rejected) {
@@ -338,12 +338,15 @@ export async function fetchEmployees(page = 1, limit = 10, employRequests = fals
     if (uncompleted) {
         requestStatus = "UNCOMPLETED";
     }
+    if (pending) {
+        requestStatus = "PENDING"
+    }
     const where = {
         role: 'EMPLOYEE',
         accountStatus: requestStatus,
         centerId: centerId ? parseInt(centerId, 10) : undefined,
     };
-    if (!uncompleted) {
+    if (!uncompleted && !pending) {
         where.emailConfirmed = true;
     }
     if (dutyId) {

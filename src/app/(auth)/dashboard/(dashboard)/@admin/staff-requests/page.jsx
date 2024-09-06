@@ -76,9 +76,8 @@ export default function EmployeesRequest() {
     };
     return (
           <div>
-              <div className={"grid grid-cols-1 md:grid-cols-3 gap-5  items-center justify-between"}>
-
-
+              <div className={"grid grid-cols-1 md:grid-cols-4 gap-5  items-center justify-between"}>
+                  
                   <Link href="/dashboard/staff-requests/rejected" sx={{
                       mt: 2,
                       display: "flex",
@@ -95,6 +94,15 @@ export default function EmployeesRequest() {
                   }}>
                       <Button color="primary">
                           See uncompleted Requests
+                      </Button>
+                  </Link>
+                  <Link href="/dashboard/staff-requests/pending" sx={{
+                      mt: 2,
+                      display: "flex",
+
+                  }}>
+                      <Button color="primary">
+                          See pending Requests
                       </Button>
                   </Link>
                   <FilterSelect options={centers} label={"Centers"} onChange={handleCenterChange}
