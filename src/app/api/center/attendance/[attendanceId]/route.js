@@ -13,7 +13,6 @@ export async function GET(request, response) {
 export async function PUT(request, response) {
     const {attendanceId} = response.params
     const body = await request.json();
-    // dayAttendanceId, editedAttendances, deletedAttendances, userId, amount, date, centerId, examType
     const res = await updateAttendanceRecords(+attendanceId, body);
     return Response.json(
           res

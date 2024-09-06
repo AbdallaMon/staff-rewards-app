@@ -78,6 +78,8 @@ const AttendanceHistory = ({userId}) => {
                 }
             } catch (error) {
                 console.error('Failed to fetch attendance data:', error);
+                console.log(error, "error in AttendanceHistory")
+
                 setError('An unexpected error occurred. Please try again later.');
             } finally {
                 setLoading(false);

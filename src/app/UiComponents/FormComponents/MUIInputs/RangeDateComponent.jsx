@@ -15,11 +15,12 @@ export default function RangeDateComponent({
                                                handleEndDateChange
                                            }) {
     return (
-          <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2}}>
+          <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
               <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
                   <MobileDatePicker
                         label="Start Date"
                         value={startDate ? dayjs(startDate) : null}
+                        sx={{minWidth: 120}}
                         onChange={(newDate) => handleStartDateChange(newDate ? newDate.format('YYYY-MM-DD') : null)}
                         renderInput={(params) => (
                               <TextField
@@ -31,6 +32,8 @@ export default function RangeDateComponent({
                   <MobileDatePicker
                         label="End Date"
                         value={endDate ? dayjs(endDate) : null}
+                        sx={{minWidth: 120}}
+
                         onChange={(newDate) => handleEndDateChange(newDate ? newDate.format('YYYY-MM-DD') : null)}
                         renderInput={(params) => (
                               <TextField

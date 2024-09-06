@@ -19,7 +19,7 @@ import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 import {simpleModalStyle} from "@/app/constants";
 
-const ShiftAssignmentModal = ({shifts, setData, label, href, extraProps, item}) => {
+const ShiftAssignmentModal = ({shifts, setData, label, href, item}) => {
     const [open, setOpen] = useState(false);
     const [selectedShifts, setSelectedShifts] = useState([]);
     const {setLoading} = useToastContext();

@@ -12,11 +12,12 @@ export default function DateComponent({
                                           handleDateChange, label
                                       }) {
     return (
-          <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2}}>
+          <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
               <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
                   <MobileDatePicker
                         label={label}
                         value={date ? dayjs(date) : null}
+                        sx={{minWidth: 120}}
                         onChange={(newDate) => handleDateChange(newDate ? newDate.format('YYYY-MM-DD') : null)}
                         renderInput={(params) => <TextField {...params} />}
                   />

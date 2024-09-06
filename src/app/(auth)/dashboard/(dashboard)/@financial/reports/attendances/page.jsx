@@ -43,7 +43,7 @@ export default function CalendarPage() {
     const searchParams = useSearchParams();
     const selectedExamType = searchParams.get('examType');
     const router = useRouter();
-
+    const [apiExamType, setApiExamType] = useState("")
     useEffect(() => {
         setFilters((prevFilters) => ({...prevFilters, examType: selectedExamType}));
     }, [selectedExamType]);
@@ -71,14 +71,15 @@ export default function CalendarPage() {
         router.push(`?${params.toString()}`);
     };
 
-    const handleDateClick = (item) => {
+    const handleClick = (item) => {
         setSelectedDate(item.date);
+        setApiExamType(item.examType)
         setAttendanceModalOpen(true);
     };
 
     const handleFetchAttendance = async () => {
         setLoadingAttendance(true);
-        const response = await fetch(`/api/finincal/attendance/report?date=${selectedDate}&centerId=${selectedCenter}`);
+        const response = await fetch(`/api/finincal/attendance/report?date=${selectedDate}&centerId=${selectedCenter}&examType=${apiExamType}`);
         const result = await response.json();
         setAttendanceData(result.data || []);
         if (result.data.length === 0) {
@@ -166,7 +167,7 @@ export default function CalendarPage() {
             {
                 column: 'Duty',
                 type: String,
-                value: student => student.user.duty.name,
+                value: student => student.duty.name,
                 fontWeight: 'bold',
                 align: 'center',
                 alignVertical: 'center',
@@ -178,7 +179,7 @@ export default function CalendarPage() {
             {
                 column: 'Rate',
                 type: Number,
-                value: student => student.user.duty.amount,
+                value: student => student.attendances[0].dutyRewards[0].amount,
                 fontWeight: 'bold',
                 align: 'center',
                 alignVertical: 'center',
@@ -219,6 +220,7 @@ export default function CalendarPage() {
             attendances: item.attendances,
             totalReward: item.totalReward,
             center: item.center
+            , duty: item.attendances[0].dutyRewards[0].duty
         }));
 
         await writeXlsxFile(data, {
@@ -368,7 +370,7 @@ export default function CalendarPage() {
                     extraComponent={({item}) => (
                           <div className={"flex flex-col gap-1 items-center justify-center w-full my-1"}>
                               <Button color="tertiary" variant="contained" onClick={() => {
-                                  handleDateClick(item);
+                                  handleClick(item);
                                   setNoDataMessage("");
                               }}>
                                   Attendances sheet
@@ -411,12 +413,12 @@ export default function CalendarPage() {
                                   disabled={loadingAttendance}>
                               {loadingAttendance ? <CircularProgress size={24}/> : "Fetch Attendances"}
                           </Button>
-                          {attendanceData.length > 0 && (
+                          {attendanceData?.length > 0 && (
                                 <Button variant="contained" color="secondary" onClick={handleGenerateAttendanceExcel}>
                                     Generate Excel Report
                                 </Button>
                           )}
-                          {noDataMessage.length > 0 && (
+                          {noDataMessage?.length > 0 && (
                                 <Typography variant="body1" color="error">
                                     {noDataMessage}
                                 </Typography>
@@ -451,12 +453,12 @@ export default function CalendarPage() {
                                   disabled={loadingBankDetails}>
                               {loadingBankDetails ? <CircularProgress size={24}/> : "Fetch Bank Details"}
                           </Button>
-                          {bankDetailsData.length > 0 && (
+                          {bankDetailsData?.length > 0 && (
                                 <Button variant="contained" color="secondary" onClick={handleGenerateBankDetailsExcel}>
                                     Generate Excel Report
                                 </Button>
                           )}
-                          {noDataMessage.length > 0 && (
+                          {noDataMessage?.length > 0 && (
                                 <Typography variant="body1" color="error">
                                     {noDataMessage}
                                 </Typography>

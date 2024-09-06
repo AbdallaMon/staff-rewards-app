@@ -59,7 +59,7 @@ const SearchComponent = ({apiEndpoint, setFilters, inputLabel, renderKeys, mainK
     }, [resetTrigger]);
 
     return (
-          <Box sx={{position: "relative"}}>
+          <Box sx={{position: "relative", display: "flex", alignItems: "center"}}>
               <Autocomplete
                     options={searchResults}
                     getOptionLabel={(option) => renderKeys.map((key) => option[key]).join(" - ")}

@@ -6,7 +6,6 @@ import ToastProvider from "@/providers/ToastLoadingProvider";
 import ReduxProvider from "@/providers/ReduxProvider";
 import MUIContextProvider from "@/providers/MUIContext";
 import Navbar from "@/app/UiComponents/Navbar/MuiNavbar";
-import {Suspense} from "react";
 import DotsLoader from "@/app/UiComponents/Feedback/DotsLoading";
 
 const inter = League_Spartan({subsets: ["latin"]});

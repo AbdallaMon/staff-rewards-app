@@ -1,15 +1,14 @@
 "use client";
-import {Box, Button, Checkbox, FormControlLabel} from "@mui/material";
+import {Box, Checkbox, FormControlLabel} from "@mui/material";
 import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
 import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
 import React, {useState} from "react";
 import dayjs from "dayjs";
-import AttendanceDetailDrawer from "@/app/UiComponents/DataViewer/AttendanceDetailDrawer";
 import RangeDateComponent from "@/app/UiComponents/FormComponents/MUIInputs/RangeDateComponent";
 import DateComponent from "@/app/UiComponents/FormComponents/MUIInputs/DateChangerComponent";
 
-export default function Attendance() {
+export default function StudentsAttendance() {
     const {
         data,
         loading,
@@ -21,7 +20,7 @@ export default function Attendance() {
         total,
         setTotal,
         setFilters
-    } = useDataFetcher("center/attendance", false);
+    } = useDataFetcher("center/attendance/students", false);
     const now = dayjs();
     const firstDayOfMonth = now.startOf('month').format('YYYY-MM-DD');
     const lastDayOfMonth = now.endOf('month').format('YYYY-MM-DD');
@@ -30,16 +29,19 @@ export default function Attendance() {
     const [startDate, setStartDate] = useState(firstDayOfMonth);
     const [endDate, setEndDate] = useState(lastDayOfMonth);
     const [date, setDate] = useState(null);
-    const [drawerOpen, setDrawerOpen] = useState(false);
-    const [selectedAttendanceId, setSelectedAttendanceId] = useState(null);
     const columns = [
-        {name: "name", label: "Name"},
-        {name: "emiratesId", label: "Emirates ID"},
         {name: "date", label: "Date"},
         {name: "examType", label: "Exam Type"},
-        {name: "numberOfShifts", label: "Attended Shifts"},
+        {name: "totalAttendedStudents", label: "Total students attended"},
     ];
-
+    const inputs = [{
+        data: {
+            id: "totalAttendedStudents", type: "number", label: "Total students attended"
+        },
+        pattern: {
+            required: {value: true, message: "Total students is required"}
+        }
+    }]
     const handleDateChange = (newDate) => {
         setDate(newDate ? dayjs(newDate).format('YYYY-MM-DD') : null);
         updateFilters({date: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, startDate: null, endDate: null});
@@ -60,10 +62,7 @@ export default function Attendance() {
         }));
     };
 
-    const handleRowClick = (attendanceId) => {
-        setSelectedAttendanceId(attendanceId);
-        setDrawerOpen(true);
-    };
+
     return (
           <div>
               <Box sx={{
@@ -73,25 +72,6 @@ export default function Attendance() {
                       md: "row",
                   }
               }}>
-                  <div className={"flex flex-col gap-1"}>
-
-                      <FormControlLabel
-                            control={
-                                <Checkbox
-                                      checked={otherCenters}
-                                      onChange={(e) => setOtherCenters(e.target.checked)}
-                                />
-                            }
-                            label="Search in other centers"
-                      />
-                      <SearchComponent
-                            apiEndpoint={`/api/index?id=user&centerId=${!otherCenters}`}
-                            setFilters={setFilters}
-                            inputLabel="Search User By EmiratesId"
-                            renderKeys={["name", "emiratesId", "email"]}
-                            mainKey="emiratesId"
-                      />
-                  </div>
                   <RangeDateComponent
                         startDate={startDate}
                         endDate={endDate}
@@ -107,41 +87,18 @@ export default function Attendance() {
                     columns={columns}
                     page={page}
                     setPage={setPage}
+                    inputs={inputs}
                     limit={limit}
+                    withEdit={true}
+                    editHref={"center/attendance/students"}
                     setLimit={setLimit}
                     total={total}
                     setTotal={setTotal}
                     setData={setData}
-                    withDelete={true}
-                    deleteHref={"center/attendance"}
                     checkDates={true}
                     loading={loading}
-                    extraComponent={({item}) => (
-                          <div className={"flex gap-5 items-center"}>
+              />
 
-                              {item.attachment?.length > 0 ?
-                                    <>
-                                        <a href={item.attachment} target="_blank" rel="noopener noreferrer">
-                                            <Button>
-                                                View the document </Button>
-                                        </a>
-                                    </>
-                                    : "Not signed yet."
-                              }
-                              <Button onClick={() => handleRowClick(item.id)}>View Details</Button>
-                          </div>
-                    )}
-              />
-              <AttendanceDetailDrawer
-                    dayAttendanceId={selectedAttendanceId}
-                    open={drawerOpen}
-                    onClose={() => {
-                        setDrawerOpen(false)
-                        setSelectedAttendanceId(null)
-                    }}
-                    center={true}
-                    setData={setData}
-              />
           </div>
     );
 }

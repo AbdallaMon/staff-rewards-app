@@ -72,6 +72,14 @@ export default function Centers() {
             }
         },
         {
+            data: {id: "siteSupervisor", type: "text", label: "Supervisor name"}, pattern: {
+                required: {
+                    value: true,
+                    message: "Please enter a Supervisor name",
+                }
+            }
+        },
+        {
             data: {id: "supervisorEmail", type: "email", label: "Supervisor Email"}, pattern: {
                 required: {
                     value: true,
@@ -90,7 +98,9 @@ export default function Centers() {
         {name: "centerId", label: "Center ID"},
         {name: "zone", label: "Zone"},
         {name: "email", label: "Email"},
-        {name: "supervisorEmail", label: "Supervisor Email"}
+        {name: "supervisorEmail", label: "Supervisor Email"},
+        {name: "siteSupervisor", label: "Supervisor Name"}
+
     ];
 
     const editInputs = [...inputs]

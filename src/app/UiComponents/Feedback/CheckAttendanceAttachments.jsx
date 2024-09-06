@@ -1,5 +1,5 @@
 import {useSelector} from "react-redux";
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {
     Box,
     Card,
@@ -32,16 +32,14 @@ export default function CheckAttendanceAttachments({children}) {
     const [dayAttendances, setDayAttendances] = useState([]);
     const [shifts, setShifts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const {setLoading: setToastLoading} = useToastContext();
     const [signatureUrl, setSignatureUrl] = useState(null);
     const [pdfBlob, setPdfBlob] = useState(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedAttendance, setSelectedAttendance] = useState(null);
-    const [confirmChecked, setConfirmChecked] = useState(false);
     const [isPdfLoading, setIsPdfLoading] = useState(false);
     const [signatureDialog, setSignatureDialog] = useState(false)
-
+    const [error, setError] = useState(null);
     useEffect(() => {
         const fetchDayAttendances = async () => {
             try {
@@ -56,11 +54,16 @@ export default function CheckAttendanceAttachments({children}) {
                 if (dayAttendancesRes.ok && shiftsRes.ok) {
                     setDayAttendances(dayAttendancesData.data);
                     setShifts(shiftsData.data);
-                    setSignatureUrl(dayAttendancesData.data[0].user.signature);
+                    if (dayAttendancesData.data && dayAttendancesData.data.length > 0) {
+
+                        setSignatureUrl(dayAttendancesData.data[0].user.signature);
+                    }
                 } else {
                     setError('Failed to fetch data.');
                 }
             } catch (err) {
+                console.log(err, "error in CheckAttendanceAttachments")
+                console.error(err, "error in CheckAttendanceAttachments")
                 setError('Failed to fetch data.');
             } finally {
                 setLoading(false);
@@ -70,7 +73,7 @@ export default function CheckAttendanceAttachments({children}) {
         fetchDayAttendances();
     }, [data.id]);
 
-    const handleApprove = async () => {
+    const handleApprove = useCallback(async () => {
         const formData = new FormData();
         formData.append('attachment', pdfBlob, 'attendance-template.pdf');
 
@@ -89,74 +92,92 @@ export default function CheckAttendanceAttachments({children}) {
             setDayAttendances(newData);
             setIsDialogOpen(false);
         }
-    };
+    }, [pdfBlob, selectedAttendance, dayAttendances, data.id, setToastLoading]);
+
 
     const generatePdf = async (dayAttendance) => {
-        setIsPdfLoading(true);
-        setSelectedAttendance(dayAttendance);
-        const doc = new jsPDF('p', 'pt', 'a4');
-        doc.setFontSize(16);
-        doc.text("EmSAT/PLD Exam Claim Form", 40, 40);
-        doc.addImage('/certLogo.png', 'PNG', 40, 60, 150, 40); // Left logo
-        doc.addImage('/examLogo.png', 'PNG', 450, 60, 100, 40); // Right logo
+        try {
 
-        doc.autoTable({
-            startY: 110,
-            body: [
-                ['Full Name', dayAttendance.user.name || "No name found"],
-                ['Duty', dayAttendance.attendances[0]?.dutyRewards[0]?.duty.name || "No duty found"],
-                ['Test Date', dayjs(dayAttendance.date).format('DD/MM/YYYY')] // Format the date
-            ],
-            theme: 'grid',
-            styles: {cellPadding: 8}, // Add padding around text in the table cells
-            margin: {left: 40, top: 10}
-        });
+            setIsPdfLoading(true);
+            setSelectedAttendance(dayAttendance);
+            const doc = new jsPDF('p', 'pt', 'a4');
+            doc.setFontSize(16);
+            doc.text("EmSAT/PLD Exam Claim Form", 40, 40);
+            doc.addImage('/certLogo.png', 'PNG', 40, 60, 150, 40); // Left logo
+            doc.addImage('/examLogo.png', 'PNG', 450, 60, 100, 40); // Right logo
 
-        const totalRewards = dayAttendance.attendances.reduce(
-              (acc, attendance) => acc + attendance.dutyRewards.reduce((acc, reward) => acc + reward.amount, 0),
-              0
-        );
+            doc.autoTable({
+                startY: 110,
+                body: [
+                    ['Full Name', dayAttendance.user.name || "No name found"],
+                    ['Duty', dayAttendance.attendances[0]?.dutyRewards[0]?.duty.name || "No duty found"],
+                    ['Test Date', dayjs(dayAttendance.date).format('DD/MM/YYYY')] // Format the date
+                ],
+                theme: 'grid',
+                styles: {cellPadding: 8}, // Add padding around text in the table cells
+                margin: {left: 40, top: 10}
+            });
 
-        doc.autoTable({
-            startY: doc.lastAutoTable.finalY + 15,
-            head: [['Shift', 'Duration (hours)', 'Reward']],
-            body: dayAttendance.attendances.map(attendance => [
-                attendance.shift.name,
-                attendance.shift.duration,
-                attendance.dutyRewards.reduce((acc, reward) => acc + reward.amount, 0)
-            ]),
-            foot: [[{content: 'Total Rewards', colSpan: 2, styles: {halign: 'right'}}, totalRewards]],
-            margin: {top: 5},
-            theme: 'grid',
-            styles: {cellPadding: 8},  // Add padding around text in the table cells
-        });
+            const totalRewards = dayAttendance.attendances.reduce(
+                  (acc, attendance) => acc + attendance.dutyRewards.reduce((acc, reward) => acc + reward.amount, 0),
+                  0
+            );
 
-        doc.autoTable({
-            startY: doc.lastAutoTable.finalY + 17,
-            head: [['Shift', 'Timing (hours)']],
-            body: shifts.map(shift => [
-                shift.name,
-                shift.duration
-            ]),
-            margin: {top: 5},
-            theme: 'grid',
-            styles: {cellPadding: 8},  // Add padding around text in the table cells
-        });
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY + 15,
+                head: [['Shift', 'Duration (hours)', 'Reward']],
+                body: dayAttendance.attendances.map(attendance => [
+                    attendance.shift.name,
+                    attendance.shift.duration,
+                    attendance.dutyRewards.reduce((acc, reward) => acc + reward.amount, 0)
+                ]),
+                foot: [[{content: 'Total Rewards', colSpan: 2, styles: {halign: 'right'}}, totalRewards]],
+                margin: {top: 5},
+                theme: 'grid',
+                styles: {cellPadding: 8},  // Add padding around text in the table cells
+            });
 
-        doc.setFontSize(10);
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY + 17,
+                head: [['Shift', 'Timing (hours)']],
+                body: shifts.map(shift => [
+                    shift.name,
+                    shift.duration
+                ]),
+                margin: {top: 5},
+                theme: 'grid',
+                styles: {cellPadding: 8},  // Add padding around text in the table cells
+            });
 
-        const checkboxImg = new Image();
-        checkboxImg.src = '/checkbox.png';
-        doc.addImage(checkboxImg, 'PNG', 40, doc.lastAutoTable.finalY + 30, 10, 10); // Adjust size and position
-        doc.text("I confirm that the information provided above is accurate.", 55, doc.lastAutoTable.finalY + 40);
-        doc.text("Employee Signature:", 40, doc.lastAutoTable.finalY + 70);
-        doc.addImage(signatureUrl, 'PNG', 40, doc.lastAutoTable.finalY + 80, 100, 30); // Smaller image size
+            doc.setFontSize(10);
 
-        finalizePdf(doc);
+            const checkboxImg = new Image();
+            checkboxImg.src = '/checkbox.png';
+            doc.addImage(checkboxImg, 'PNG', 40, doc.lastAutoTable.finalY + 30, 10, 10); // Adjust size and position
+            doc.text("I confirm that the information provided above is accurate.", 55, doc.lastAutoTable.finalY + 40);
+            doc.text("Employee Signature:", 40, doc.lastAutoTable.finalY + 70);
+            doc.addImage(signatureUrl, 'PNG', 40, doc.lastAutoTable.finalY + 80, 100, 30); // Smaller image size
+
+            finalizePdf(doc, dayAttendance);
+        } catch (err) {
+            setError(`Error generating PDF: ${err.message}. Please try again.`);
+        } finally {
+            setIsPdfLoading(false);
+        }
     };
 
-    const finalizePdf = (doc) => {
+    const finalizePdf = (doc, dayAttendance) => {
         doc.text("Site Supervisor Name:", 300, doc.lastAutoTable.finalY + 70);
+
+        const siteSupervisorName = dayAttendance.center?.siteSupervisor || '';
+
+
+        // Ensure the table content is valid and correctly formatted
+        doc.text(siteSupervisorName, 300, doc.lastAutoTable.finalY + 85);
+
+        doc.setLineWidth(2);
+        doc.line(40, doc.lastAutoTable.finalY + 115, 550, doc.lastAutoTable.finalY + 115);
+
 
         doc.setLineWidth(2);
         doc.line(40, doc.lastAutoTable.finalY + 115, 550, doc.lastAutoTable.finalY + 115);
@@ -248,10 +269,13 @@ export default function CheckAttendanceAttachments({children}) {
               <Dialog fullScreen open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
                   <DialogContent style={{padding: 0}}>
                       {pdfBlob && (
-
                             <Box
                                   sx={{
                                       width: '100%',
+                                      maxWidth: {
+                                          md: 600, lg: 800
+                                      },
+                                      mx: "auto",
                                       height: '100%',
                                       overflow: 'auto',
                                       border: '1px solid #ddd',
@@ -285,8 +309,6 @@ export default function CheckAttendanceAttachments({children}) {
                   </DialogContent>
                   <DialogActions>
                       <ApprovalSection
-                            confirmChecked={confirmChecked}
-                            setConfirmChecked={setConfirmChecked}
                             handleApprove={handleApprove}
                       />
                   </DialogActions>
@@ -295,20 +317,24 @@ export default function CheckAttendanceAttachments({children}) {
     );
 }
 
-const ApprovalSection = ({confirmChecked, setConfirmChecked, handleApprove}) => (
-      <div className={"max:sm:flex flex-col gap-5 items-center justify-center"}>
-          <FormControlLabel
-                control={<Checkbox checked={confirmChecked}
-                                   onChange={(e) => setConfirmChecked(e.target.checked)}/>}
-                label="I confirm that the information provided above is accurate."
-          />
-          <Button
-                variant="contained"
-                color="success"
-                onClick={handleApprove}
-                disabled={!confirmChecked}
-          >
-              Approve and Submit
-          </Button>
-      </div>
-);
+const ApprovalSection = ({handleApprove}) => {
+    const [confirmChecked, setConfirmChecked] = useState(false);
+
+    return (
+          <div className={"max:sm:flex flex-col gap-5 items-center justify-center"}>
+              <FormControlLabel
+                    control={<Checkbox checked={confirmChecked}
+                                       onChange={(e) => setConfirmChecked(e.target.checked)}/>}
+                    label="I confirm that the information provided above is accurate."
+              />
+              <Button
+                    variant="contained"
+                    color="success"
+                    onClick={handleApprove}
+                    disabled={!confirmChecked}
+              >
+                  Approve and Submit
+              </Button>
+          </div>
+    );
+}

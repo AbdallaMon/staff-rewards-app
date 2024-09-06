@@ -124,7 +124,17 @@ export async function getEmployeeById(employeeId) {
                 center: true
             }
         });
-        return {data: user, status: 200,}
+        if (user.signature) {
+            const signatureResponse = await fetch(user.signature);
+            if (signatureResponse.ok) {
+                const buffer = await signatureResponse.arrayBuffer();
+                const base64Signature = Buffer.from(buffer).toString('base64');
+                user.signature = `data:image/png;base64,${base64Signature}`;
+            } else {
+                user.signature = null;
+            }
+        }
+        return {data: user, status: 200}
 
     } catch (e) {
         return handlePrismaError(e)
@@ -136,12 +146,16 @@ export async function updateEmployee(employeeId, data) {
         if (data.ibanBank) {
             data.ibanBank = "AE" + data.ibanBank;
         }
-        await prisma.user.update({
+        const selected = Object.keys(data)[0]
+        const user = await prisma.user.update({
             where: {id: parseInt(employeeId)},
             data,
-            select: {id: true},
+            select: {
+                id: true,
+                [selected]: true, // Select the first key from the data object
+            },
         });
-        return {data: data, status: 200, message: "updated successfully"}
+        return {data: data, status: 200, message: "updated successfully", user}
 
     } catch (e) {
         return handlePrismaError(e)
@@ -268,7 +282,7 @@ export async function getUserDayAttendancesWithoutAttachment(userId) {
                 const base64Signature = Buffer.from(buffer).toString('base64');
                 dayAttendances[0].user.signature = `data:image/png;base64,${base64Signature}`;
             } else {
-                dayAttendances[0].user.signature = null; // Handle the case where fetching the signature fails
+                dayAttendances[0].user.signature = null;
             }
         }
 
@@ -284,7 +298,6 @@ export async function updateDayAttendanceAttachment(dayAttendanceId, data) {
               {
                   where: {id: parseInt(dayAttendanceId)},
                   data, select: {id: true},
-
               }
         )
         return {status: 200, message: "uploaded successfully"}

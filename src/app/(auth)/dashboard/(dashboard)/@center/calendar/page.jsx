@@ -7,6 +7,8 @@ import {useRouter, useSearchParams} from "next/navigation";
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
 import ShiftAssignmentModal from "@/app/UiComponents/Models/ShiftAssignmentModal";
 import {isTodayOrYesterday} from "@/helpers/functions/utlity";
+import CreateModal from "@/app/UiComponents/Models/CreateModal";
+import dayjs from "dayjs";
 
 export default function CalendarPage() {
     const {
@@ -88,7 +90,6 @@ export default function CalendarPage() {
             pattern: {required: {value: true, message: "Please select an exam type"}}
         }
     ];
-
     return (
           <div>
               <div className={"grid grid-cols-2 gap-5 items-center my-2 bg-bgSecondary w-full py-2 px-2"}>
@@ -119,6 +120,31 @@ export default function CalendarPage() {
                                                           centerLoading={centerLoading}
                                     />
                               )}
+                              <CreateModal label={"Total Students"}
+                                           extraSubmitData={{
+                                               date: item.date,
+                                               examType: item.examType
+                                           }}
+                                           href={"/center/attendance/students"}
+                                           inputs={[{
+                                               data: {
+                                                   id: "totalAttendedStudents",
+                                                   label: "Total number of students attended",
+                                                   type: "number"
+                                               }
+                                               , pattern: {
+                                                   required: {value: true, message: "Please enter total students"}
+                                               }
+
+                                           },
+                                           ]}
+                                           extraProps={{
+                                               formTitle: `Student attendance`,
+                                               subTitle: `Date: ${dayjs(item.date).format('YYYY-MM-DD')} , ${item.examType}`,
+                                               btnText: "Submit"
+                                           }}
+
+                              />
                           </>
                     )}
               />

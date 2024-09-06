@@ -3,7 +3,7 @@ import {Box, Button, Typography} from "@mui/material";
 import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
 import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import dayjs from "dayjs";
 import AttendanceDetailDrawer from "@/app/UiComponents/DataViewer/AttendanceDetailDrawer";
 import RangeDateComponent from "@/app/UiComponents/FormComponents/MUIInputs/RangeDateComponent";
@@ -11,6 +11,7 @@ import DateComponent from "@/app/UiComponents/FormComponents/MUIInputs/DateChang
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
 import {useRouter, useSearchParams} from "next/navigation";
 import {useSelector} from "react-redux";
+import DateFilterComponent from "@/app/UiComponents/FormComponents/DateFilterComponent";
 
 export default function Attendance() {
     let user = useSelector((state) => state.auth);
@@ -25,15 +26,9 @@ export default function Attendance() {
         setLimit,
         total,
         setTotal,
-        setFilters
+        setFilters,
+        filters
     } = useDataFetcher("admin/attendance", false);
-    const now = dayjs();
-    const firstDayOfMonth = now.startOf('month').format('YYYY-MM-DD');
-    const lastDayOfMonth = now.endOf('month').format('YYYY-MM-DD');
-
-    const [startDate, setStartDate] = useState(firstDayOfMonth);
-    const [endDate, setEndDate] = useState(lastDayOfMonth);
-    const [date, setDate] = useState(null);
     const [centers, setCenters] = useState([]);
     const searchParams = useSearchParams();
     const selectedCenter = searchParams.get('centerId');
@@ -44,7 +39,7 @@ export default function Attendance() {
     const [centerLoading, setCenterLoading] = useState(true);
 
     useEffect(() => {
-        setFilters({centerId: selectedCenter});
+        setFilters({...filters, centerId: selectedCenter, userId: null});
     }, [selectedCenter]);
 
     async function fetchCenters() {
@@ -79,35 +74,15 @@ export default function Attendance() {
         } else {
             params.delete('centerId');
         }
-        setFilters({userId: null});
         setResetTrigger((prev) => !prev);
         router.push(`?${params.toString()}`);
     };
-    const handleDateChange = (newDate) => {
-        setDate(newDate ? dayjs(newDate).format('YYYY-MM-DD') : null);
-        updateFilters({date: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, startDate: null, endDate: null});
-    };
-    const handleStartDateChange = (newDate) => {
-        setStartDate(newDate);
-        updateFilters({startDate: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, date: null});
-    };
 
-    const handleEndDateChange = (newDate) => {
-        setEndDate(newDate);
-        updateFilters({endDate: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, date: null});
-    };
-    const updateFilters = (newFilters) => {
-        setFilters((prevFilters) => ({
-            ...prevFilters,
-            ...newFilters,
-        }));
-    };
 
     const handleRowClick = (attendanceId) => {
         setSelectedAttendanceId(attendanceId);
         setDrawerOpen(true);
     };
-    console.log(user, "user")
     return (
           <div>
               <Typography variant="h3" color="primary" p={2}>
@@ -118,7 +93,8 @@ export default function Attendance() {
                       xs: "column",
                       sm: "column",
                       md: "row",
-                  }
+                  },
+                  flexWrap: "wrap"
               }}>
                   <SearchComponent
                         apiEndpoint={"/api/index?id=user&center=" + selectedCenter}
@@ -128,22 +104,20 @@ export default function Attendance() {
                         mainKey="emiratesId"
                         resetTrigger={resetTrigger}
                   />
-                  <RangeDateComponent
-                        startDate={startDate}
-                        endDate={endDate}
-                        handleStartDateChange={handleStartDateChange}
-                        handleEndDateChange={handleEndDateChange}
+                  <DateFilterComponent
+                        setFilters={setFilters}
+                        filters={filters}
                   />
-                  <DateComponent date={date} handleDateChange={handleDateChange}
-                                 label="Select a day"
-                  />
-                  <FilterSelect
-                        options={centers}
-                        label={"Centers"}
-                        onChange={handleCenterChange}
-                        loading={centerLoading}
-                        value={selectedCenter}
-                  />
+                  <div className={"w-fit"}>
+
+                      <FilterSelect
+                            options={centers}
+                            label={"Centers"}
+                            onChange={handleCenterChange}
+                            loading={centerLoading}
+                            value={selectedCenter}
+                      />
+                  </div>
               </Box>
               <AdminTable
                     data={data}

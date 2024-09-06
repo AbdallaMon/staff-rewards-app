@@ -653,3 +653,129 @@ export async function deleteAttendanceRecordWithLog(dayAttendanceId, loggerId) {
         return handlePrismaError(error);
     }
 }
+
+
+export async function createStudentAttendanceRecord({date, centerId, examType, totalAttendedStudents}) {
+    try {
+        const formattedDate = new Date(date);
+        formattedDate.setUTCHours(0, 0, 0, 0);
+        date = formattedDate.toISOString()
+        const studentAttendance = await prisma.studentAttendance.create({
+            data: {
+                date: new Date(date).toISOString(),
+                centerId: +centerId,
+                examType: examType,
+                totalAttendedStudents: totalAttendedStudents,
+            },
+        });
+
+        return {
+            status: 200,
+            data: studentAttendance,
+            message: "Student attendance record created successfully.",
+        };
+    } catch (error) {
+        if (error.code === 'P2002' && error.meta && error.meta.target === 'center_examType_date_unique') {
+            return {
+                status: 400,
+                message: "There is already a record for this date and exam type.",
+            };
+        }
+        return handlePrismaError(error);
+
+    }
+}
+
+export async function fetchStudentAttendancesByCenterId(centerId, page, limit, filters = {}) {
+    const where = {centerId};
+
+    if (filters.date) {
+        const date = new Date(filters.date);
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+        where.date = {
+            gte: startOfDay,
+            lte: endOfDay
+        };
+    } else {
+
+        if (filters.startDate && filters.endDate) {
+            const endDate = new Date(filters.endDate);
+            endDate.setHours(23, 59, 59, 999);  // Ensure endDate includes the entire day
+
+            where.date = {
+                gte: new Date(filters.startDate),
+                lte: endDate
+            };
+        } else if (filters.startDate) {
+            where.date = {
+                gte: new Date(filters.startDate)
+            };
+        } else if (filters.endDate) {
+            const endDate = new Date(filters.endDate);
+            endDate.setHours(23, 59, 59, 999);  // Ensure endDate includes the entire day
+            where.date = {
+                lte: endDate
+            };
+        } else {
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+            where.date = {
+                gte: startOfMonth,
+                lte: endOfMonth
+            };
+        }
+    }
+    if (filters.userId) {
+        where.userId = +filters.userId
+    }
+
+    try {
+        const [studentsAttendances, total] = await prisma.$transaction([
+            prisma.studentAttendance.findMany({
+                where,
+                orderBy: {date: 'desc'},
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            prisma.studentAttendance.count({where}),
+        ]);
+
+
+        return {
+            status: 200,
+            data: studentsAttendances,
+            total,
+            message: "Students Attendances records fetched successfully"
+        };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+export async function updateStudentsAttendanceRecords(studentAttendanceId, body) {
+    const {totalAttendedStudents} = body;
+    const newStudentAttendance = await prisma.studentAttendance.update({
+        where: {
+            id: +studentAttendanceId
+        },
+        data: {
+            totalAttendedStudents: +totalAttendedStudents,
+        },
+    });
+
+    try {
+
+        return {
+            status: 200,
+            data: newStudentAttendance,
+            message: "Students Attendance records updated successfully",
+        };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}

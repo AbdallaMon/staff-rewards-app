@@ -479,7 +479,7 @@ export async function updateAttendanceRecordsWithLog(dayAttendanceId, body, logg
     }
 }
 
-export async function getAttendanceData(date, centerId) {
+export async function getAttendanceData(date, centerId, examType) {
     try {
 
         const where = {
@@ -489,7 +489,9 @@ export async function getAttendanceData(date, centerId) {
         if (centerId) {
             where.centerId = +centerId;
         }
-
+        if (examType) {
+            where.examType = examType
+        }
         const attendanceData = await prisma.dayAttendance.findMany({
             where,
             select: {
@@ -519,6 +521,16 @@ export async function getAttendanceData(date, centerId) {
                 },
                 attendances: {
                     select: {
+                        dutyRewards: {
+                            select: {
+                                amount: true,
+                                duty: {
+                                    select: {
+                                        name: true
+                                    }
+                                }
+                            }
+                        },
                         shift: {
                             select: {
                                 name: true

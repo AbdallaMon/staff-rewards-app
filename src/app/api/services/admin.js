@@ -198,6 +198,7 @@ export async function createCenter(data) {
                 zone: data.zone,
                 email: data.email,
                 supervisorEmail: data.supervisorEmail,
+                siteSupervisor: data.siteSupervisor,
                 centerAdmin: {
                     connect: {id: newUser.id}
                 }
@@ -429,6 +430,44 @@ export async function fetchEmployees(page = 1, limit = 10, employRequests = fals
     }
 }
 
+export async function requestNewSignature(employId) {
+    try {
+        const user = await prisma.user.update({
+            where: {id: parseInt(employId, 10)},
+            data: {
+                signature: null
+            },
+            select: {
+                email: true
+            }
+        })
+
+        const emailHtml = `
+    <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5;">
+        <h2 style="color: #7c5e24;">Request to Create a New Signature</h2>
+        <p>Dear User,</p>
+        <p>This is a request for you to create a new signature in our system. Your previous signature has been removed, and we kindly ask you to update your signature by visiting your profile.</p>
+        <p>You can create your new signature by clicking the button below:</p>
+        <div style="text-align: center; margin: 20px 0;">
+            <a href="${url}/dashboard/profile" style="display: inline-block; padding: 10px 20px; background-color: #7c5e24; color: #ffffff; text-decoration: none; border-radius: 5px;">Create New Signature</a>
+        </div>
+        <p>Best regards</p>
+    </div>
+`;
+
+
+        await sendEmail(
+              user.email,
+              "Action Required: Update Your Signature",
+              emailHtml
+        );
+
+        return {status: 200, message: 'we removed old signature and send email to the user to edit it'};
+    } catch (error) {
+        return handlePrismaError(error);
+
+    }
+}
 
 export async function EditEmploy(employId, data) {
     if (data.centerId) {

@@ -123,7 +123,6 @@ const UncompletedForm = () => {
                 }));
             }
         } else {
-            // For other fields, accept both image and PDF files
             if (file && (file.type.startsWith('image/') || file.type === 'application/pdf')) {
                 setFileInputs({
                     ...fileInputs,

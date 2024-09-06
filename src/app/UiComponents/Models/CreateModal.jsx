@@ -16,7 +16,7 @@ const CreateModal = ({
                          label,
                          inputs,
                          href,
-                         extraProps, handleSubmit, setTotal, BtnColor = "secondary"
+                         extraProps, handleSubmit, setTotal, BtnColor = "secondary", extraSubmitData
                      }) => {
     const [open, setOpen] = useState(false);
     const {setLoading} = useToastContext()
@@ -30,7 +30,9 @@ const CreateModal = ({
             href = `${href}?extraId=${extraProps.extraId}`
         }
 
-
+        if (extraSubmitData) {
+            formData = {...formData, ...extraSubmitData}
+        }
         const result = await handleRequestSubmit(formData, setLoading, `${href}`, false, "Creating...");
         if (result.status === 200) {
             if (handleSubmit) {

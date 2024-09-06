@@ -30,7 +30,7 @@ const fetchUserById = async (userId, isCenter) => {
     return result;
 };
 
-const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData, isCenter}) => {
+const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData, isCenter, admin}) => {
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -214,11 +214,11 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData, i
                                         <List>
                                             {renderDocument("Emirates ID", userData.emiratesIdPhoto)}
                                             {renderDocument("IBAN", userData.ibanBankPhoto)}
-
                                             {renderDocument("Education", userData.graduationImage)}
                                             {renderDocument("Passport ", userData.passportPhoto)}
                                             {renderDocument("CV ", userData.cvImage)}
-
+                                            <AdminUserSignature userId={userId} isAdmin={admin}
+                                                                signatureUrl={userData.signature}/>
                                         </List>
                                     </Grid>
                                 </Grid>
@@ -323,5 +323,46 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData, i
           </>
     );
 };
+const AdminUserSignature = ({userId, signatureUrl, isAdmin}) => {
+    const {setLoading: setToastLoading} = useToastContext();
+    const [signature, setSignature] = useState(signatureUrl)
+    const handleRequestNewSignature = async () => {
+        const res = await handleRequestSubmit(
+              {},
+              setToastLoading,
+              `admin/employees/${userId}/signature`,
+              false,
+              "Requesting new signature",
+              false,
+              "PUT"
+        );
 
+        if (res.status === 200) {
+            setSignature(null)
+        }
+
+    };
+
+    return (
+          <div className={"flex gap-2"}>
+              {signature ? (
+                    <div>
+                        Signature:
+                        <img
+                              src={signature}
+                              alt="User Signature"
+                              className={"w-full max-w-[200px] h-auto"}
+                        />
+                    </div>
+              ) : (
+                    <p>No signature available</p>
+              )}
+              {isAdmin && (
+                    <Button variant="contained" color="primary" onClick={handleRequestNewSignature}>
+                        Request New Signature
+                    </Button>
+              )}
+          </div>
+    );
+};
 export default UserDetailDrawer;

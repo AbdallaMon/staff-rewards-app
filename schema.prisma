@@ -54,10 +54,8 @@ model User {
 model UserAdditionalDuties {
   userId Int
   dutyId Int
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   duty Duty @relation(fields: [dutyId], references: [id], onDelete: Cascade)
-
   @@id([userId, dutyId])
 }
 model Log {
@@ -76,8 +74,10 @@ model Center {
   zone           Emirates?
   email          String
   supervisorEmail String
+  siteSupervisor  String?
   employees      User[]        @relation("CenterEmployees")
   attendance     Attendance[]
+  studentAttendances   StudentAttendance[]
   dayAttendances DayAttendance[]
   adminUserId    Int?          @unique
   centerAdmin    User?         @relation(fields: [adminUserId], references: [id], name: "CenterAdmin")
@@ -127,7 +127,19 @@ model DayAttendance {
   updatedAt     DateTime      @default(now())
   deletedAt     DateTime?
 }
+model StudentAttendance {
+  id        Int      @id @default(autoincrement())
+  centerId  Int
+  date      DateTime
+  examType  ExamType
+  totalAttendedStudents Int
+  center    Center   @relation(fields: [centerId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  deletedAt DateTime?
 
+  @@unique([centerId, examType, date])
+}
 model DutyReward {
   id           Int           @id @default(autoincrement())
   dutyId       Int

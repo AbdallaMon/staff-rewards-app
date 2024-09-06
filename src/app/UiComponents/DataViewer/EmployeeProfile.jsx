@@ -31,8 +31,8 @@ import {IoMdClose, IoMdEye, IoMdCreate, IoMdPerson, IoMdCash, IoMdInformationCir
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
-import PrintBankDetailsButton from "@/app/UiComponents/Templatese/BankdetailsTemplate";
 import SignatureComponent from "@/app/UiComponents/FormComponents/Signature";
+import BankDetailsWithSignature from "@/app/UiComponents/Templatese/BankdetailsWithSignature";
 
 const Input = styled('input')({
     display: 'none',
@@ -63,11 +63,6 @@ const DataBox = styled(Box)(({theme}) => ({
     marginBottom: "12px",
 }));
 
-const fetchUserDetails = async (userId) => {
-    const response = await fetch(`/api/employee/private/${userId}`);
-    const user = await response.json();
-    return user.data;
-};
 
 const ProfilePage = ({userId}) => {
     const [user, setUser] = useState(null);
@@ -83,11 +78,18 @@ const ProfilePage = ({userId}) => {
     const [tabIndex, setTabIndex] = useState(0);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [fetchError, setFetchError] = useState(null)
     useEffect(() => {
         const loadUserDetails = async () => {
-            const data = await fetchUserDetails(userId);
-            setUser(data);
-            setLoading(false);
+            try {
+                const response = await fetch(`/api/employee/private/${userId}`);
+                const user = await response.json();
+                setUser(user.data);
+                setLoading(false);
+            } catch (e) {
+                console.log(e, "user profile error")
+                setFetchError(e.message)
+            }
         };
         loadUserDetails();
     }, [userId]);
@@ -163,7 +165,9 @@ const ProfilePage = ({userId}) => {
     };
 
     if (loading) return <FullScreenLoader/>
-
+    if (fetchError) {
+        return <Alert severity="error">Sorry something wrong happened please try later</Alert>
+    }
     return (
           <Container maxWidth="md">
               <Typography variant="h4" gutterBottom className={"text-secondary"}>Employee Profile</Typography>
@@ -294,7 +298,7 @@ const ProfilePage = ({userId}) => {
                                             </Box>
                                       )}
                                   </DataBox>
-                                  <SignatureComponent user={user}/>
+                                  <SignatureComponent user={user} setUser={setUser}/>
                               </ProfileSection>
                           </Box>
                       </TabPanel>
@@ -358,31 +362,14 @@ const ProfilePage = ({userId}) => {
                                                 <Link href={user.bankApprovalAttachment} target="_blank"
                                                       rel="noopener noreferrer"
                                                       sx={{ml: 1}}>View PDF</Link>
-                                                {editMode && (
-                                                      <IconButton
-                                                            onClick={() => handleImageEditClick('bankApprovalAttachment')}><IoMdCreate/></IconButton>
-                                                )}
+
                                             </Box>
                                       ) : (
                                             <Box display="flex" alignItems="center" ml={1}>
-                                                {!user.bankApprovalAttachment ? "No attacments uploaded" :
-                                                      <Avatar src={user.bankApprovalAttachment}
-                                                              alt="Bank Approval Attachment"
-                                                              sx={{width: 80, height: 80, mr: 1}}/>}
-
-                                                {editMode && (
-                                                      <IconButton
-                                                            onClick={() => handleImageEditClick('bankApprovalAttachment')}><IoMdCreate/></IconButton>
-                                                )}
-                                                {user.bankApprovalAttachment &&
-                                                      <Tooltip title="View Full Image">
-                                                          <IconButton
-                                                                onClick={() => setFullImageModal(user.bankApprovalAttachment)}><IoMdEye/></IconButton>
-                                                      </Tooltip>}
+                                                <BankDetailsWithSignature user={user} setUser={setUser}/>
                                             </Box>
                                       )}
                                   </DataBox>
-                                  <PrintBankDetailsButton user={user}/>
                               </ProfileSection>
                           </Box>
                       </TabPanel>

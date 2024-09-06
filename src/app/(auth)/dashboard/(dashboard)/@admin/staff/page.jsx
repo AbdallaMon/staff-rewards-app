@@ -208,6 +208,7 @@ export default function STAFF() {
                     onClose={() => setDrawerOpen(false)}
                     renderExtraButtons
                     setData={setData}
+                    admin={true}
               />
           </div>
     );
