@@ -7,6 +7,7 @@ import parse from 'html-react-parser';
 
 import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
 import DateFilterComponent from "@/app/UiComponents/FormComponents/DateFilterComponent";
+import dayjs from "dayjs";
 
 const LogContainer = styled(Box)(({theme}) => ({
     padding: theme.spacing(3),
@@ -61,7 +62,6 @@ const LogList = () => {
         }
     };
 
-
     useEffect(() => {
         fetchLogs({...filters, page: 1, limit: 10});
     }, [filters]);
@@ -78,7 +78,7 @@ const LogList = () => {
                         <LogCard key={log.id}>
                             <LogTitle variant="h6">{log.action}</LogTitle>
                             <LogDescription variant="body2">{parse(log.description)}</LogDescription>
-                            <LogDate variant="caption">{new Date(log.createdAt).toLocaleString()}</LogDate>
+                            <LogDate variant="caption">{dayjs(log.createdAt).format("YYYY-MM-DD")}</LogDate>
                         </LogCard>
                   ))}
               </LogContainer>

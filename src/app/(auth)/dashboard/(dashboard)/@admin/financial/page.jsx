@@ -1,6 +1,20 @@
 "use client";
 import React, {useState, useEffect} from "react";
-import {Box, Container, Grid, Typography, CircularProgress, Button} from "@mui/material";
+import {
+    Box,
+    Container,
+    Grid,
+    Typography,
+    CircularProgress,
+    Button,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper
+} from "@mui/material";
 import {useRouter, useSearchParams} from "next/navigation";
 import {Bar} from "react-chartjs-2";
 import {
@@ -30,7 +44,6 @@ const fetchData = async (url) => {
     return response.json();
 };
 
-// Card component for displaying totals
 const CardComponent = ({title, value, loading}) => (
       <Box boxShadow={3} p={3} borderRadius={2} bgcolor="#f5f5f5">
           <Typography variant="h6" gutterBottom fontWeight="bold" color="secondary">
@@ -46,7 +59,6 @@ const CardComponent = ({title, value, loading}) => (
       </Box>
 );
 
-// Bar chart component to visualize income and outcome
 const BarChartComponent = ({data, loading, title}) => {
     const options = {
         plugins: {
@@ -91,17 +103,21 @@ const StudentsAttendanceDashboard = () => {
     const [totalIncome, setTotalIncome] = useState(null);
     const [totalOutcome, setTotalOutcome] = useState(null);
     const [totalAttendance, setTotalAttendance] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [totalStaff, setTotalStaff] = useState(null);
+
+    const [centerData, setCenterData] = useState([]); // New state to hold all centers data
+    const [loadingFinancial, setLoadingFinancial] = useState(true);
+    const [loadingAttendance, setLoadingAttendance] = useState(true);
     const [centers, setCenters] = useState([]);
     const [centerLoading, setCenterLoading] = useState(true);
     const searchParams = useSearchParams();
     const selectedCenter = searchParams.get("centerId");
     const router = useRouter();
-    const [filters, setFilters] = useState()
-    // Fetch center data
+    const [filters, setFilters] = useState();
+
     const fetchCenters = async () => {
         setCenterLoading(true);
-        const response = await fetch("/api/index?id=center");  // Replace with your actual API endpoint
+        const response = await fetch("/api/index?id=center");
         const result = await response.json();
         setCenters(result.data || []);
         setCenterLoading(false);
@@ -122,37 +138,67 @@ const StudentsAttendanceDashboard = () => {
         router.push(`?${params.toString()}`);
     };
 
-    const fetchDataFromFilters = async (filters) => {
-        setLoading(true);
-        let url = `/api/admin/dashboard/students?`;
+    const fetchFinancialData = async (filters) => {
+        setLoadingFinancial(true);
+        let financialUrl = `/api/admin/dashboard/students?`;
+
         if (filters) {
             if (filters.date) {
-                url += `date=${filters.date}&`;
+                financialUrl += `date=${filters.date}&`;
             } else if (filters.startDate && filters.endDate) {
-                url += `startDate=${filters.startDate}&endDate=${filters.endDate}&`;
+                financialUrl += `startDate=${filters.startDate}&endDate=${filters.endDate}&`;
             }
         }
+
         if (selectedCenter) {
-            url += `centerId=${selectedCenter}&`;
+            financialUrl += `centerId=${selectedCenter}&`;
         }
 
         try {
-            const data = await fetchData(url);
+            const data = await fetchData(financialUrl);
             setTotalIncome(data.totalIncome);
             setTotalOutcome(data.totalOutcome);
             setTotalAttendance(data.totalStudentAttendance);
-            setLoading(false);
+            setLoadingFinancial(false);
         } catch (error) {
-            console.error("Error fetching data:", error);
-            setLoading(false);
+            console.error("Error fetching financial data:", error);
+            setLoadingFinancial(false);
+        }
+    };
+
+    const fetchAttendanceData = async (filters) => {
+        setLoadingAttendance(true);
+        let attendanceUrl = `/api/admin/dashboard/students?type=attendance&`;
+
+        if (filters) {
+            if (filters.date) {
+                attendanceUrl += `date=${filters.date}&`;
+            } else if (filters.startDate && filters.endDate) {
+                attendanceUrl += `startDate=${filters.startDate}&endDate=${filters.endDate}&`;
+            }
+        }
+
+        if (selectedCenter) {
+            attendanceUrl += `centerId=${selectedCenter}&`;
+        }
+
+        try {
+            const data = await fetchData(attendanceUrl);
+            console.log(data, "data")
+            setTotalStaff(data.totalStaff); // New for staff
+            setCenterData(data)
+            setLoadingAttendance(false);
+        } catch (error) {
+            console.error("Error fetching attendance data:", error);
+            setLoadingAttendance(false);
         }
     };
 
     useEffect(() => {
-        fetchDataFromFilters(filters);
+        fetchFinancialData(filters);  // First fetch financial data
+        fetchAttendanceData(filters); // Then fetch attendance data
     }, [selectedCenter, filters]);
 
-    // Prepare chart data for income vs outcome comparison
     const incomeOutcomeChartData = {
         labels: ["Total Income", "Total Outcome"],
         datasets: [
@@ -191,16 +237,67 @@ const StudentsAttendanceDashboard = () => {
                       />
                   </Grid>
                   <Grid item xs={12} md={4}>
-                      <CardComponent title="Total Attendance" value={totalAttendance} loading={loading}/>
+                      <CardComponent title="Total Attendance" value={totalAttendance} loading={loadingFinancial}/>
                   </Grid>
                   <Grid item xs={12} md={4}>
-                      <CardComponent title="Total Income" value={totalIncome} loading={loading}/>
+                      <CardComponent title="Total Income" value={totalIncome} loading={loadingFinancial}/>
                   </Grid>
                   <Grid item xs={12} md={4}>
-                      <CardComponent title="Total Outcome" value={totalOutcome} loading={loading}/>
+                      <CardComponent title="Total Outcome" value={totalOutcome} loading={loadingFinancial}/>
                   </Grid>
-                  <Grid item xs={12}>
-                      <BarChartComponent data={incomeOutcomeChartData} loading={loading} title="Income vs Outcome"/>
+                  <Grid item xs={12} md={6}>
+                      <BarChartComponent data={incomeOutcomeChartData} loading={loadingFinancial}
+                                         title="Income vs Outcome"/>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                      <Box boxShadow={3} p={3} borderRadius={2} bgcolor="#f5f5f5">
+                          <Typography variant="h6" gutterBottom fontWeight="bold" color="secondary">
+                              Attendance Summary
+                          </Typography>
+                          {loadingAttendance ? (
+                                <Box display="flex" justifyContent="center" p={3}>
+                                    <CircularProgress/>
+                                </Box>
+                          ) : (
+                                <TableContainer component={Paper}>
+                                    <Table sx={{minWidth: 300}} aria-label="attendance table">
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableCell align="left">Center Name</TableCell>
+                                                <TableCell align="left">Total Students</TableCell>
+                                                <TableCell align="left">Total Staff</TableCell>
+                                                <TableCell align="left">Total Income</TableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {/* Loop over the centers and render each center's data */}
+                                            {centerData && centerData?.map((center, index) => (
+                                                  <TableRow key={index}>
+                                                      <TableCell align="left">{center.centerName}</TableCell>
+                                                      <TableCell align="left">{center.totalStudents || 0}</TableCell>
+                                                      <TableCell align="left">{center.totalStaff || 0}</TableCell>
+                                                      <TableCell align="left">{center.totalIncome || 0}</TableCell>
+                                                  </TableRow>
+                                            ))}
+
+                                            {/* Total row to accumulate data */}
+                                            <TableRow>
+                                                <TableCell align="left"><strong>Total</strong></TableCell>
+                                                <TableCell align="left">
+                                                    <strong>{centerData.reduce((acc, center) => acc + (center.totalStudents || 0), 0)}</strong>
+                                                </TableCell>
+                                                <TableCell align="left">
+                                                    <strong>{centerData.reduce((acc, center) => acc + (center.totalStaff || 0), 0)}</strong>
+                                                </TableCell>
+                                                <TableCell align="left">
+                                                    <strong>{centerData.reduce((acc, center) => acc + (center.totalIncome || 0), 0)}</strong>
+                                                </TableCell>
+                                            </TableRow>
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                          )}
+                      </Box>
                   </Grid>
               </Grid>
           </Container>

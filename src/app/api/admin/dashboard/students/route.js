@@ -1,13 +1,13 @@
 import prisma from "@/lib/pirsma/prisma";
 
-export async function GET(request, response) {
+export async function GET(request) {
     const searchParams = request.nextUrl.searchParams;
     const centerId = searchParams.get('centerId') ? parseInt(searchParams.get('centerId')) : null;
     const startDate = searchParams.get('startDate') ? new Date(searchParams.get('startDate')) : null;
     const endDate = searchParams.get('endDate') ? new Date(searchParams.get('endDate')) : null;
     const date = searchParams.get('date') ? new Date(searchParams.get('date')) : null;
+    const requestType = searchParams.get('type'); // New condition to specify the data requested
 
-    // Filter setup
     const where = {};
     if (centerId) {
         where.centerId = centerId;
@@ -20,45 +20,96 @@ export async function GET(request, response) {
         endOfDay.setHours(23, 59, 59, 999);
         where.date = {
             gte: startOfDay,
-            lte: endOfDay
+            lte: endOfDay,
         };
     } else if (startDate && endDate) {
         where.date = {
             gte: startDate,
-            lte: endDate
+            lte: endDate,
         };
     }
 
     try {
-        // Fetch total students' attendance for each exam type
-        const studentAttendances = await prisma.studentAttendance.findMany({
-            where,
-            select: {
-                examType: true,
-                totalAttendedStudents: true,
-            },
-        });
+        if (requestType === 'attendance') {
 
-        const totalIncome = studentAttendances.reduce((sum, attendance) => sum + (attendance.totalAttendedStudents * 35), 0);
+            const centers = centerId
+                  ? await prisma.center.findMany({
+                      where: {id: centerId},
+                      select: {id: true, name: true}
+                  })
+                  : await prisma.center.findMany({
+                      select: {id: true, name: true}
+                  });
+            const centerData = await Promise.all(
+                  centers.map(async (center) => {
+                      const studentAttendances = await prisma.studentAttendance.findMany({
+                          where: {
+                              ...where,
+                              centerId: center.id,
+                          },
+                          select: {
+                              totalAttendedStudents: true,
+                          },
+                      });
 
-        const dayAttendances = await prisma.dayAttendance.findMany({
-            where,
-            select: {
-                totalReward: true,
-            },
-        });
+                      const totalStudents = studentAttendances.reduce((sum, attendance) => sum + attendance.totalAttendedStudents, 0);
 
-        const totalOutcome = dayAttendances.reduce((sum, attendance) => sum + attendance.totalReward, 0);
+                      const uniqueUsers = await prisma.dayAttendance.findMany({
+                          where: {
+                              ...where,
+                              centerId: center.id,
+                          },
+                          select: {
+                              userId: true,
+                          },
+                          distinct: ['userId'],
+                      });
 
-        const responseData = {
-            totalIncome,
-            totalOutcome,
-            totalStudentAttendance: studentAttendances.reduce((sum, attendance) => sum + attendance.totalAttendedStudents, 0),
-        };
+                      const totalStaff = uniqueUsers.length;
 
-        return Response.json(responseData, {status: 200});
+                      const totalIncome = totalStudents * 35;  // Example income calculation per student
+
+                      return {
+                          centerName: center.name,
+                          totalStudents,
+                          totalStaff,
+                          totalIncome,
+                      };
+                  })
+            );
+
+            return new Response(JSON.stringify(centerData), {status: 200});
+        } else {
+            // Fetch total students' attendance and financial data (income/outcome)
+            const studentAttendances = await prisma.studentAttendance.findMany({
+                where,
+                select: {
+                    examType: true,
+                    totalAttendedStudents: true,
+                },
+            });
+
+            const totalIncome = studentAttendances.reduce((sum, attendance) => sum + (attendance.totalAttendedStudents * 35), 0);
+
+            const dayAttendances = await prisma.dayAttendance.findMany({
+                where,
+                select: {
+                    totalReward: true,
+                },
+            });
+
+            const totalOutcome = dayAttendances.reduce((sum, attendance) => sum + attendance.totalReward, 0);
+
+            const totalStudentAttendance = studentAttendances.reduce((sum, attendance) => sum + attendance.totalAttendedStudents, 0);
+
+            return new Response(JSON.stringify({
+                totalIncome,
+                totalOutcome,
+                totalStudentAttendance,
+            }), {status: 200});
+        }
     } catch (error) {
         console.error(error);
-        return Response.json({message: "Error fetching data", status: 400}, {status: 400});
+        return new Response(JSON.stringify({message: "Error fetching data", status: 400}), {status: 400});
     }
 }

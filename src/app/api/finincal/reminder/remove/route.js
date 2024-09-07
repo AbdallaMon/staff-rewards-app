@@ -19,7 +19,7 @@ export async function POST(request) {
             data: {attachment: null},
         });
 
-        const dashboardLink = `${url}/dashboard/attendance/edit?dayAttendanceId=${dayAttendanceId}`;
+        const dashboardLink = `${url}/dashboard/attendance`;
         const reminderMessage = `
             <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5;">
                 <h2 style="color: #7c5e24;">Attendance Approval problem</h2>
@@ -30,7 +30,6 @@ export async function POST(request) {
                 <a href="${dashboardLink}" style="display: inline-block; margin: 10px 0; padding: 10px 20px; background-color: #7c5e24; color: #ffffff; text-decoration: none; border-radius: 5px;">Edit Attendance</a>
             </div>
         `;
-        console.log(userEmail, "userEmail")
         await sendEmail(
               userEmail,
               'Attendance Approval problem',
