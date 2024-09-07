@@ -1,5 +1,6 @@
 import prisma from "@/lib/pirsma/prisma";
 import {handlePrismaError} from "@/app/api/utlis/prismaError";
+import {Buffer} from "buffer";
 
 export const getUnpaidDayAttendanceDates = async (startDate, endDate, centerId) => {
     const startOfDay = date => new Date(date.setHours(0, 0, 0, 0));
@@ -182,7 +183,7 @@ export async function getUserDayAttendancesApprovals(page, limit, filters) {
                             email: true,
                             emiratesId: true,
                             phone: true,
-
+                            signature: true,
                             center: {
                                 select: {
                                     name: true,
@@ -214,6 +215,51 @@ export async function getUserDayAttendancesApprovals(page, limit, filters) {
     }
 }
 
+export async function getUserDayAttendanceWithUserSignatureReturned(dayAttendanceId) {
+    try {
+        const dayAttendance = await prisma.dayAttendance.findUnique({
+            where: {
+                id: parseInt(dayAttendanceId),
+            },
+            include: {
+                attendances: {
+                    include: {
+                        shift: true,
+                        dutyRewards: {
+                            include: {
+                                duty: true
+                            }
+                        }
+                    },
+                },
+                user: {
+                    select: {
+                        name: true,
+                        emiratesId: true,
+                        duty: true,
+                        signature: true,
+                    },
+                },
+                center: true,
+            },
+        });
+        if (dayAttendance && dayAttendance.user.signature) {
+            const signatureUrl = dayAttendance.user.signature;
+            const signatureResponse = await fetch(signatureUrl);
+            if (signatureResponse.ok) {
+                const buffer = await signatureResponse.arrayBuffer();
+                const base64Signature = Buffer.from(buffer).toString('base64');
+                dayAttendance.user.signature = `data:image/png;base64,${base64Signature}`;
+            } else {
+                dayAttendance.user.signature = null;
+            }
+        }
+
+        return {status: 200, data: dayAttendance};
+    } catch (e) {
+        return {status: 500, error: 'Failed to fetch day attendances'};
+    }
+}
 
 ///
 

@@ -44,7 +44,6 @@ function a11yProps(index) {
 
 const adminLinks = [
     {label: "Dashboard", href: "/dashboard"},
-    {label: "Students Attendance", href: "/dashboard/students-attendance"},
     {label: "Centers", href: "/dashboard/centers"},
     {label: "Configure", href: "/dashboard/configure"},
     {label: "Staff", href: "/dashboard/staff"},
@@ -68,7 +67,7 @@ const staffLinks = [
     {label: "Attendance", href: "/dashboard/attendance"},
     {label: "Calendar", href: "/dashboard/calendar"},
     {
-        label: "Students Attendance", href: "students-attendance"
+        label: "Students Attendance", href: "/dashboard/students"
     }
 ];
 

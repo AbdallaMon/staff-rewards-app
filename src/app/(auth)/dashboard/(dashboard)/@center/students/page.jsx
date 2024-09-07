@@ -7,6 +7,7 @@ import React, {useState} from "react";
 import dayjs from "dayjs";
 import RangeDateComponent from "@/app/UiComponents/FormComponents/MUIInputs/RangeDateComponent";
 import DateComponent from "@/app/UiComponents/FormComponents/MUIInputs/DateChangerComponent";
+import DateFilterComponent from "@/app/UiComponents/FormComponents/DateFilterComponent";
 
 export default function StudentsAttendance() {
     const {
@@ -19,16 +20,10 @@ export default function StudentsAttendance() {
         setLimit,
         total,
         setTotal,
-        setFilters
+        setFilters,
+        filters
     } = useDataFetcher("center/attendance/students", false);
-    const now = dayjs();
-    const firstDayOfMonth = now.startOf('month').format('YYYY-MM-DD');
-    const lastDayOfMonth = now.endOf('month').format('YYYY-MM-DD');
-    const [otherCenters, setOtherCenters] = useState(null);
 
-    const [startDate, setStartDate] = useState(firstDayOfMonth);
-    const [endDate, setEndDate] = useState(lastDayOfMonth);
-    const [date, setDate] = useState(null);
     const columns = [
         {name: "date", label: "Date"},
         {name: "examType", label: "Exam Type"},
@@ -42,25 +37,6 @@ export default function StudentsAttendance() {
             required: {value: true, message: "Total students is required"}
         }
     }]
-    const handleDateChange = (newDate) => {
-        setDate(newDate ? dayjs(newDate).format('YYYY-MM-DD') : null);
-        updateFilters({date: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, startDate: null, endDate: null});
-    };
-    const handleStartDateChange = (newDate) => {
-        setStartDate(newDate);
-        updateFilters({startDate: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, date: null});
-    };
-
-    const handleEndDateChange = (newDate) => {
-        setEndDate(newDate);
-        updateFilters({endDate: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, date: null});
-    };
-    const updateFilters = (newFilters) => {
-        setFilters((prevFilters) => ({
-            ...prevFilters,
-            ...newFilters,
-        }));
-    };
 
 
     return (
@@ -72,14 +48,9 @@ export default function StudentsAttendance() {
                       md: "row",
                   }
               }}>
-                  <RangeDateComponent
-                        startDate={startDate}
-                        endDate={endDate}
-                        handleStartDateChange={handleStartDateChange}
-                        handleEndDateChange={handleEndDateChange}
-                  />
-                  <DateComponent date={date} handleDateChange={handleDateChange}
-                                 label="Select a day"
+                  <DateFilterComponent
+                        setFilters={setFilters}
+                        filters={filters}
                   />
               </Box>
               <AdminTable

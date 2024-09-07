@@ -2,7 +2,7 @@
 
 import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Box, Button, Menu, MenuItem, Typography} from "@mui/material";
 import {useRouter, useSearchParams} from "next/navigation";
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
@@ -14,7 +14,9 @@ import ReminderButton from "@/app/UiComponents/Buttons/ReminderButton";
 import {FiFilter} from "react-icons/fi";
 import RemoveAttendanceButton from "@/app/UiComponents/Buttons/RemoveAttendanceButton";
 
-export default function UserBankApprovalReports() {
+import AttendanceTempSignature from "@/app/UiComponents/Templatese/AttendanceTempSignature";
+
+export default function UserAttendanceApprovalReports() {
     const {
         data,
         loading,
@@ -35,12 +37,8 @@ export default function UserBankApprovalReports() {
         {name: "user.emiratesId", label: "Emirates ID"},
         {name: "date", label: "Attendance date"}
     ];
-    const now = dayjs();
-    const firstDayOfMonth = now.startOf('month').format('YYYY-MM-DD');
-    const lastDayOfMonth = now.endOf('month').format('YYYY-MM-DD');
-
-    const [startDate, setStartDate] = useState(firstDayOfMonth);
-    const [endDate, setEndDate] = useState(lastDayOfMonth);
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
     const [centers, setCenters] = useState([]);
     const [type, setType] = useState('');
     const searchParams = useSearchParams();
@@ -49,7 +47,6 @@ export default function UserBankApprovalReports() {
     const [resetTrigger, setResetTrigger] = useState(null);
     const [centerLoading, setCenterLoading] = useState(true);
     const [anchorEl, setAnchorEl] = useState(null);
-
     useEffect(() => {
         updateFilters({centerId: selectedCenter});
     }, [selectedCenter]);
@@ -208,15 +205,26 @@ export default function UserBankApprovalReports() {
                     extraComponent={({item}) => (
 
                           <>
-                              {item.attachment?.length > 0 ?
+                              {(!item.attachment || item.attachment.length < 1) && item.user.signature ?
                                     <>
-                                        <a href={item.attachment} target="_blank" rel="noopener noreferrer">
-                                            <Button>
-                                                View the document </Button>
-                                        </a>
-                                        <RemoveAttendanceButton item={item} setData={setData}/>
+                                        <AttendanceTempSignature
+                                              signatureUrl={item.user.signature}
+                                              finincal={true}
+                                              attendanceUser={item.user}
+                                              attendance={item}
+                                              setDayAttendances={setData}
+                                              dayAttendances={data}
+                                        />
                                     </>
-                                    : "Not signed yet."
+                                    : item.attachment?.length > 0 ?
+                                          <>
+                                              <a href={item.attachment} target="_blank" rel="noopener noreferrer">
+                                                  <Button>
+                                                      View the document </Button>
+                                              </a>
+                                              <RemoveAttendanceButton item={item} setData={setData}/>
+                                          </>
+                                          : "user doesnt have a signature"
                               }
                           </>
                     )}

@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import AttendanceDetailDrawer from "@/app/UiComponents/DataViewer/AttendanceDetailDrawer";
 import RangeDateComponent from "@/app/UiComponents/FormComponents/MUIInputs/RangeDateComponent";
 import DateComponent from "@/app/UiComponents/FormComponents/MUIInputs/DateChangerComponent";
+import DateFilterComponent from "@/app/UiComponents/FormComponents/DateFilterComponent";
 
 export default function Attendance() {
     const {
@@ -20,16 +21,11 @@ export default function Attendance() {
         setLimit,
         total,
         setTotal,
-        setFilters
+        setFilters,
+        filters
     } = useDataFetcher("center/attendance", false);
-    const now = dayjs();
-    const firstDayOfMonth = now.startOf('month').format('YYYY-MM-DD');
-    const lastDayOfMonth = now.endOf('month').format('YYYY-MM-DD');
     const [otherCenters, setOtherCenters] = useState(null);
 
-    const [startDate, setStartDate] = useState(firstDayOfMonth);
-    const [endDate, setEndDate] = useState(lastDayOfMonth);
-    const [date, setDate] = useState(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedAttendanceId, setSelectedAttendanceId] = useState(null);
     const columns = [
@@ -40,25 +36,6 @@ export default function Attendance() {
         {name: "numberOfShifts", label: "Attended Shifts"},
     ];
 
-    const handleDateChange = (newDate) => {
-        setDate(newDate ? dayjs(newDate).format('YYYY-MM-DD') : null);
-        updateFilters({date: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, startDate: null, endDate: null});
-    };
-    const handleStartDateChange = (newDate) => {
-        setStartDate(newDate);
-        updateFilters({startDate: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, date: null});
-    };
-
-    const handleEndDateChange = (newDate) => {
-        setEndDate(newDate);
-        updateFilters({endDate: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, date: null});
-    };
-    const updateFilters = (newFilters) => {
-        setFilters((prevFilters) => ({
-            ...prevFilters,
-            ...newFilters,
-        }));
-    };
 
     const handleRowClick = (attendanceId) => {
         setSelectedAttendanceId(attendanceId);
@@ -92,14 +69,9 @@ export default function Attendance() {
                             mainKey="emiratesId"
                       />
                   </div>
-                  <RangeDateComponent
-                        startDate={startDate}
-                        endDate={endDate}
-                        handleStartDateChange={handleStartDateChange}
-                        handleEndDateChange={handleEndDateChange}
-                  />
-                  <DateComponent date={date} handleDateChange={handleDateChange}
-                                 label="Select a day"
+                  <DateFilterComponent
+                        setFilters={setFilters}
+                        filters={filters}
                   />
               </Box>
               <AdminTable

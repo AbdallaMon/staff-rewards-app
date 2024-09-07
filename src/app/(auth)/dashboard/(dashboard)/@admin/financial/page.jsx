@@ -1,6 +1,6 @@
 "use client";
 import React, {useState, useEffect} from "react";
-import {Box, Container, Grid, Typography, CircularProgress} from "@mui/material";
+import {Box, Container, Grid, Typography, CircularProgress, Button} from "@mui/material";
 import {useRouter, useSearchParams} from "next/navigation";
 import {Bar} from "react-chartjs-2";
 import {
@@ -13,6 +13,7 @@ import {
     Legend,
 } from "chart.js";
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import Link from "next/link";
 
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
 import DateFilterComponent from "@/app/UiComponents/FormComponents/DateFilterComponent";
@@ -121,10 +122,6 @@ const StudentsAttendanceDashboard = () => {
         router.push(`?${params.toString()}`);
     };
 
-    // Handle date filter changes
-
-
-    // Fetch data based on filters
     const fetchDataFromFilters = async (filters) => {
         setLoading(true);
         let url = `/api/admin/dashboard/students?`;
@@ -172,6 +169,11 @@ const StudentsAttendanceDashboard = () => {
               <Typography variant="h4" gutterBottom fontWeight="bold" color="primary" mt={2}>
                   Students Attendance Dashboard
               </Typography>
+              <Link href="/dashboard" className={"mb-5 flex"}>
+                  <Button variant="contained" color="primary">
+                      Go to Admin Dashboard
+                  </Button>
+              </Link>
               <Grid container spacing={3}>
                   <Grid item xs={12} md={8}>
                       <DateFilterComponent

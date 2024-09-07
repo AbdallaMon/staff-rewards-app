@@ -1,13 +1,13 @@
 // todo
 // dates filters
-// pagination in user attendance only day date
 
 // center students attendaded
-- for admin number of students * 35
-diff between what income and output (filter by date and center)
+<!-- - for admin number of students * 35 -->
+<!-- diff between what income and output (filter by date and center) -->
 
-- show pending accounts
+<!-- - show pending accounts -->
 - what paid and rest and total for staff
+- staff attendance paginated and only day date
 <!-- $2b$10$UsY5bEAErH9PGymKdqDl..YGWnhN61cku9lMqRIvK6s8y.D3Hc38K   -->
 <!-- Moe@#01022923659 -->
 backup path =/var/backups/mysql/center-management-system/center-management-system-$(date +\%F).sql

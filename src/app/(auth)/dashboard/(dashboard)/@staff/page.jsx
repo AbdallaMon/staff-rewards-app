@@ -1,8 +1,9 @@
-"use client"
+"use client";
 import React, {useState, useEffect} from 'react';
 import {Box, Container, Grid, Typography, CircularProgress} from '@mui/material';
 import {useSelector} from 'react-redux';
 import {AttendancesChart} from '@/app/UiComponents/DataViewer/ChartWrapper';
+import {RewardsChart} from '@/app/UiComponents/DataViewer/ChartWrapper';
 
 const Dashboard = () => {
     const user = useSelector((state) => state.auth);
@@ -89,7 +90,7 @@ const Dashboard = () => {
                           )}
                       </Box>
                   </Grid>
-                  <Grid item xs={12} md={5}>
+                  <Grid item xs={12} md={6}>
                       <Box boxShadow={3} p={3} borderRadius={2} bgcolor="#f5f5f5">
                           <Typography variant="h6" gutterBottom fontWeight="bold" color="secondary">Total Hours Attended
                               this year</Typography>
@@ -99,7 +100,10 @@ const Dashboard = () => {
                                 <Typography variant="h5" fontWeight="medium">{totalHours} hours</Typography>
                           )}
                       </Box>
-                      <Box boxShadow={3} p={3} mt={3} borderRadius={2} bgcolor="#f5f5f5">
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+
+                      <Box boxShadow={3} p={3} borderRadius={2} bgcolor="#f5f5f5">
                           <Typography variant="h6" gutterBottom fontWeight="bold" color="secondary">Total Days Attended
                               this year</Typography>
                           {loadingDays ? (
@@ -109,8 +113,11 @@ const Dashboard = () => {
                           )}
                       </Box>
                   </Grid>
-                  <Grid item xs={12} md={7}>
+                  <Grid item xs={12} md={6}>
                       <AttendancesChart userId={userId}/>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                      <RewardsChart userId={userId}/> {/* Include the new RewardsChart */}
                   </Grid>
               </Grid>
           </Container>

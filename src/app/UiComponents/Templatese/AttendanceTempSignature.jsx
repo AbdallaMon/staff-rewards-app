@@ -1,77 +1,36 @@
-import {useSelector} from "react-redux";
-import React, {useCallback, useEffect, useState} from "react";
-import {
-    Box,
-    Card,
-    CardContent,
-    Container,
-    Grid,
-    Typography,
-    Alert,
-    Button,
-    Dialog,
-    DialogContent,
-    DialogActions,
-    Checkbox,
-    FormControlLabel,
-    IconButton
-} from "@mui/material";
+import {Box, Button, Checkbox, Dialog, DialogActions, DialogContent, FormControlLabel, IconButton} from "@mui/material";
+import React, {useCallback, useState} from "react";
+import {Viewer, Worker} from "@react-pdf-viewer/core";
 import {IoMdClose} from "react-icons/io";
-import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
-import SignatureDialog from "@/app/UiComponents/Models/SignatureDialog";
+import dayjs from "dayjs";
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
-import dayjs from 'dayjs';
-import {Worker, Viewer} from '@react-pdf-viewer/core';
+import {useToastContext} from "@/providers/ToastLoadingProvider";
+import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import {useToastContext} from "@/providers/ToastLoadingProvider";
 
-export default function CheckAttendanceAttachments({children}) {
-    let {data} = useSelector((state) => state.auth);
-    const [dayAttendances, setDayAttendances] = useState([]);
-    const [shifts, setShifts] = useState([]);
-    const [loading, setLoading] = useState(true);
+export default function AttendanceTempSignature({
+                                                    attendanceUser,
+                                                    attendance,
+                                                    signatureUrl,
+                                                    setError,
+                                                    attendanceShifts,
+                                                    setDayAttendances,
+                                                    dayAttendances,
+                                                    setIsPdfLoading,
+                                                    finincal
+                                                }) {
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
     const {setLoading: setToastLoading} = useToastContext();
-    const [signatureUrl, setSignatureUrl] = useState(null);
     const [pdfBlob, setPdfBlob] = useState(null);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedAttendance, setSelectedAttendance] = useState(null);
-    const [isPdfLoading, setIsPdfLoading] = useState(false);
-    const [signatureDialog, setSignatureDialog] = useState(false)
-    const [error, setError] = useState(null);
-    useEffect(() => {
-        const fetchDayAttendances = async () => {
-            try {
-                const [dayAttendancesRes, shiftsRes] = await Promise.all([
-                    fetch(`/api/employee/private/${data.id}/day-attendances`),
-                    fetch(`/api/index?id=shift`),
-                ]);
-
-                const dayAttendancesData = await dayAttendancesRes.json();
-                const shiftsData = await shiftsRes.json();
-
-                if (dayAttendancesRes.ok && shiftsRes.ok) {
-                    setDayAttendances(dayAttendancesData.data);
-                    setShifts(shiftsData.data);
-                    if (dayAttendancesData.data && dayAttendancesData.data.length > 0) {
-
-                        setSignatureUrl(dayAttendancesData.data[0].user.signature);
-                    }
-                } else {
-                    setError('Failed to fetch data.');
-                }
-            } catch (err) {
-                console.log(err, "error in CheckAttendanceAttachments")
-                console.error(err, "error in CheckAttendanceAttachments")
-                setError('Failed to fetch data.');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchDayAttendances();
-    }, [data.id]);
+    const [user, setUser] = useState(attendanceUser)
+    const [loading, setLoading] = useState(false)
+    const [shifts, setShifts] = useState(attendanceShifts)
+    const [shiftsLoading, setLoadingShifts] = useState(false)
+    const [dayAttendance, setAttendance] = useState(attendance)
+    const [signature, setSignature] = useState(signatureUrl)
 
     const handleApprove = useCallback(async () => {
         const formData = new FormData();
@@ -80,7 +39,7 @@ export default function CheckAttendanceAttachments({children}) {
         const res = await handleRequestSubmit(
               formData,
               setToastLoading,
-              `employee/private/${data.id}/day-attendances/${selectedAttendance.id}/attachment`,
+              finincal ? `finincal/reports/attendances/${selectedAttendance.id}` : `employee/private/${user.id}/day-attendances/${selectedAttendance.id}/attachment`,
               true,
               "Uploading",
               false,
@@ -88,17 +47,67 @@ export default function CheckAttendanceAttachments({children}) {
         );
 
         if (res.status === 200) {
-            const newData = dayAttendances.filter((day) => +day.id !== +selectedAttendance.id);
-            setDayAttendances(newData);
+
+            if (setDayAttendances && finincal) {
+                const newData = dayAttendances.map((day) => {
+                    if (day.id === dayAttendance.id) {
+                        day.attachment = res.data.attachment
+                    }
+                    return day;
+                });
+                setDayAttendances(newData);
+            } else if (setDayAttendances) {
+                const newData = dayAttendances.filter((day) => +day.id !== +selectedAttendance.id);
+                setDayAttendances(newData);
+
+            }
             setIsDialogOpen(false);
         }
-    }, [pdfBlob, selectedAttendance, dayAttendances, data.id, setToastLoading]);
+    }, [pdfBlob, selectedAttendance, dayAttendances, user.id, setToastLoading]);
 
+    async function handleBeforeGenerate() {
 
-    const generatePdf = async (dayAttendance) => {
+        async function getAttendanceById() {
+            setLoading(true)
+            const request = await fetch("/api/finincal/reports/attendances/" + attendance.id)
+            const response = await request.json();
+            setAttendance(response.data)
+            setUser(response.data.user)
+            setSignature(response.data.user.signature)
+            setLoading(false)
+            return response.data
+        }
+
+        async function getShifts() {
+            setLoadingShifts(true)
+            const request = await fetch(`/api/index?id=shift`)
+            const response = await request.json()
+            setShifts(response.data)
+            setLoadingShifts(false)
+            return response.data
+        }
+
+        async function queue() {
+            const shifts = await getShifts()
+            const attendance = await getAttendanceById()
+            await generatePdf(attendance, shifts)
+
+        }
+
+        if (finincal) {
+            queue()
+        } else {
+            setLoadingShifts(false)
+            setLoading(false)
+            await generatePdf(dayAttendance, shifts)
+        }
+    }
+
+    const generatePdf = async (dayAttendance, shifts) => {
         try {
-
-            setIsPdfLoading(true);
+            if (setIsPdfLoading) {
+                setIsPdfLoading(true);
+            }
             setSelectedAttendance(dayAttendance);
             const doc = new jsPDF('p', 'pt', 'a4');
             doc.setFontSize(16);
@@ -156,29 +165,27 @@ export default function CheckAttendanceAttachments({children}) {
             doc.addImage(checkboxImg, 'PNG', 40, doc.lastAutoTable.finalY + 30, 10, 10); // Adjust size and position
             doc.text("I confirm that the information provided above is accurate.", 55, doc.lastAutoTable.finalY + 40);
             doc.text("Employee Signature:", 40, doc.lastAutoTable.finalY + 70);
-            doc.addImage(signatureUrl, 'PNG', 40, doc.lastAutoTable.finalY + 80, 100, 30); // Smaller image size
+            doc.addImage(dayAttendance.user.signature, 'PNG', 40, doc.lastAutoTable.finalY + 80, 100, 30); // Smaller image size
 
             finalizePdf(doc, dayAttendance);
         } catch (err) {
-            setError(`Error generating PDF: ${err.message}. Please try again.`);
+            console.log(err, "err")
+            if (setError) {
+                setError(`Error generating PDF: ${err.message}. Please try again.`);
+            }
         } finally {
-            setIsPdfLoading(false);
+            if (setIsPdfLoading) {
+                setIsPdfLoading(false);
+            }
         }
     };
 
     const finalizePdf = (doc, dayAttendance) => {
         doc.text("Site Supervisor Name:", 300, doc.lastAutoTable.finalY + 70);
-
         const siteSupervisorName = dayAttendance.center?.siteSupervisor || '';
-
-
-        // Ensure the table content is valid and correctly formatted
         doc.text(siteSupervisorName, 300, doc.lastAutoTable.finalY + 85);
-
         doc.setLineWidth(2);
         doc.line(40, doc.lastAutoTable.finalY + 115, 550, doc.lastAutoTable.finalY + 115);
-
-
         doc.setLineWidth(2);
         doc.line(40, doc.lastAutoTable.finalY + 115, 550, doc.lastAutoTable.finalY + 115);
 
@@ -197,77 +204,34 @@ export default function CheckAttendanceAttachments({children}) {
 
         const pdfBlob = doc.output('blob');
         setPdfBlob(pdfBlob);
-        setIsPdfLoading(false);
+        if (setIsPdfLoading) {
+
+            setIsPdfLoading(false);
+        }
         setIsDialogOpen(true);
     };
 
-    if (error) return <Alert severity="error">{error}</Alert>;
-    if (!loading && (!dayAttendances || dayAttendances.length === 0)) {
-        return children;
-    }
-
     return (
-          <Container>
-              {(loading || isPdfLoading) && <FullScreenLoader/>}
-              {!loading && dayAttendances?.length > 0 && (
-                    <>
-                        <Typography variant="h4" gutterBottom>
-                            Attendances that need your approval
-                        </Typography>
-                        <Alert severity="warning" sx={{mb: 2}}>
-                            Please review the attendance records and approve them.
-                        </Alert>
-                    </>
-              )}
-              <Grid container spacing={3}>
-                  {dayAttendances?.map((dayAttendance) => (
-                        <Grid item xs={12} md={6} lg={4} key={dayAttendance.id}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="h6">
-                                        Date: {dayjs(dayAttendance.date).format('DD/MM/YYYY')}
-                                    </Typography>
-                                    <Box mt={2}>
-                                        {signatureUrl ? (
-                                              <>
-                                                  <Button
-                                                        variant="contained"
-                                                        color="primary"
-                                                        sx={{mt: 2}}
-                                                        onClick={() => generatePdf(dayAttendance)}
-                                                  >
-                                                      View and Approve
-                                                  </Button>
-                                              </>
-                                        ) : (
-                                              <>
-                                                  <Typography variant="body2" color="error">
-                                                      You do not have a signature yet. Please create one to proceed.
-                                                  </Typography>
-                                                  <Button variant="contained" color="primary"
-                                                          onClick={() => setSignatureDialog(true)}>
-                                                      Add Your Signature
-                                                  </Button>
-                                                  <SignatureDialog
-                                                        user={data}
-                                                        open={signatureDialog}
-                                                        onClose={() => setSignatureDialog(false)}
-                                                        onSignatureSaved={(url) => {
-                                                            setSignatureUrl(url);
-                                                            setSignatureDialog(false);
-                                                        }}
-                                                  />
-                                              </>
-                                        )}
-                                    </Box>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                  ))}
-              </Grid>
-              <Dialog fullScreen open={isDialogOpen} onClose={() => setIsDialogOpen(false)}>
+          <>
+              <Button
+                    variant="contained"
+                    color="primary"
+                    sx={{mt: 2}}
+                    onClick={() => handleBeforeGenerate()}
+              >
+                  View and Approve
+              </Button>
+              {(loading || shiftsLoading) && <FullScreenLoader/>}
+              <Dialog fullScreen open={isDialogOpen} onClose={() => setIsDialogOpen(false)}
+                      className={"financial-attendance"}
+                      sx={{
+                          "& .rpv-core__text-layer": {
+                              display: "none"
+                          }
+                      }}
+              >
                   <DialogContent style={{padding: 0}}>
-                      {pdfBlob && (
+                      {pdfBlob && !loading && !shiftsLoading && (
                             <Box
                                   sx={{
                                       width: '100%',
@@ -311,13 +275,12 @@ export default function CheckAttendanceAttachments({children}) {
                       />
                   </DialogActions>
               </Dialog>
-          </Container>
-    );
-}
 
+          </>
+    )
+}
 const ApprovalSection = ({handleApprove}) => {
     const [confirmChecked, setConfirmChecked] = useState(false);
-
     return (
           <div className={"max:sm:flex flex-col gap-5 items-center justify-center"}>
               <FormControlLabel

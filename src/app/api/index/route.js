@@ -7,7 +7,6 @@ const modelMap = {
     center: prisma.center,
     shift: prisma.shift,
     user: prisma.user,
-    // Add other models as needed
 };
 
 export async function getIndexedData(index, query, filters, centerId, center, otherDuty) {
@@ -25,8 +24,11 @@ export async function getIndexedData(index, query, filters, centerId, center, ot
     if (index === "user") {
         if (query) {
             where.emiratesId = {contains: query};
-            where.accountStatus = "APPROVED";
+            where.accountStatus = {
+                in: ["APPROVED", "UNCOMPLETED"]
+            }
         }
+
         if (centerId) {
             where.centerId = centerId;
         }

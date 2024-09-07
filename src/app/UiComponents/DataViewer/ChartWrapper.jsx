@@ -84,3 +84,34 @@ export const AttendancesChart = ({userId}) => {
           </ChartWrapper>
     );
 };
+
+export const RewardsChart = ({userId}) => {
+    const [data, setData] = useState({labels: ['Paid', 'Not Paid'], datasets: []});
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchData(`/api/employee/private/${userId}/dashboard?totalRewardsBreakdown=true`)
+              .then((data) => {
+                  setData({
+                      labels: ['Paid', 'Not Paid'],
+                      datasets: [{
+                          label: 'Total Rewards (Amount)',
+                          data: [data.totalRewardsBreakdown.paid, data.totalRewardsBreakdown.notPaid],
+                          backgroundColor: ['#4BC0C0', '#FF6384'],
+                      }]
+                  });
+                  setLoading(false);
+              })
+              .catch((error) => {
+                  console.error('Error fetching rewards data:', error);
+                  setLoading(false);
+              });
+    }, [userId]);
+
+    return (
+          <ChartWrapper loading={loading}>
+              <Typography variant="h6" gutterBottom>Total Rewards Paid vs Not Paid</Typography>
+              <Bar data={data}/>
+          </ChartWrapper>
+    );
+};

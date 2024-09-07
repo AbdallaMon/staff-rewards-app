@@ -2,13 +2,14 @@ import prisma from "@/lib/pirsma/prisma";
 
 export async function GET(request, response) {
     const id = response.params.id;
-    const userId = parseInt(id)
-    const searchParams = request.nextUrl.searchParams
+    const userId = parseInt(id);
+    const searchParams = request.nextUrl.searchParams;
     const totalShifts = searchParams.get('totalShifts') === 'true';
     const totalRewards = searchParams.get('totalRewards') === 'true';
     const paidDayAttendances = searchParams.get('paidDayAttendances') === 'true';
     const totalHours = searchParams.get('totalHours') === 'true';
     const totalDays = searchParams.get('totalDays') === 'true';
+    const totalRewardsBreakdown = searchParams.get('totalRewardsBreakdown') === 'true'; // New parameter for total rewards breakdown
 
     const startOfYear = new Date(new Date().getFullYear(), 0, 1);
     const endOfYear = new Date(new Date().getFullYear(), 11, 31);
@@ -16,32 +17,65 @@ export async function GET(request, response) {
     try {
         let response = {};
 
+        // Fetch total shifts attended this year
         if (totalShifts) {
             const totalShiftsCount = await prisma.attendance.count({
                 where: {
                     userId,
                     date: {
                         gte: startOfYear,
-                        lte: endOfYear
-                    }
-                }
+                        lte: endOfYear,
+                    },
+                },
             });
             response.totalShifts = totalShiftsCount;
         }
 
-        if (totalRewards) {
-            const totalRewardsSum = await prisma.dutyReward.aggregate({
-                _sum: {amount: true},
+        // Accumulate rewards based on day attendance records
+        if (totalRewardsBreakdown || totalRewards) {
+            const dayAttendances = await prisma.dayAttendance.findMany({
                 where: {
                     userId,
-                    isPaid: false,
                     date: {
                         gte: startOfYear,
-                        lte: endOfYear
-                    }
-                }
+                        lte: endOfYear,
+                    },
+                },
+                include: {
+                    attendances: {
+                        include: {
+                            dutyRewards: true,
+                        },
+                    },
+                },
             });
-            response.totalRewards = totalRewardsSum._sum.amount || 0;
+
+            let paidRewards = 0;
+            let notPaidRewards = 0;
+
+            // Accumulate rewards based on isPaid flag
+            dayAttendances.forEach((dayAttendance) => {
+                dayAttendance.attendances.forEach((attendance) => {
+                    const totalRewardsForAttendance = attendance.dutyRewards.reduce((sum, reward) => sum + reward.amount, 0);
+
+                    if (dayAttendance.isPaid) {
+                        paidRewards += totalRewardsForAttendance;
+                    } else {
+                        notPaidRewards += totalRewardsForAttendance;
+                    }
+                });
+            });
+
+            if (totalRewardsBreakdown) {
+                response.totalRewardsBreakdown = {
+                    paid: paidRewards,
+                    notPaid: notPaidRewards,
+                };
+            }
+
+            if (totalRewards) {
+                response.totalRewards = paidRewards + notPaidRewards;
+            }
         }
 
         if (paidDayAttendances) {
@@ -51,9 +85,9 @@ export async function GET(request, response) {
                     isPaid: true,
                     date: {
                         gte: startOfYear,
-                        lte: endOfYear
-                    }
-                }
+                        lte: endOfYear,
+                    },
+                },
             });
             const notPaid = await prisma.dayAttendance.count({
                 where: {
@@ -61,9 +95,9 @@ export async function GET(request, response) {
                     isPaid: false,
                     date: {
                         gte: startOfYear,
-                        lte: endOfYear
-                    }
-                }
+                        lte: endOfYear,
+                    },
+                },
             });
             response.paidDayAttendances = {paid, notPaid};
         }
@@ -74,12 +108,12 @@ export async function GET(request, response) {
                     userId,
                     date: {
                         gte: startOfYear,
-                        lte: endOfYear
-                    }
+                        lte: endOfYear,
+                    },
                 },
                 include: {
-                    shift: true
-                }
+                    shift: true,
+                },
             });
             const hours = totalHoursWorked.reduce((sum, attendance) => sum + attendance.shift.duration, 0);
             response.totalHours = hours;
@@ -91,17 +125,16 @@ export async function GET(request, response) {
                     userId,
                     date: {
                         gte: startOfYear,
-                        lte: endOfYear
-                    }
-                }
+                        lte: endOfYear,
+                    },
+                },
             });
             response.totalDays = totalDaysAttended;
         }
-        return Response.json(
-              response, {status: 200});
+
+        return Response.json(response, {status: 200});
     } catch (error) {
         console.error(error);
-        return Response.json({message: "error", status: 400}, {status: 400})
+        return Response.json({message: "error", status: 400}, {status: 400});
     }
-
 }

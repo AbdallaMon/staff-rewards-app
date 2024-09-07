@@ -17,11 +17,12 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Paper
+    Paper,
+    Pagination,
+    Button
 } from '@mui/material';
 import {FaChevronDown, FaCheckCircle, FaTimesCircle} from 'react-icons/fa';
 import dayjs from 'dayjs';
-import RangeDateComponent from '@/app/UiComponents/FormComponents/MUIInputs/RangeDateComponent';
 import DateComponent from '@/app/UiComponents/FormComponents/MUIInputs/DateChangerComponent';
 import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
 
@@ -29,57 +30,54 @@ const AttendanceHistory = ({userId}) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const now = dayjs();
-    const firstDayOfMonth = now.startOf('month').format('YYYY-MM-DD');
-    const lastDayOfMonth = now.endOf('month').format('YYYY-MM-DD');
-    const [startDate, setStartDate] = useState(firstDayOfMonth);
-    const [endDate, setEndDate] = useState(lastDayOfMonth);
-    const [filters, setFilters] = useState({startDate: firstDayOfMonth, endDate: lastDayOfMonth});
     const [date, setDate] = useState(null);
+    const [filters, setFilters] = useState({});
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const limit = 20;
 
     const updateFilters = (newFilters) => {
         setFilters((prevFilters) => ({
             ...prevFilters,
             ...newFilters,
         }));
-        setLoading(true); // Show loading spinner when filters change
+        setPage(1);
+        setLoading(true);
     };
 
     const handleDateChange = (newDate) => {
         if (loading) return;
-
-        setDate(newDate ? dayjs(newDate).format('YYYY-MM-DD') : null);
-        updateFilters({date: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, startDate: null, endDate: null});
+        const formattedDate = newDate ? dayjs(newDate).format('YYYY-MM-DD') : null;
+        setDate(formattedDate);
+        updateFilters({date: formattedDate});
     };
 
-    const handleStartDateChange = (newDate) => {
-        if (loading) return;
-        setStartDate(newDate);
-        updateFilters({startDate: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, date: null});
+    const handlePageChange = (event, value) => {
+        setPage(value);
+        setLoading(true); // Show loader on page change
     };
 
-    const handleEndDateChange = (newDate) => {
-        if (loading) return;
-
-        setEndDate(newDate);
-        updateFilters({endDate: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, date: null});
+    const resetFilters = () => {
+        if (date) {
+            handleDateChange(null)
+        }
     };
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch(`/api/employee/private/${userId}/attendance?filters=${JSON.stringify(filters)}`);
+                setLoading(true);
+                const response = await fetch(`/api/employee/private/${userId}/attendance?filters=${JSON.stringify(filters)}&page=${page}&limit=${limit}`);
                 if (response.ok) {
                     const res = await response.json();
                     setData(res.data);
-                    setError("")
+                    setTotalPages(res.totalPages); // Assuming your API returns total pages
+                    setError("");
                 } else {
                     setError('Failed to fetch attendance data. Please try again later.');
                 }
             } catch (error) {
                 console.error('Failed to fetch attendance data:', error);
-                console.log(error, "error in AttendanceHistory")
-
                 setError('An unexpected error occurred. Please try again later.');
             } finally {
                 setLoading(false);
@@ -87,12 +85,10 @@ const AttendanceHistory = ({userId}) => {
         };
 
         fetchData();
-    }, [userId, filters]);
-
+    }, [userId, filters, page]);
 
     return (
           <Container>
-
               {loading && <FullScreenLoader/>}
               <Typography variant="h4" gutterBottom>
                   Attendance History
@@ -111,14 +107,15 @@ const AttendanceHistory = ({userId}) => {
                         }
                     }}
               >
-                  <RangeDateComponent
-                        startDate={startDate}
-                        endDate={endDate}
-                        handleStartDateChange={handleStartDateChange}
-                        handleEndDateChange={handleEndDateChange}
-                  />
                   <DateComponent date={date} handleDateChange={handleDateChange} label="Select a day"/>
+                  <Button variant="outlined" color="secondary" onClick={resetFilters} sx={{
+                      width: "fit-content",
+                      margin: "auto"
+                  }}>
+                      Reset Filters
+                  </Button>
               </Box>
+
               {!loading && (!data || data.length === 0) ?
                     <Typography variant="h6">No attendance data available.</Typography> : null}
               {error && <Alert severity="error">{error}</Alert>}
@@ -130,7 +127,7 @@ const AttendanceHistory = ({userId}) => {
                                     <Grid container spacing={2}>
                                         <Grid item xs={6}>
                                             <Typography variant="h6">
-                                                Date: {new Date(dayAttendance.date).toLocaleDateString()}
+                                                Date: {dayjs(dayAttendance.date).format('YYYY-MM-DD')}
                                             </Typography>
                                         </Grid>
                                         <Grid item xs={6}>
@@ -222,6 +219,15 @@ const AttendanceHistory = ({userId}) => {
                         </Grid>
                   ))}
               </Grid>
+
+              <Box mt={3} display="flex" justifyContent="center">
+                  <Pagination
+                        count={totalPages}
+                        page={page}
+                        onChange={handlePageChange}
+                        color="primary"
+                  />
+              </Box>
           </Container>
     );
 };

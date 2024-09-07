@@ -163,51 +163,31 @@ export async function updateEmployee(employeeId, data) {
 }
 
 
-export async function getEmployeeAttendance(employeeId, filters) {
+export async function getEmployeeAttendance(employeeId, filters, page, limit) {
     try {
-        const where = {userId: parseInt(employeeId)}
+        const where = {userId: parseInt(employeeId)};
+
         if (filters.date) {
             const date = new Date(filters.date);
             const startOfDay = new Date(date);
             startOfDay.setHours(0, 0, 0, 0);
             const endOfDay = new Date(date);
             endOfDay.setHours(23, 59, 59, 999);
+
+            console.log(startOfDay, endOfDay, "startOfDay, endOfDay");
+
             where.date = {
                 gte: startOfDay,
-                lte: endOfDay
+                lte: endOfDay,
             };
-        } else {
-
-            if (filters.startDate && filters.endDate) {
-                const endDate = new Date(filters.endDate);
-                endDate.setHours(23, 59, 59, 999);  // Ensure endDate includes the entire day
-
-                where.date = {
-                    gte: new Date(filters.startDate),
-                    lte: endDate
-                };
-            } else if (filters.startDate) {
-                where.date = {
-                    gte: new Date(filters.startDate)
-                };
-            } else if (filters.endDate) {
-                const endDate = new Date(filters.endDate);
-                endDate.setHours(23, 59, 59, 999);  // Ensure endDate includes the entire day
-
-                where.date = {
-                    lte: endDate
-                };
-            } else {
-                const now = new Date();
-                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-                where.date = {
-                    gte: startOfMonth,
-                    lte: endOfMonth
-                };
-            }
         }
+
+        const skip = (page - 1) * limit;
+        const take = limit;
+
+        console.log(skip, take, "Pagination values");
+
+        // Fetch the filtered attendances with pagination
         const dayAttendances = await prisma.dayAttendance.findMany({
             where: where,
             include: {
@@ -218,27 +198,42 @@ export async function getEmployeeAttendance(employeeId, filters) {
                     },
                 },
             },
+            skip,
+            take,
         });
 
+        console.log(dayAttendances, "Fetched dayAttendances");
+
+        const totalRecords = await prisma.dayAttendance.count({where});
+        const totalPages = Math.ceil(totalRecords / limit);
+
+        console.log(totalRecords, totalPages, "totalRecords and totalPages");
+
+        // Fetch all shifts
         const allShifts = await prisma.shift.findMany({
-            where: {
-                archived: false
-            }
+            where: {archived: false},
         });
+
         const enhancedDayAttendances = dayAttendances.map((dayAttendance) => {
             const attendedShiftIds = dayAttendance.attendances.map((att) => att.shiftId);
-            const nonAttendedShifts = allShifts.filter(
-                  (shift) => !attendedShiftIds.includes(shift.id)
-            );
+            const nonAttendedShifts = allShifts.filter((shift) => !attendedShiftIds.includes(shift.id));
 
             return {...dayAttendance, nonAttendedShifts};
         });
 
-        return {data: enhancedDayAttendances, status: 200};
+        return {
+            data: enhancedDayAttendances,
+            totalPages,
+            currentPage: page,
+            totalRecords,
+            status: 200,
+        };
     } catch (e) {
+        console.log(e, "Error in getEmployeeAttendance");
         return handlePrismaError(e);
     }
 }
+
 
 export async function getUserDayAttendancesWithoutAttachment(userId) {
     try {
@@ -273,10 +268,8 @@ export async function getUserDayAttendancesWithoutAttachment(userId) {
             },
         });
         if (dayAttendances.length > 0 && dayAttendances[0].user.signature) {
-            // Fetch the signature and convert to Base64
             const signatureUrl = dayAttendances[0].user.signature;
             const signatureResponse = await fetch(signatureUrl);
-
             if (signatureResponse.ok) {
                 const buffer = await signatureResponse.arrayBuffer();
                 const base64Signature = Buffer.from(buffer).toString('base64');
@@ -300,7 +293,7 @@ export async function updateDayAttendanceAttachment(dayAttendanceId, data) {
                   data, select: {id: true},
               }
         )
-        return {status: 200, message: "uploaded successfully"}
+        return {status: 200, message: "uploaded successfully", data}
     } catch (e) {
         return handlePrismaError(e)
     }

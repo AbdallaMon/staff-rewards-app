@@ -1,6 +1,6 @@
 "use client";
 import React, {useState, useEffect} from "react";
-import {Box, Container, Grid, Typography, CircularProgress} from "@mui/material";
+import {Box, Container, Grid, Typography, CircularProgress, Button} from "@mui/material";
 import {Bar} from "react-chartjs-2";
 import {
     Chart as ChartJS,
@@ -15,6 +15,7 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
 import {useRouter, useSearchParams} from "next/navigation";
+import Link from "next/link";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartDataLabels);
 
@@ -265,6 +266,11 @@ const AdminDashboard = () => {
               >
                   Admin Dashboard (Current Year)
               </Typography>
+              <Link href="/dashboard/financial">
+                  <Button variant="contained" color="primary">
+                      Go to Financial Dashboard
+                  </Button>
+              </Link>
               <Grid container spacing={3}>
                   <Grid item xs={12}>
                       <FilterSelect
