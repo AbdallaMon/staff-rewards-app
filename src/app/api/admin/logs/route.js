@@ -11,7 +11,7 @@ export async function GET(request) {
     const date = searchParams.get("date");
 
     const filters = {};
-    if (date) {
+    if (date && date !== "null") {
         const startOfDay = new Date(date);
         startOfDay.setHours(0, 0, 0, 0);
 
@@ -22,20 +22,10 @@ export async function GET(request) {
             gte: startOfDay,
             lte: endOfDay,
         };
-    } else if (startDate && endDate) {
+    } else if (startDate && endDate && startDate !== "null" && endDate !== "null") {
         filters.createdAt = {
-            gte: new Date(startDate),
-            lte: new Date(endDate),
-        };
-    } else if (startDate) {
-        filters.createdAt = {
-            gte: new Date(startDate),
-            lte: dayjs(startDate).add(1, 'month').toDate(),
-        };
-    } else if (endDate) {
-        filters.createdAt = {
-            gte: dayjs(endDate).subtract(1, 'month').toDate(),
-            lte: new Date(endDate),
+            gte: dayjs(startDate).startOf('day').toDate(),
+            lte: dayjs(endDate).endOf('day').toDate(),
         };
     }
 

@@ -4,10 +4,9 @@ import {Box, Typography, Paper} from '@mui/material';
 import {styled} from '@mui/material/styles';
 import axios from 'axios';
 import parse from 'html-react-parser';
-import dayjs from 'dayjs';
-import RangeDateComponent from "@/app/UiComponents/FormComponents/MUIInputs/RangeDateComponent";
-import DateComponent from "@/app/UiComponents/FormComponents/MUIInputs/DateChangerComponent";
+
 import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
+import DateFilterComponent from "@/app/UiComponents/FormComponents/DateFilterComponent";
 
 const LogContainer = styled(Box)(({theme}) => ({
     padding: theme.spacing(3),
@@ -45,17 +44,11 @@ const LogDate = styled(Typography)(({theme}) => ({
 }));
 
 const LogList = () => {
-    const now = dayjs();
-    const firstDayOfMonth = now.startOf('month').format('YYYY-MM-DD');
-    const lastDayOfMonth = now.endOf('month').format('YYYY-MM-DD');
 
-    const [startDate, setStartDate] = useState(firstDayOfMonth);
-    const [endDate, setEndDate] = useState(lastDayOfMonth);
-    const [date, setDate] = useState(null);
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(false);
-
-    const fetchLogs = async (filters) => {
+    const [filters, setFilters] = useState({})
+    const fetchLogs = async () => {
         setLoading(true);
         try {
             const params = new URLSearchParams(filters);
@@ -68,40 +61,19 @@ const LogList = () => {
         }
     };
 
-    const handleDateChange = (newDate) => {
-        setDate(newDate ? dayjs(newDate).format('YYYY-MM-DD') : null);
-        updateFilters({date: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, startDate: null, endDate: null});
-    };
-
-    const handleStartDateChange = (newDate) => {
-        setStartDate(newDate ? dayjs(newDate).format('YYYY-MM-DD') : null);
-        updateFilters({startDate: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, date: null});
-    };
-
-    const handleEndDateChange = (newDate) => {
-        setEndDate(newDate ? dayjs(newDate).format('YYYY-MM-DD') : null);
-        updateFilters({endDate: newDate ? dayjs(newDate).format('YYYY-MM-DD') : null, date: null});
-    };
-
-    const updateFilters = (newFilters) => {
-        fetchLogs({...newFilters, page: 1, limit: 10});
-    };
 
     useEffect(() => {
-        fetchLogs({startDate, endDate, page: 1, limit: 10});
-    }, [startDate, endDate]);
+        fetchLogs({...filters, page: 1, limit: 10});
+    }, [filters]);
 
     return (
           <>
               {loading && <FullScreenLoader/>}
               <LogContainer>
-                  <RangeDateComponent
-                        startDate={startDate}
-                        endDate={endDate}
-                        handleStartDateChange={handleStartDateChange}
-                        handleEndDateChange={handleEndDateChange}
+                  <DateFilterComponent
+                        setFilters={setFilters}
+                        filters={filters}
                   />
-                  <DateComponent date={date} handleDateChange={handleDateChange} label="Select a day"/>
                   {logs.map((log) => (
                         <LogCard key={log.id}>
                             <LogTitle variant="h6">{log.action}</LogTitle>
