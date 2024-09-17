@@ -222,7 +222,7 @@ const ProfilePage = ({userId}) => {
                           <Box display="flex" flexDirection="column" alignItems="center" height="100%">
                               <ProfileSection>
                                   <Box display="flex" flexDirection="column" alignItems="center" mb={2}>
-                                      <Avatar src={user.photo} alt="User Photo"
+                                      <Avatar src={user.photo && user.photo} alt="User Photo"
                                               sx={{width: 100, height: 100, mb: 2}}/>
                                       {editMode && (
                                             <IconButton

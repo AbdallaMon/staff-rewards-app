@@ -141,9 +141,9 @@ export default function CalendarPage() {
                 borderStyle: 'thin'
             },
             {
-                column: 'Employee center',
+                column: 'Exam Date',
                 type: String,
-                value: student => student.user.center.name,
+                value: student => dayjs(student.date).format('YYYY-MM-DD'),
                 fontWeight: 'bold',
                 align: 'center',
                 alignVertical: 'center',
@@ -220,7 +220,8 @@ export default function CalendarPage() {
             attendances: item.attendances,
             totalReward: item.totalReward,
             center: item.center
-            , duty: item.attendances[0].dutyRewards[0].duty
+            , duty: item.attendances[0].dutyRewards[0].duty,
+            date: item.date,
         }));
 
         await writeXlsxFile(data, {

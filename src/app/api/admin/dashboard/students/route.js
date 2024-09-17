@@ -6,7 +6,8 @@ export async function GET(request) {
     const startDate = searchParams.get('startDate') ? new Date(searchParams.get('startDate')) : null;
     const endDate = searchParams.get('endDate') ? new Date(searchParams.get('endDate')) : null;
     const date = searchParams.get('date') ? new Date(searchParams.get('date')) : null;
-    const requestType = searchParams.get('type'); // New condition to specify the data requested
+    const requestType = searchParams.get('type');
+    const examType = searchParams.get('examType') || "ALL"; // Default to "ALL"
 
     const where = {};
     if (centerId) {
@@ -29,9 +30,13 @@ export async function GET(request) {
         };
     }
 
+    // Apply examType filter only if it's not "ALL"
+    if (examType && examType !== "ALL") {
+        where.examType = examType;
+    }
+
     try {
         if (requestType === 'attendance') {
-
             const centers = centerId
                   ? await prisma.center.findMany({
                       where: {id: centerId},
@@ -40,6 +45,7 @@ export async function GET(request) {
                   : await prisma.center.findMany({
                       select: {id: true, name: true}
                   });
+
             const centerData = await Promise.all(
                   centers.map(async (center) => {
                       const studentAttendances = await prisma.studentAttendance.findMany({
@@ -48,11 +54,17 @@ export async function GET(request) {
                               centerId: center.id,
                           },
                           select: {
+                              examType: true,
                               totalAttendedStudents: true,
                           },
                       });
 
                       const totalStudents = studentAttendances.reduce((sum, attendance) => sum + attendance.totalAttendedStudents, 0);
+
+                      const totalIncome = studentAttendances.reduce((sum, attendance) => {
+                          const rate = attendance.examType === 'TEACHER' ? 50 : 35; // Rate based on exam type
+                          return sum + (attendance.totalAttendedStudents * rate);
+                      }, 0);
 
                       const uniqueUsers = await prisma.dayAttendance.findMany({
                           where: {
@@ -66,21 +78,32 @@ export async function GET(request) {
                       });
 
                       const totalStaff = uniqueUsers.length;
+                      const totalOutcome = await prisma.dayAttendance.aggregate({
+                          where: {
+                              ...where,
+                              centerId: center.id,
+                          },
+                          _sum: {
+                              totalReward: true,
+                          },
+                      });
 
-                      const totalIncome = totalStudents * 35;  // Example income calculation per student
+                      const centerTotalOutcome = totalOutcome._sum.totalReward || 0;
 
                       return {
                           centerName: center.name,
                           totalStudents,
                           totalStaff,
                           totalIncome,
+                          totalOutcome: centerTotalOutcome,
                       };
                   })
             );
 
-            return new Response(JSON.stringify(centerData), {status: 200});
+            return new Response(JSON.stringify({
+                centerData,
+            }), {status: 200});
         } else {
-            // Fetch total students' attendance and financial data (income/outcome)
             const studentAttendances = await prisma.studentAttendance.findMany({
                 where,
                 select: {
@@ -89,7 +112,10 @@ export async function GET(request) {
                 },
             });
 
-            const totalIncome = studentAttendances.reduce((sum, attendance) => sum + (attendance.totalAttendedStudents * 35), 0);
+            const totalIncome = studentAttendances.reduce((sum, attendance) => {
+                const rate = attendance.examType === 'TEACHER' ? 50 : 35; // Rate based on exam type
+                return sum + (attendance.totalAttendedStudents * rate);
+            }, 0);
 
             const dayAttendances = await prisma.dayAttendance.findMany({
                 where,
@@ -99,7 +125,6 @@ export async function GET(request) {
             });
 
             const totalOutcome = dayAttendances.reduce((sum, attendance) => sum + attendance.totalReward, 0);
-
             const totalStudentAttendance = studentAttendances.reduce((sum, attendance) => sum + attendance.totalAttendedStudents, 0);
 
             return new Response(JSON.stringify({

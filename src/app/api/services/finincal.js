@@ -527,7 +527,6 @@ export async function updateAttendanceRecordsWithLog(dayAttendanceId, body, logg
 
 export async function getAttendanceData(date, centerId, examType) {
     try {
-
         const where = {
             date: new Date(date),
         };

@@ -103,12 +103,12 @@ const StudentsAttendanceDashboard = () => {
     const [totalIncome, setTotalIncome] = useState(null);
     const [totalOutcome, setTotalOutcome] = useState(null);
     const [totalAttendance, setTotalAttendance] = useState(null);
-    const [totalStaff, setTotalStaff] = useState(null);
 
-    const [centerData, setCenterData] = useState([]); // New state to hold all centers data
+    const [centerData, setCenterData] = useState([]);
     const [loadingFinancial, setLoadingFinancial] = useState(true);
     const [loadingAttendance, setLoadingAttendance] = useState(true);
     const [centers, setCenters] = useState([]);
+    const [examType, setExamType] = useState("");
     const [centerLoading, setCenterLoading] = useState(true);
     const searchParams = useSearchParams();
     const selectedCenter = searchParams.get("centerId");
@@ -138,6 +138,14 @@ const StudentsAttendanceDashboard = () => {
         router.push(`?${params.toString()}`);
     };
 
+    const handleExamTypeChange = (event) => {
+        const examType = event.target.value;
+        const params = new URLSearchParams(searchParams);
+        params.set("examType", examType);
+        router.push(`?${params.toString()}`);
+        setExamType(examType); // Update local state
+    };
+
     const fetchFinancialData = async (filters) => {
         setLoadingFinancial(true);
         let financialUrl = `/api/admin/dashboard/students?`;
@@ -152,6 +160,10 @@ const StudentsAttendanceDashboard = () => {
 
         if (selectedCenter) {
             financialUrl += `centerId=${selectedCenter}&`;
+        }
+
+        if (examType) {
+            financialUrl += `examType=${examType}&`; // Include exam type
         }
 
         try {
@@ -182,11 +194,13 @@ const StudentsAttendanceDashboard = () => {
             attendanceUrl += `centerId=${selectedCenter}&`;
         }
 
+        if (examType) {
+            attendanceUrl += `examType=${examType}&`; // Include exam type
+        }
+
         try {
             const data = await fetchData(attendanceUrl);
-            console.log(data, "data")
-            setTotalStaff(data.totalStaff); // New for staff
-            setCenterData(data)
+            setCenterData(data.centerData);
             setLoadingAttendance(false);
         } catch (error) {
             console.error("Error fetching attendance data:", error);
@@ -195,9 +209,9 @@ const StudentsAttendanceDashboard = () => {
     };
 
     useEffect(() => {
-        fetchFinancialData(filters);  // First fetch financial data
-        fetchAttendanceData(filters); // Then fetch attendance data
-    }, [selectedCenter, filters]);
+        fetchFinancialData(filters);
+        fetchAttendanceData(filters);
+    }, [selectedCenter, filters, examType]); // Add examType to dependencies
 
     const incomeOutcomeChartData = {
         labels: ["Total Income", "Total Outcome"],
@@ -221,19 +235,30 @@ const StudentsAttendanceDashboard = () => {
                   </Button>
               </Link>
               <Grid container spacing={3}>
-                  <Grid item xs={12} md={8}>
+                  <Grid item xs={12} md={6}>
                       <DateFilterComponent
                             setFilters={setFilters}
                             filters={filters}
                       />
                   </Grid>
-                  <Grid item xs={12} md={4}>
+                  <Grid item xs={12} md={3}>
                       <FilterSelect
                             options={centers}
                             label={"Centers"}
                             onChange={handleCenterChange}
                             loading={centerLoading}
                             value={selectedCenter}
+                      />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                      <FilterSelect
+                            options={[
+                                {name: "Graduate", id: "GRADUATE"},
+                                {name: "Teacher", id: "TEACHER"}
+                            ]}
+                            label={"Exam Type"}
+                            onChange={handleExamTypeChange}
+                            value={examType}
                       />
                   </Grid>
                   <Grid item xs={12} md={4}>
@@ -267,20 +292,23 @@ const StudentsAttendanceDashboard = () => {
                                                 <TableCell align="left">Total Students</TableCell>
                                                 <TableCell align="left">Total Staff</TableCell>
                                                 <TableCell align="left">Total Income</TableCell>
+                                                <TableCell align="left">Total Outcome</TableCell>
+                                                <TableCell align="left">Net Income</TableCell>
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {/* Loop over the centers and render each center's data */}
-                                            {centerData && centerData?.map((center, index) => (
+                                            {centerData && centerData.map((center, index) => (
                                                   <TableRow key={index}>
                                                       <TableCell align="left">{center.centerName}</TableCell>
                                                       <TableCell align="left">{center.totalStudents || 0}</TableCell>
                                                       <TableCell align="left">{center.totalStaff || 0}</TableCell>
                                                       <TableCell align="left">{center.totalIncome || 0}</TableCell>
+                                                      <TableCell align="left">{center.totalOutcome || 0}</TableCell>
+                                                      <TableCell
+                                                            align="left">{(center.totalIncome || 0) - (center.totalOutcome || 0)}</TableCell>
                                                   </TableRow>
                                             ))}
 
-                                            {/* Total row to accumulate data */}
                                             <TableRow>
                                                 <TableCell align="left"><strong>Total</strong></TableCell>
                                                 <TableCell align="left">
@@ -291,6 +319,12 @@ const StudentsAttendanceDashboard = () => {
                                                 </TableCell>
                                                 <TableCell align="left">
                                                     <strong>{centerData.reduce((acc, center) => acc + (center.totalIncome || 0), 0)}</strong>
+                                                </TableCell>
+                                                <TableCell align="left">
+                                                    <strong>{centerData.reduce((acc, center) => acc + (center.totalOutcome || 0), 0)}</strong>
+                                                </TableCell>
+                                                <TableCell align="left">
+                                                    <strong>{centerData.reduce((acc, center) => acc + ((center.totalIncome || 0) - (center.totalOutcome || 0)), 0)}</strong>
                                                 </TableCell>
                                             </TableRow>
                                         </TableBody>
