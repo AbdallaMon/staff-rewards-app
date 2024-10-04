@@ -37,6 +37,7 @@ export default function Attendance() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedAttendanceId, setSelectedAttendanceId] = useState(null);
     const [centerLoading, setCenterLoading] = useState(true);
+    const [userAssignment, setUserAssignment] = useState(null)
 
     useEffect(() => {
         setFilters({...filters, centerId: selectedCenter, userId: null});
@@ -54,6 +55,7 @@ export default function Attendance() {
         {name: "name", label: "Name"},
         {name: "emiratesId", label: "Emirates ID"},
         {name: "date", label: "Date"},
+        {name: "totalRating", label: "Total rating", type: "modules"},
         {name: "examType", label: "Exam Type"},
         {name: "numberOfShifts", label: "Attended Shifts"},
     ];
@@ -79,10 +81,17 @@ export default function Attendance() {
     };
 
 
-    const handleRowClick = (attendanceId) => {
+    const handleRowClick = (attendanceId, item) => {
+        const userAssignmentData = {
+            isEdit: item.userAssignment,
+            userAssignmentId: item.userAssignment ? item.userAssignment.id : null,
+            userId: item.userId
+        }
+        setUserAssignment(userAssignmentData)
         setSelectedAttendanceId(attendanceId);
         setDrawerOpen(true);
     };
+    console.log(data, "data")
     return (
           <div>
               <Typography variant="h3" color="primary" p={2}>
@@ -133,7 +142,7 @@ export default function Attendance() {
                     withDelete={true}
                     deleteHref={`/admin/attendance`}
                     extraComponent={({item}) => (
-                          <Button onClick={() => handleRowClick(item.id)}>View Details</Button>
+                          <Button onClick={() => handleRowClick(item.id, item)}>View Details</Button>
                     )}
               />
               <AttendanceDetailDrawer
@@ -142,9 +151,12 @@ export default function Attendance() {
                     onClose={() => {
                         setDrawerOpen(false)
                         setSelectedAttendanceId(null)
+                        setUserAssignment(null)
+
                     }}
                     setData={setData}
                     admin={true}
+                    userAssignment={userAssignment}
               />
           </div>
     );

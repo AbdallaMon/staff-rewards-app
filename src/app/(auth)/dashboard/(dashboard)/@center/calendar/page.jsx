@@ -2,13 +2,16 @@
 
 import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useRouter, useSearchParams} from "next/navigation";
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
 import ShiftAssignmentModal from "@/app/UiComponents/Models/ShiftAssignmentModal";
 import {isTodayOrYesterday} from "@/helpers/functions/utlity";
 import CreateModal from "@/app/UiComponents/Models/CreateModal";
 import dayjs from "dayjs";
+import {Container, Drawer, IconButton} from "@mui/material";
+import {FaTimes} from "react-icons/fa";
+import AssignmentAnswer from "@/app/UiComponents/FormComponents/AssignmentAnswer";
 
 export default function CalendarPage() {
     const {
@@ -56,6 +59,8 @@ export default function CalendarPage() {
     const searchParams = useSearchParams();
     const selectedExamType = searchParams.get('examType');
     const router = useRouter();
+    const [dayAttendanceId, setDayAttendanceId] = useState(null)
+    const [openDrawer, setOpenDrawer] = useState(null)
 
     useEffect(() => {
         setFilters((prevFilters) => ({...prevFilters, examType: selectedExamType}));
@@ -90,8 +95,28 @@ export default function CalendarPage() {
             pattern: {required: {value: true, message: "Please select an exam type"}}
         }
     ];
+
+    function onClose() {
+        setDayAttendanceId(null)
+        setOpenDrawer(false)
+    }
+
+    function handleAfterSubmit(dayAttendanceId) {
+        setDayAttendanceId(dayAttendanceId)
+        setOpenDrawer(true)
+    }
+
     return (
           <div>
+              <Drawer anchor="bottom" open={openDrawer} onClose={onClose}>
+                  <Container maxWidth="xl"
+                             sx={{p: 2, height: '100vh', overflow: 'auto', position: 'relative', zIndex: 1}}>
+                      <IconButton onClick={onClose} sx={{position: 'absolute', right: 16, top: 16}}>
+                          <FaTimes/>
+                      </IconButton>
+                      <AssignmentAnswer dayAttendanceId={dayAttendanceId} onClose={onClose}/>
+                  </Container>
+              </Drawer>
               <div className={"grid grid-cols-2 gap-5 items-center my-2 bg-bgSecondary w-full py-2 px-2"}>
                   <FilterSelect options={filterExamTypes} label={"Exam Type"} onChange={handleExamTypeChange}
                                 loading={false} value={selectedExamType}/>
@@ -118,6 +143,7 @@ export default function CalendarPage() {
                                                           item={item} label={"Attendees"} href="center/attendance"
                                                           centers={centers}
                                                           centerLoading={centerLoading}
+                                                          handleAfterSubmit={handleAfterSubmit}
                                     />
                               )}
                               <CreateModal label={"Total Students"}

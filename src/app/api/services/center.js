@@ -129,14 +129,18 @@ export async function fetchAttendanceByCenterId(centerId, page, limit, filters =
                     userId: true,
                     date: true,
                     examType: true,
-                    totalReward: true,
                     attachment: true,
                     id: true,
+                    userAssignment: {
+                        select: {
+                            id: true
+                        }
+                    },
                     user: {
                         select: {
                             name: true,
                             emiratesId: true,
-                            rating: true,
+                            totalRating: true
                         },
                     },
                     _count: {
@@ -147,22 +151,10 @@ export async function fetchAttendanceByCenterId(centerId, page, limit, filters =
             prisma.dayAttendance.count({where}),
         ]);
 
-        const summaryRecords = dayAttendanceRecords.map(record => ({
-            userId: record.userId,
-            name: record.user.name,
-            emiratesId: record.user.emiratesId,
-            date: record.date,
-            rating: record.user.rating,
-            examType: record.examType,
-            numberOfShifts: record._count.attendances,
-            reward: record.totalReward,
-            id: record.id,
-            attachment: record.attachment
-        }));
 
         return {
             status: 200,
-            data: summaryRecords,
+            data: dayAttendanceRecords,
             total,
             message: "Attendance records fetched successfully"
         };
@@ -769,13 +761,311 @@ export async function updateStudentsAttendanceRecords(studentAttendanceId, body)
     });
 
     try {
-
         return {
             status: 200,
             data: newStudentAttendance,
             message: "Students Attendance records updated successfully",
         };
     } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+export async function getAssignmentsByDayAttendance(dayAttendanceId, isArchived) {
+    try {
+        let assignments
+        // Step 1: Fetch the dayAttendance with related attendance and dutyRewards
+        const dayAttendance = await prisma.dayAttendance.findUnique({
+            where: {
+                id: parseInt(dayAttendanceId),
+            },
+            include: {
+                attendances: {
+                    include: {
+                        dutyRewards: {
+                            include: {
+                                duty: true,  // Include the duty to get the dutyId
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        // Step 2: Extract the first available dutyId from dutyRewards
+        let dutyId = null;
+        if (dayAttendance && dayAttendance.attendances.length > 0) {
+            // Loop over attendances to find dutyRewards with valid dutyId
+            for (const attendance of dayAttendance.attendances) {
+                if (attendance.dutyRewards.length > 0) {
+                    dutyId = attendance.dutyRewards[0].dutyId;  // Assume first dutyReward dutyId
+                    break;
+                }
+            }
+        }
+
+        // If no valid dutyId is found, return an error
+        if (!dutyId) {
+            return {
+                status: 404,
+                message: "No duty found for this dayAttendance",
+            };
+        }
+        if (isArchived) {
+            assignments = await prisma.assignment.findFirst({
+                where: {
+                    duties: {
+                        some: {
+                            dutyId: dutyId,
+                        },
+                    },
+                },
+                include: {
+                    questions: {
+                        include: {
+                            choices: true,
+                        },
+                    },
+                },
+            });
+
+        } else {
+            assignments = await prisma.assignment.findFirst({
+                where: {
+                    duties: {
+                        some: {
+                            dutyId: dutyId,
+                        },
+                    },
+                },
+                include: {
+                    questions: {
+                        where: {
+                            isArchived: false,
+                        },
+                        include: {
+                            choices: {
+                                where: {
+                                    isArchived: false,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+        }
+        const userRatingData = await prisma.user.findUnique({
+            where: {
+                id: parseInt(dayAttendance.userId),
+            },
+            select: {
+                totalRating: true,
+                lastRatingDate: true,
+            },
+        });
+        assignments.totalRating = userRatingData.totalRating
+        assignments.lastRatingDate = userRatingData.lastRatingDate
+        assignments.userId = dayAttendance.userId
+        return {
+            status: 200,
+            data: assignments,
+        };
+    } catch (error) {
+        console.log(error, "error");
+        return handlePrismaError(error);
+    }
+}
+
+export async function createUserAssignment(dayAttendanceId, data) {
+    const {totalPoints, totalScore, questionAnswers, userId} = data;
+
+    try {
+        const updatedUserTotalRating = +totalPoints > 0
+              ? (+totalScore / +totalPoints) * 100
+              : 0;
+        const newUserAssignment = await prisma.userAssignment.create({
+            data: {
+                dayAttendanceId: parseInt(dayAttendanceId),
+                totalPoints: parseInt(totalPoints),
+                totalScore: parseInt(totalScore),
+                totalRating: updatedUserTotalRating,
+                questionAnswers: {
+                    create: questionAnswers.map((qa) => ({
+                        questionId: qa.questionId,
+                        choiceId: qa.choiceId,
+                        comment: qa.comment || null,
+                    })),
+                },
+            },
+        });
+
+        // Step 2: Retrieve the user's existing totalPoints, totalScore, and totalRating
+        const user = await prisma.user.findUnique({
+            where: {id: +userId},
+            select: {
+                totalPoints: true,
+                totalScore: true,
+            },
+        });
+
+        // Step 3: Add new values to the user's existing totalPoints and totalScore
+        const updatedTotalPoints = (user.totalPoints || 0) + parseInt(totalPoints);
+        const updatedTotalScore = (user.totalScore || 0) + parseInt(totalScore);
+
+        // Step 4: Recalculate totalRating as a percentage
+        const updatedTotalRating = updatedTotalPoints > 0
+              ? (updatedTotalScore / updatedTotalPoints) * 100
+              : 0;
+
+        // Step 5: Update the user with the new totalPoints, totalScore, and totalRating
+        const currentDate = new Date();
+        await prisma.user.update({
+            where: {id: +userId},
+            data: {
+                lastRatingDate: currentDate,
+                totalPoints: updatedTotalPoints,
+                totalScore: updatedTotalScore,
+                totalRating: parseFloat(updatedTotalRating.toFixed(2)), // Save with 2 decimal points
+            },
+        });
+        newUserAssignment.userTotalRating = updatedTotalRating
+        return {
+            status: 200,
+            message: "UserAssignment created and user updated successfully",
+            data: newUserAssignment,
+        };
+    } catch (error) {
+        if (error.code === "P2002" && error.meta.target.includes("dayAttendanceId")) {
+            return {
+                status: 400,
+                message: "The user already has an assignment score for this day. You can modify it from the attendance page.",
+            };
+        }
+        console.log(error, "error");
+        return handlePrismaError(error);
+    }
+}
+
+export async function getUserAssignmentById(userAssignmentId) {
+    try {
+        const userAssignment = await prisma.userAssignment.findUnique({
+            where: {id: parseInt(userAssignmentId)},
+            include: {
+                questionAnswers: {
+                    include: {
+                        question: true,
+                        choice: true,
+                    },
+                },
+            },
+        });
+
+        return {
+            status: 200,
+            data: userAssignment,
+        };
+    } catch (error) {
+        console.log(error, "error");
+        return handlePrismaError(error);
+    }
+}
+
+export async function deleteUserAssignment(userAssignmentId) {
+    try {
+        await prisma.userAssignment.delete({
+            where: {
+                id: parseInt(userAssignmentId),
+            },
+        });
+
+        return {
+            status: 200,
+            message: "UserAssignment deleted successfully",
+        };
+    } catch (error) {
+        console.log(error, "error");
+        return handlePrismaError(error);
+    }
+}
+
+export async function editUserAssignment(userAssignmentId, data) {
+    let {totalPoints, totalScore, questionAnswers, userId, oldTotals} = data;
+    const {totalPoints: oldTotalPoints, totalScore: oldTotalScore} = oldTotals;
+
+    questionAnswers = questionAnswers.filter((question) => question.choiceId !== undefined);
+
+    try {
+        const updatedUserAssignment = await prisma.userAssignment.update({
+            where: {id: parseInt(userAssignmentId)},
+            data: {
+                totalPoints: parseInt(totalPoints),
+                totalScore: parseInt(totalScore),
+                questionAnswers: {
+                    deleteMany: {}, // Delete existing answers
+                    create: questionAnswers.map((qa) => ({
+                        questionId: qa.questionId,
+                        choiceId: qa.choiceId,
+                        comment: qa.comment || null,
+                    })),
+                },
+            },
+        });
+
+        const user = await prisma.user.findUnique({
+            where: {id: +userId},
+            select: {
+                totalPoints: true,
+                totalScore: true,
+            },
+        });
+
+        const updatedTotalPoints = (user.totalPoints || 0) - parseInt(oldTotalPoints) + parseInt(totalPoints);
+        const updatedTotalScore = (user.totalScore || 0) - parseInt(oldTotalScore) + parseInt(totalScore);
+
+        const updatedTotalRating = updatedTotalPoints > 0
+              ? (updatedTotalScore / updatedTotalPoints) * 100
+              : 0;
+
+        await prisma.user.update({
+            where: {id: +userId},
+            data: {
+                totalPoints: updatedTotalPoints,
+                totalScore: updatedTotalScore,
+                totalRating: parseFloat(updatedTotalRating.toFixed(2)),
+            },
+        });
+        updatedUserAssignment.userTotalRating = updatedTotalRating
+        return {
+            status: 200,
+            message: "UserAssignment updated and user totals recalculated successfully",
+            data: updatedUserAssignment,
+        };
+    } catch (error) {
+        console.log(error, "error");
+        return handlePrismaError(error);
+    }
+}
+
+
+export async function updateUserRatingData(userId, totalRating, lastRatingDate) {
+    try {
+        const updatedUser = await prisma.user.update({
+            where: {
+                id: parseInt(userId),
+            },
+            data: {
+                totalRating: parseFloat(totalRating),
+                lastRatingDate: new Date(lastRatingDate),
+            },
+        });
+
+        return {
+            status: 200,
+            message: "User rating data updated successfully",
+            data: updatedUser,
+        };
+    } catch (error) {
+        console.log(error, "error");
         return handlePrismaError(error);
     }
 }

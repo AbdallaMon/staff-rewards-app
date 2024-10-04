@@ -100,7 +100,7 @@ export default function AdminTable({
 
     const totalPages = Math.ceil(total / limit);
 
-    const getPropertyValue = (item, propertyPath) => {
+    const getPropertyValue = (item, propertyPath, type) => {
         const value = propertyPath.split('.').reduce((acc, part) => {
             if (acc) {
                 const arrayIndexMatch = part.match(/(\w+)\[(\d+)\]/);
@@ -117,6 +117,9 @@ export default function AdminTable({
 
         if (propertyPath.toLowerCase().includes('date') && dayjs(value).isValid()) {
             return dayjs(value).format('YYYY-MM-DD');
+        }
+        if (type === "modules") {
+            return value + "%"
         }
         return value;
     };
@@ -166,7 +169,7 @@ export default function AdminTable({
                                           <TableRow key={item.id}>
                                               {columns.map((column) => (
                                                     <TableCell key={column.name}>
-                                                        {getPropertyValue(item, column.name)}
+                                                        {getPropertyValue(item, column.name, column.type)}
                                                     </TableCell>
                                               ))}
                                               {withEdit && (

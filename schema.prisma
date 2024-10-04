@@ -38,11 +38,15 @@ model User {
   duty                 Duty?     @relation(fields: [dutyId], references: [id])
   attendance           Attendance[]
   dutyRewards          DutyReward[]
-  additionalDuties     UserAdditionalDuties[] // Relation to UserAdditionalDuties
+  additionalDuties     UserAdditionalDuties[]
   dayAttendances       DayAttendance[]
   centerAdmin          Center?   @relation("CenterAdmin")
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
+  lastRatingDate     DateTime?
+  totalRating          Float?
+  totalScore Int?
+  totalPoints Int?
   deletedAt            DateTime?
   resetPasswordToken   String?   @unique
   resetPasswordExpires DateTime?
@@ -99,34 +103,107 @@ model Shift {
 }
 
 model Duty {
-  id           Int           @id @default(autoincrement())
-  name         String
-  rewards      DutyReward[]
-  amount       Float
-  additionalUsers UserAdditionalDuties[]  // Relation to UserAdditionalDuties
-  users        User[]
-  archived     Boolean       @default(false)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @default(now())
-  deletedAt    DateTime?
+  id                Int                 @id @default(autoincrement())
+  name              String
+  rewards           DutyReward[]
+  amount            Float
+  additionalUsers   UserAdditionalDuties[]  // Relation to UserAdditionalDuties
+  users             User[]
+  archived          Boolean             @default(false)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @default(now())
+  deletedAt         DateTime?
+  assignments DutyAssignments[] // New relation to the explicit join table
 }
 
 model DayAttendance {
-  id            Int           @id @default(autoincrement())
-  userId        Int
-  centerId      Int
-  date          DateTime
-  examType      String?
-  totalReward   Float?
-  isPaid       Boolean       @default(false)
-  attachment String?
-  user          User          @relation(fields: [userId], references: [id])
-  center        Center        @relation(fields: [centerId], references: [id])
-  attendances   Attendance[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @default(now())
-  deletedAt     DateTime?
+  id              Int                 @id @default(autoincrement())
+  userId          Int
+  centerId        Int
+  date            DateTime
+  examType        String?
+  totalReward     Float?
+  isPaid          Boolean             @default(false)
+  attachment      String?
+  user            User                @relation(fields: [userId], references: [id])
+  center          Center              @relation(fields: [centerId], references: [id])
+  attendances     Attendance[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @default(now())
+  deletedAt       DateTime?
+  userAssignment  UserAssignment?     @relation("DayAttendanceAssignment") // New relation to UserAssignment
 }
+
+model Assignment {
+  id              Int                 @id @default(autoincrement())
+  title           String
+  questions       Question[]          // List of questions in the assignment
+  duties      DutyAssignments[] // New relation to the explicit join table
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @default(now())
+}
+model DutyAssignments {
+  dutyId      Int
+  assignmentId Int
+  duty        Duty              @relation(fields: [dutyId], references: [id])
+  assignment  Assignment         @relation(fields: [assignmentId], references: [id])
+
+  @@id([dutyId, assignmentId])   // Composite primary key
+}
+model Question {
+  id              Int                 @id @default(autoincrement())
+  title           String
+  choices         Choice[]            // List of choices for the question
+  totalPoints     Int                 // Total points for the question
+  assignmentId    Int
+  assignment      Assignment          @relation(fields: [assignmentId], references: [id])
+  questionAnswers QuestionAnswer[]
+  isArchived    Boolean @default(false)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @default(now())
+}
+
+model Choice {
+  id              Int                 @id @default(autoincrement())
+  text            String              // Choice text
+  points          Int                 // Points associated with this choice
+  questionId      Int
+  question        Question            @relation(fields: [questionId], references: [id])
+  questionAnswers QuestionAnswer[]    // Add the relation to QuestionAnswer here
+  isArchived      Boolean             @default(false) // Add isArchived field
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @default(now())
+  deletedAt       DateTime?
+}
+
+
+model UserAssignment {
+  id              Int                 @id @default(autoincrement())
+  dayAttendanceId Int                 @unique  // Make this unique to ensure one-to-one relation
+  totalRating     Float
+  totalScore Int
+  totalPoints Int
+  comments        String?             // Optional comments from the user
+  dayAttendance   DayAttendance       @relation(fields: [dayAttendanceId], references: [id], name: "DayAttendanceAssignment")
+  questionAnswers QuestionAnswer[]    // Links each question in the assignment with the selected choice
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @default(now())
+}
+
+model QuestionAnswer {
+  id              Int                 @id @default(autoincrement())
+  userAssignmentId Int                // Reference to UserAssignment
+  questionId      Int                 // Reference to the question
+  choiceId        Int                 // Selected choice
+  comment         String?             // Optional comment for the question
+  userAssignment  UserAssignment      @relation(fields: [userAssignmentId], references: [id])
+  question        Question            @relation(fields: [questionId], references: [id])
+  choice          Choice              @relation(fields: [choiceId], references: [id])
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @default(now())
+}
+
+
 model StudentAttendance {
   id        Int      @id @default(autoincrement())
   centerId  Int

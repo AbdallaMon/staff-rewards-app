@@ -43,6 +43,7 @@ const SearchComponent = ({apiEndpoint, setFilters, inputLabel, renderKeys, mainK
                 userId: newValue.id,
                 duty: newValue.duty,
                 name: newValue.name,
+                id: newValue.id,
                 additionalDuties: newValue.additionalDuties
             }));
         } else {

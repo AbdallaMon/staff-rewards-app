@@ -4,10 +4,7 @@ import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
 import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
 import React, {useEffect, useState} from "react";
-import dayjs from "dayjs";
 import AttendanceDetailDrawer from "@/app/UiComponents/DataViewer/AttendanceDetailDrawer";
-import RangeDateComponent from "@/app/UiComponents/FormComponents/MUIInputs/RangeDateComponent";
-import DateComponent from "@/app/UiComponents/FormComponents/MUIInputs/DateChangerComponent";
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
 import {useRouter, useSearchParams} from "next/navigation";
 import {useSelector} from "react-redux";
@@ -144,6 +141,7 @@ export default function Attendance() {
                     }}
                     setData={setData}
                     finincalId={user.data.id}
+                    isFinancial={true}
               />
           </div>
     );

@@ -7,13 +7,22 @@ import Link from "next/link";
 import {Button} from "@mui/material";
 
 export default function Duties() {
-    const { data, loading, setData, page, setPage, limit, setLimit, total, setTotal } = useDataFetcher("admin/duties", false);
-
-
+    const {
+        data,
+        loading,
+        setData,
+        page,
+        setPage,
+        limit,
+        setLimit,
+        total,
+        setTotal
+    } = useDataFetcher("admin/duties", false);
 
 
     const inputs = [
-        { data: { id: "name", type: "text", label: "Name" }, pattern: {
+        {
+            data: {id: "name", type: "text", label: "Name"}, pattern: {
                 required: {
                     value: true,
                     message: "Please enter a name for the duty",
@@ -21,7 +30,8 @@ export default function Duties() {
             }
         }
         ,
-        { data: { id: "amount", type: "number", label: "Reward amount" }, pattern: {
+        {
+            data: {id: "amount", type: "number", label: "Reward amount"}, pattern: {
                 required: {
                     value: true,
                     message: "Please enter an amount for the duty",
@@ -35,18 +45,20 @@ export default function Duties() {
     ];
 
     const columns = [
-        { name: "name", label: "Name" },
-        { name: "amount", label: "Reward amount" }
+        {name: "name", label: "Name"},
+        {name: "amount", label: "Reward amount"}
     ];
 
     return (
           <div>
               <div className={"flex gap-5 my-2 bg-bgSecondary w-fit py-2 px-2"}>
 
-                  <Link href={"/dashboard/configure/calendar"}>
-                      <Button variant="outlined">Configure calender</Button>
-                  </Link>
-
+                  <Button component={Link} href={"/dashboard/configure/calendar"} variant="outlined">
+                      Configure calender
+                  </Button>
+                  <Button component={Link} href={"/dashboard/configure/assignments"} variant="outlined">
+                      Configure Assignments
+                  </Button>
               </div>
               <CreateModal
                     setData={setData}

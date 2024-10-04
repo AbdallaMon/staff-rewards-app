@@ -2,7 +2,7 @@ import {getCookieValue} from "@/app/api/utlis/getCookieValue";
 import {verifyToken} from "@/app/api/utlis/tokens";
 import {
     createStudentAttendanceRecord,
-    fetchAttendanceByCenterId, fetchStudentAttendancesByCenterId,
+    fetchStudentAttendancesByCenterId,
 } from "@/app/api/services/center";
 import jwt from "jsonwebtoken";
 import {NextResponse} from "next/server";

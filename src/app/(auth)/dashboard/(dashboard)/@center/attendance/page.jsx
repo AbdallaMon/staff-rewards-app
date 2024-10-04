@@ -4,11 +4,10 @@ import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
 import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
 import React, {useState} from "react";
-import dayjs from "dayjs";
 import AttendanceDetailDrawer from "@/app/UiComponents/DataViewer/AttendanceDetailDrawer";
-import RangeDateComponent from "@/app/UiComponents/FormComponents/MUIInputs/RangeDateComponent";
-import DateComponent from "@/app/UiComponents/FormComponents/MUIInputs/DateChangerComponent";
 import DateFilterComponent from "@/app/UiComponents/FormComponents/DateFilterComponent";
+import DrawerWithContent from "@/app/UiComponents/Models/DrawerWithContent";
+import AssignmentAnswers from "@/app/UiComponents/FormComponents/AssignmentAnswer";
 
 export default function Attendance() {
     const {
@@ -28,16 +27,21 @@ export default function Attendance() {
 
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedAttendanceId, setSelectedAttendanceId] = useState(null);
+    const [userAssignment, setUserAssignment] = useState(null)
     const columns = [
-        {name: "name", label: "Name"},
-        {name: "emiratesId", label: "Emirates ID"},
+        {name: "user.name", label: "Name"},
+        {name: "user.emiratesId", label: "Emirates ID"},
         {name: "date", label: "Date"},
         {name: "examType", label: "Exam Type"},
-        {name: "numberOfShifts", label: "Attended Shifts"},
+        {name: "_count.attendances", label: "Attended Shifts"},
     ];
-
-
-    const handleRowClick = (attendanceId) => {
+    const handleRowClick = (attendanceId, item) => {
+        const userAssignmentData = {
+            isEdit: item.userAssignment,
+            userAssignmentId: item.userAssignment ? item.userAssignment.id : null,
+            userId: item.userId
+        }
+        setUserAssignment(userAssignmentData)
         setSelectedAttendanceId(attendanceId);
         setDrawerOpen(true);
     };
@@ -90,7 +94,6 @@ export default function Attendance() {
                     loading={loading}
                     extraComponent={({item}) => (
                           <div className={"flex gap-5 items-center"}>
-
                               {item.attachment?.length > 0 ?
                                     <>
                                         <a href={item.attachment} target="_blank" rel="noopener noreferrer">
@@ -100,7 +103,7 @@ export default function Attendance() {
                                     </>
                                     : "Not signed yet."
                               }
-                              <Button onClick={() => handleRowClick(item.id)}>View Details</Button>
+                              <Button onClick={() => handleRowClick(item.id, item)}>View Details</Button>
                           </div>
                     )}
               />
@@ -110,9 +113,11 @@ export default function Attendance() {
                     onClose={() => {
                         setDrawerOpen(false)
                         setSelectedAttendanceId(null)
+                        setUserAssignment(null)
                     }}
                     center={true}
                     setData={setData}
+                    userAssignment={userAssignment}
               />
           </div>
     );

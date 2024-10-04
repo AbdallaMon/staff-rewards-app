@@ -192,7 +192,6 @@ export default function STAFF() {
                     editHref={"admin/employees"}
                     extraComponent={({item}) => (
                           <div>
-
                               <Button onClick={() => handleRowClick(item.id)}>View Details</Button>
                               <AssingNewDutyModal
                                     selectedItem={item}

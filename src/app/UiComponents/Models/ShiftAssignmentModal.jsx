@@ -12,14 +12,14 @@ import {
     FormControl,
     InputLabel,
     Select,
-    MenuItem
+    MenuItem,
 } from "@mui/material";
 import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 import {simpleModalStyle} from "@/app/constants";
 
-const ShiftAssignmentModal = ({shifts, setData, label, href, item}) => {
+const ShiftAssignmentModal = ({shifts, setData, label, href, item, handleAfterSubmit}) => {
     const [open, setOpen] = useState(false);
     const [selectedShifts, setSelectedShifts] = useState([]);
     const {setLoading} = useToastContext();
@@ -31,6 +31,7 @@ const ShiftAssignmentModal = ({shifts, setData, label, href, item}) => {
     const [otherCenters, setOtherCenters] = useState(null);
     const [attendAdditionalDuty, setAttendAdditionalDuty] = useState(false);
     const [selectedAdditionalDuty, setSelectedAdditionalDuty] = useState(null);
+    const [confirmRate, setConfirmRate] = useState(false)
 
     const handleOpen = () => setOpen(true);
     const handleClose = () => {
@@ -73,6 +74,9 @@ const ShiftAssignmentModal = ({shifts, setData, label, href, item}) => {
         };
 
         const result = await handleRequestSubmit(formData, setLoading, href, false, "Assigning shifts...");
+        if (confirmRate) {
+            handleAfterSubmit(result.data.dayAttendance.id)
+        }
         if (result.status === 200) {
             if (setData) {
                 setData((prevData) => [...prevData, result.data]);
@@ -92,8 +96,11 @@ const ShiftAssignmentModal = ({shifts, setData, label, href, item}) => {
         setSnackbarOpen(false);
     };
 
+
     return (
           <>
+
+
               <Button variant="contained" color="secondary" onClick={handleOpen}>
                   {label}
               </Button>
@@ -161,6 +168,15 @@ const ShiftAssignmentModal = ({shifts, setData, label, href, item}) => {
                                     />
                               ))}
                           </Box>
+                          <FormControlLabel
+                                control={
+                                    <Checkbox
+                                          checked={confirmRate}
+                                          onChange={(e) => setConfirmRate(e.target.checked)}
+                                    />
+                                }
+                                label="Rate the attendance after submit?"
+                          />
                           <Button variant="contained" color="primary" onClick={onSubmit}>
                               Submit
                           </Button>

@@ -263,6 +263,101 @@ export async function getUserDayAttendanceWithUserSignatureReturned(dayAttendanc
 
 ///
 
+export async function fetchAttendanceByCenterId(centerId, page, limit, filters = {}) {
+    const where = {centerId};
+
+    if (filters.date) {
+        const date = new Date(filters.date);
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+        where.date = {
+            gte: startOfDay,
+            lte: endOfDay
+        };
+    } else {
+
+        if (filters.startDate && filters.endDate) {
+            const endDate = new Date(filters.endDate);
+            endDate.setHours(23, 59, 59, 999);  // Ensure endDate includes the entire day
+
+            where.date = {
+                gte: new Date(filters.startDate),
+                lte: endDate
+            };
+        } else if (filters.startDate) {
+            where.date = {
+                gte: new Date(filters.startDate)
+            };
+        } else if (filters.endDate) {
+            const endDate = new Date(filters.endDate);
+            endDate.setHours(23, 59, 59, 999);  // Ensure endDate includes the entire day
+            where.date = {
+                lte: endDate
+            };
+        } else {
+            const now = new Date();
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+            where.date = {
+                gte: startOfMonth,
+                lte: endOfMonth
+            };
+        }
+    }
+    if (filters.userId) {
+        where.userId = +filters.userId
+    }
+
+    try {
+        const [dayAttendanceRecords, total] = await prisma.$transaction([
+            prisma.dayAttendance.findMany({
+                where,
+                orderBy: {date: 'desc'},
+                skip: (page - 1) * limit,
+                take: limit,
+                select: {
+                    userId: true,
+                    date: true,
+                    examType: true,
+                    attachment: true,
+                    id: true,
+                    userAssignment: {
+                        select: {
+                            id: true
+                        }
+                    },
+                    user: {
+                        select: {
+                            name: true,
+                            emiratesId: true,
+                            rating: true,
+                            lastRatingDate: true,
+                            totalRating: true
+                        },
+                    },
+                    _count: {
+                        select: {attendances: true},
+                    },
+                },
+            }),
+            prisma.dayAttendance.count({where}),
+        ]);
+
+
+        return {
+            status: 200,
+            data: dayAttendanceRecords,
+            total,
+            message: "Attendance records fetched successfully"
+        };
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
 export async function fetchAttendanceForFinincial(page, limit, filters = {}) {
     const where = {};
     if (filters.centerId) {
@@ -328,12 +423,16 @@ export async function fetchAttendanceForFinincial(page, limit, filters = {}) {
                     totalReward: true,
                     id: true,
                     attachment: true,
+                    userAssignment: {
+                        select: {
+                            id: true
+                        }
+                    },
                     user: {
                         select: {
                             name: true,
                             emiratesId: true,
-                            rating: true,
-
+                            totalRating: true
                         },
                     },
                     _count: {
@@ -349,11 +448,12 @@ export async function fetchAttendanceForFinincial(page, limit, filters = {}) {
             name: record.user.name,
             emiratesId: record.user.emiratesId,
             date: record.date,
-            rating: record.user.rating,
+            totalRating: record.user.totalRating,
             examType: record.examType,
             numberOfShifts: record._count.attendances,
             reward: record.totalReward,
             id: record.id,
+            userAssignment: record.userAssignment,
         }));
 
         return {
@@ -624,3 +724,4 @@ export async function getBankDetailsData(date, centerId) {
         return handlePrismaError(e);
     }
 }
+

@@ -21,6 +21,7 @@ import {FaTimes, FaEdit} from 'react-icons/fa';
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 import {isTodayOrYesterday} from "@/helpers/functions/utlity";
+import AssignmentAnswer from "@/app/UiComponents/FormComponents/AssignmentAnswer";
 
 const fetchAttendanceById = async (dayAttendanceId, center, admin) => {
     let href = center ? `/api/center/attendance/${dayAttendanceId}` : `/api/finincal/attendance/${dayAttendanceId}`
@@ -33,7 +34,17 @@ const fetchAttendanceById = async (dayAttendanceId, center, admin) => {
 };
 
 
-const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData, finincalId, admin}) => {
+const AttendanceDetailDrawer = ({
+                                    dayAttendanceId,
+                                    open,
+                                    onClose,
+                                    center,
+                                    setData,
+                                    finincalId,
+                                    admin,
+                                    userAssignment,
+                                    isFinancial = false
+                                }) => {
     const [attendanceData, setAttendanceData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -242,17 +253,17 @@ const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData
                                             ))}
                                         </List>
                                         <Divider/>
-                                        <Typography variant="h6" color="primary">Unattended Shifts</Typography>
-                                        <List>
-                                            {attendanceData.unattendedShifts.map((shift, index) => (
-                                                  <ListItem key={index}>
-                                                      <ListItemText
-                                                            primary={`Shift: ${shift.name}`}
-                                                            secondary={`Duration: ${shift.duration} hours`}
-                                                      />
-                                                  </ListItem>
-                                            ))}
-                                        </List>
+                                        {/*<Typography variant="h6" color="primary">Unattended Shifts</Typography>*/}
+                                        {/*<List>*/}
+                                        {/*    {attendanceData.unattendedShifts.map((shift, index) => (*/}
+                                        {/*          <ListItem key={index}>*/}
+                                        {/*              <ListItemText*/}
+                                        {/*                    primary={`Shift: ${shift.name}`}*/}
+                                        {/*                    secondary={`Duration: ${shift.duration} hours`}*/}
+                                        {/*              />*/}
+                                        {/*          </ListItem>*/}
+                                        {/*    ))}*/}
+                                        {/*</List>*/}
                                         {center && isToday && (
                                               <Button variant="contained" color="primary" onClick={handleEditClick}>
                                                   <FaEdit/> Edit Attendance
@@ -271,6 +282,10 @@ const AttendanceDetailDrawer = ({dayAttendanceId, open, onClose, center, setData
                                 </Grid>
                             </Box>
                       )}
+                      {(!isFinancial && userAssignment) &&
+                            <AssignmentAnswer setData={setData} dayAttendanceId={dayAttendanceId}
+                                              admin={admin}{...userAssignment} />
+                      }
                   </Container>
               </Drawer>
               <Modal open={editModalOpen} onClose={handleEditModalClose}

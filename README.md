@@ -1,13 +1,12 @@
 // todo
-// dates filters
+<!-- - Move attendance and edit attendance to the view details (make attendance only the saved not the new) -->
+<!-- - Admin can view attendance details -->
+<!-- - Remove points and question index -->
+<!-- - Make save button instead of submit -->
+- Email after rating
+- Admin two report (excel for the assignments scores on a day , pdf for list of assignments results in a specific day)
+- log for centers
 
-// center students attendaded
-<!-- - for admin number of students * 35 -->
-<!-- diff between what income and output (filter by date and center) -->
-
-<!-- - show pending accounts -->
-- what paid and rest and total for staff
-- staff attendance paginated and only day date
 <!-- $2b$10$UsY5bEAErH9PGymKdqDl..YGWnhN61cku9lMqRIvK6s8y.D3Hc38K   -->
 <!-- Moe@#01022923659 -->
 backup path =/var/backups/mysql/center-management-system/center-management-system-$(date +\%F).sql
@@ -15,21 +14,15 @@ backup path =/var/backups/mysql/center-management-system/center-management-syste
 mohamed.ellnagar@outlook.com
 
 
-// query in the db later
+-- Alter the totalRating column to be FLOAT
+ALTER TABLE UserAssignment
+MODIFY COLUMN totalRating FLOAT;
 
-apikey =fa5889e970df3fe848fe54c7c2ad22ef9af97d106d6bc54fb708c1181509e31f
+-- Add the totalPoints column as INT
+ALTER TABLE UserAssignment
+ADD COLUMN totalPoints INT AFTER totalScore;
 
+-- Ensure totalScore is INT if not already
+ALTER TABLE UserAssignment
+MODIFY COLUMN totalScore INT;
 
-CREATE TABLE `StudentAttendance` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `centerId` INT NOT NULL,
-  `date` DATETIME NOT NULL,
-  `examType` ENUM('TEACHER', 'GRADUATE') NOT NULL,
-  `totalAttendedStudents` INT NOT NULL,
-  `createdAt` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  `updatedAt` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `deletedAt` DATETIME DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `center_examType_date_unique` (`centerId`, `examType`, `date`),
-  CONSTRAINT `fk_studentAttendance_center` FOREIGN KEY (`centerId`) REFERENCES `center` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

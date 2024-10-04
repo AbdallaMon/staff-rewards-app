@@ -1032,3 +1032,204 @@ export async function createNewPasswordForAdmin(id, data) {
 
     }
 }
+
+export async function getAssignments(page, limit) {
+    const offset = (+page - 1) * +limit;
+    try {
+        const assignments = await prisma.assignment.findMany({
+            skip: offset,
+            take: limit,
+            select: {
+                id: true,
+                title: true,
+                _count: {
+                    select: {
+                        questions: {
+                            where: {
+                                isArchived: false, // Count non-archived questions
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        for (let assignment of assignments) {
+            const dutyCount = await prisma.dutyAssignments.count({
+                where: {
+                    assignmentId: assignment.id,
+                },
+            });
+            assignment._count.duties = dutyCount; // Add the duty count manually
+        }
+
+        const total = await prisma.assignment.count();
+
+        return {
+            status: 200,
+            data: assignments,
+            total
+        }
+    } catch (error) {
+        return handlePrismaError(error)
+    }
+}
+
+export async function getAssignmentById(assignmentId) {
+    try {
+        const assignment = await prisma.assignment.findUnique({
+            where: {id: parseInt(assignmentId)},
+            include: {
+                questions: {
+                    include: {
+                        choices: true
+                    }
+                }
+            }
+        });
+        return {data: assignment, status: 200}
+
+    } catch (error) {
+        return handlePrismaError()
+    }
+}
+
+export async function createNewAssignment(data) {
+    const {title, questions} = data
+
+    try {
+        const assignment = await prisma.assignment.create({
+            data: {
+                title,
+                questions: {
+                    create: questions.map((q) => ({
+                        title: q.title,
+                        totalPoints: q.totalPoints,
+                        choices: {
+                            create: q.choices.map((choice) => ({
+                                text: choice.text,
+                                points: choice.points
+                            }))
+                        }
+                    }))
+                }
+            }
+        });
+        return {message: "Assigment created successfully", status: 200, data: assignment}
+    } catch (e) {
+        return handlePrismaError(e)
+    }
+}
+
+export async function editAssignment(id, data) {
+    const {questions} = data
+    console.log(questions[0].choices, "choices")
+    try {
+        for (const question of questions) {
+            await prisma.question.upsert({
+                where: {id: question.id || 0}, // If no ID, create a new question
+                update: {
+                    title: question.title,
+                    totalPoints: question.totalPoints,
+                    isArchived: question.isArchived || false,
+                    choices: {
+                        upsert: question.choices.map((choice) => ({
+                            where: {id: choice.id || 0},
+                            update: {
+                                text: choice.text,
+                                points: choice.points,
+                                isArchived: choice.isArchived || false,
+                            },
+                            create: {
+                                text: choice.text,
+                                points: choice.points
+                            }
+                        }))
+                    }
+                },
+                create: {
+                    title: question.title,
+                    totalPoints: question.totalPoints,
+                    assignmentId: id, // Link to the assignment
+                    choices: {
+                        create: question.choices.map((choice) => ({
+                            text: choice.text,
+                            points: choice.points
+                        }))
+                    }
+                }
+            });
+        }
+        return {
+            status: 200,
+            message: 'Assignment updated successfully'
+        }
+    } catch (e) {
+        return handlePrismaError(e)
+    }
+}
+
+export async function getAssignmentDuties(id) {
+    try {
+        const dutyAssignments = await prisma.dutyAssignments.findMany({
+            where: {assignmentId: parseInt(id)},
+            include: {
+                duty: true, // This will fetch the details of the related duty
+            }
+        });
+
+        const duties = dutyAssignments.map(da => da.duty); // Extract duties
+
+        return {status: 200, data: duties};
+    } catch (error) {
+        return handlePrismaError(error);
+    }
+}
+
+
+export async function assignAssignmentToADuty(assignmentId, dutyId) {
+    try {
+        const existingDutyAssignment = await prisma.dutyAssignments.findFirst({
+            where: {
+                dutyId: parseInt(dutyId),
+            },
+        });
+
+        if (existingDutyAssignment) {
+            return {
+                status: 400,
+                message: `This duty is already assigned to another assignment.`
+            };
+        }
+
+        await prisma.dutyAssignments.create({
+            data: {
+                dutyId: parseInt(dutyId),
+                assignmentId: parseInt(assignmentId),
+            },
+        });
+
+        return {status: 200, message: 'Duty assigned successfully'};
+    } catch (error) {
+        console.log(error, "error");
+        return handlePrismaError(error);
+    }
+}
+
+
+export async function removeDutyFromAnAssigment(assignmentId, dutyId) {
+
+    try {
+        await prisma.dutyAssignments.deleteMany({
+            where: {
+                assignmentId: parseInt(assignmentId),
+                dutyId: parseInt(dutyId),
+            },
+        });
+
+        return {status: 200, message: 'Duty unassigned successfully'}
+    } catch (error) {
+        return handlePrismaError(error)
+    }
+}
+
