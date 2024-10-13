@@ -497,7 +497,7 @@ export async function updateAttendanceRecordsWithLog(dayAttendanceId, body, logg
         let totalRewardChange = 0;
         const logger = await prisma.user.findUnique({
             where: {id: +loggerId},
-            select: {name: true, email: true},
+            select: {name: true, email: true, centerAdmin: {select: {name: true}}},
         });
 
         if (!logger) {
@@ -535,7 +535,6 @@ export async function updateAttendanceRecordsWithLog(dayAttendanceId, body, logg
             }
         }));
 
-        // Create new attendance records for the specified shifts
         const attendanceRecords = await Promise.all(
               editedAttendances.map(async (shiftId) => {
                   const attendance = await prisma.attendance.create({
@@ -589,7 +588,7 @@ export async function updateAttendanceRecordsWithLog(dayAttendanceId, body, logg
         // Create the log entry
         const logDescription = `
             <div style="font-family: Arial, sans-serif; color: #333;">
-                <p>Attendance records updated by <strong>${logger.name} (${logger.email})</strong></p>
+                <p>Attendance records updated by <strong>${logger.centerAdmin ? logger.centerAdmin.name : logger.name} (${logger.email})</strong></p>
                 <p><strong>Employee:</strong> ${name} (${email}, Emirates ID: ${emiratesId})</p>
                 <div>
                     <strong>Changes:</strong>

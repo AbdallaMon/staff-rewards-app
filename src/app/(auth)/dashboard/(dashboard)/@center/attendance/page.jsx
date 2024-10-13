@@ -6,8 +6,6 @@ import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
 import React, {useState} from "react";
 import AttendanceDetailDrawer from "@/app/UiComponents/DataViewer/AttendanceDetailDrawer";
 import DateFilterComponent from "@/app/UiComponents/FormComponents/DateFilterComponent";
-import DrawerWithContent from "@/app/UiComponents/Models/DrawerWithContent";
-import AssignmentAnswers from "@/app/UiComponents/FormComponents/AssignmentAnswer";
 
 export default function Attendance() {
     const {

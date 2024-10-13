@@ -4,7 +4,7 @@ import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import "dayjs/locale/en-gb";
 
-export function MuiDatePicker({control, input, errors, watch, setValue}) {
+export function MuiDatePicker({control, input, errors, setValue}) {
     const inputData = input.data;
     dayjs.locale("en-gb");
     return (

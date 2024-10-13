@@ -291,7 +291,7 @@ export async function updateEmployeeRating(userId, newRating) {
     }
 }
 
-export async function createAttendanceRecord({userId, shiftIds, duty, date, centerId, examType}) {
+export async function createAttendanceRecord({userId, shiftIds, duty, date, centerId, examType, confirmRate}) {
     try {
         const existingAttendances = await prisma.attendance.findMany({
             where: {
@@ -375,7 +375,8 @@ export async function createAttendanceRecord({userId, shiftIds, duty, date, cent
         })
 
         const user = await prisma.user.findUnique({where: {id: +userId}, select: {email: true, name: true}});
-        if (user && user.email) {
+
+        if (user && user.email && !confirmRate) {
             const emailContent = `
                 <h1>New Attendance Record Created</h1>
                 <p>Dear ${user.name},</p>
@@ -560,7 +561,6 @@ export async function deleteAttendanceRecordWithLog(dayAttendanceId, loggerId) {
                         shift: true,
                     },
                 },
-                // Include user details to get the user who had the records
                 user: true,
             },
         });
@@ -575,7 +575,11 @@ export async function deleteAttendanceRecordWithLog(dayAttendanceId, loggerId) {
         // Prepare log data
         const logger = await prisma.user.findUnique({
             where: {id: +loggerId},
-            select: {name: true, email: true},
+            select: {
+                name: true, email: true, centerAdmin: {
+                    select: {name: true}
+                }
+            },
         });
 
         if (!logger) {
@@ -594,7 +598,7 @@ export async function deleteAttendanceRecordWithLog(dayAttendanceId, loggerId) {
         // Prepare the log description
         const logDescription = `
             <div style="font-family: Arial, sans-serif; color: #333;">
-                <p>Attendance records deleted by <strong>${logger.name} (${logger.email})</strong></p>
+                <p>Attendance records deleted by <strong>${logger.centerAdmin ? logger.centerAdmin.name : logger.name} (${logger.email})</strong></p>
                 <p><strong>Deleted for User:</strong> ${existingDayAttendance.user.name} (${existingDayAttendance.user.email})</p>
                 <div>
                     <strong>Deleted Records:</strong>
@@ -905,6 +909,9 @@ export async function createUserAssignment(dayAttendanceId, data) {
             select: {
                 totalPoints: true,
                 totalScore: true,
+                email: true,
+                name: true,
+                totalRating: true,
             },
         });
 
@@ -928,6 +935,55 @@ export async function createUserAssignment(dayAttendanceId, data) {
                 totalRating: parseFloat(updatedTotalRating.toFixed(2)), // Save with 2 decimal points
             },
         });
+
+        const dayAttendance = await prisma.dayAttendance.findUnique({
+            where: {
+                id: +dayAttendanceId
+            },
+            select: {
+                totalReward: true,
+                attendances: {
+                    select: {id: true}
+                }
+            }
+        })
+
+        if (user && user.email) {
+            const emailContent = `
+        <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; background-color: #f4f4f4; padding: 20px;">
+            <div style="max-width: 600px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                <h1 style="font-size: 24px; color: #444;">New Attendance Record Created</h1>
+                <p>Dear <strong>${user.name}</strong>,</p>
+                <p>An attendance record has been successfully created for you. Below are the details:</p>
+
+                <div style="border-top: 1px solid #ddd; padding-top: 15px; margin-top: 20px;">
+                    <h2 style="font-size: 20px; color: #444; margin-bottom: 10px;">Attendance Summary</h2>
+                    <p><strong>Attended Shifts:</strong> ${dayAttendance.attendances.length}</p>
+                    <p><strong>Total Rewards:</strong> ${dayAttendance.totalReward} AED</p>
+                </div>
+
+                <div style="border-top: 1px solid #ddd; padding-top: 15px; margin-top: 20px;">
+                    <h2 style="font-size: 20px; color: #444; margin-bottom: 10px;">Assignment Details</h2>
+                    <p><strong>Assignment Points:</strong> ${totalPoints}</p>
+                    <p><strong>Your Score:</strong> ${totalScore}</p>
+                    <p><strong>Your Assignment Rating:</strong> ${updatedUserTotalRating.toFixed(2)}%</p>
+                    <p><strong>Your Overall Rating:</strong> ${updatedTotalRating.toFixed(2)}%</p>
+                </div>
+
+                <div style="border-top: 1px solid #ddd; padding-top: 15px; margin-top: 20px;">
+                    <p>Please click the link below to upload your approval and complete the process:</p>
+                    <p style="text-align: center;">
+                        <a href="${url}/dashboard/attendance" style="display: inline-block; padding: 10px 15px; background-color: #444; color: #fff; text-decoration: none; border-radius: 5px;">Upload Your Approval</a>
+                    </p>
+                </div>
+                <p style="font-size: 14px; color: #666;">Best regards,<br>The EMSAT Team</p>
+            </div>
+        </div>
+    `;
+
+            await sendEmail(user.email, "New Attendance Record and Assignment Details", emailContent);
+        }
+
         newUserAssignment.userTotalRating = updatedTotalRating
         return {
             status: 200,
@@ -1047,25 +1103,3 @@ export async function editUserAssignment(userAssignmentId, data) {
 }
 
 
-export async function updateUserRatingData(userId, totalRating, lastRatingDate) {
-    try {
-        const updatedUser = await prisma.user.update({
-            where: {
-                id: parseInt(userId),
-            },
-            data: {
-                totalRating: parseFloat(totalRating),
-                lastRatingDate: new Date(lastRatingDate),
-            },
-        });
-
-        return {
-            status: 200,
-            message: "User rating data updated successfully",
-            data: updatedUser,
-        };
-    } catch (error) {
-        console.log(error, "error");
-        return handlePrismaError(error);
-    }
-}

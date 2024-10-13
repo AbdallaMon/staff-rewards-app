@@ -9,10 +9,10 @@ import {MobileDatePicker} from "@mui/x-date-pickers"; // Import the locale you w
 dayjs.locale("en-gb");
 export default function DateComponent({
                                           date,
-                                          handleDateChange, label
+                                          handleDateChange, label, fullWidth
                                       }) {
     return (
-          <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+          <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', width: fullWidth && "100%"}}>
               <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
                   <MobileDatePicker
                         label={label}

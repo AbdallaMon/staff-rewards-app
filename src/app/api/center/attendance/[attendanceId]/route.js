@@ -1,8 +1,11 @@
 import {
-    deleteAttendanceRecord,
+    deleteAttendanceRecord, deleteAttendanceRecordWithLog,
     fetchAttendanceDetailsByDayAttendanceId,
-    updateAttendanceRecords
+
 } from "@/app/api/services/center";
+import {updateAttendanceRecordsWithLog} from "@/app/api/services/finincal";
+import {getCookieValue} from "@/app/api/utlis/getCookieValue";
+import {verifyToken} from "@/app/api/utlis/tokens";
 
 export async function GET(request, response) {
     const {attendanceId} = response.params
@@ -13,7 +16,10 @@ export async function GET(request, response) {
 export async function PUT(request, response) {
     const {attendanceId} = response.params
     const body = await request.json();
-    const res = await updateAttendanceRecords(+attendanceId, body);
+    const searchParams = request.nextUrl.searchParams
+    const userId = searchParams.get("userId")
+
+    const res = await updateAttendanceRecordsWithLog(+attendanceId, body, +userId);
     return Response.json(
           res
           , {status: res.status});
@@ -21,7 +27,22 @@ export async function PUT(request, response) {
 
 export async function DELETE(request, response) {
     const {attendanceId} = response.params
-    const res = await deleteAttendanceRecord(+attendanceId);
-    return Response.json(res, {status: res.status});
+    const token = getCookieValue("token")
+
+    if (!token) {
+        return Response.json({status: 401, auth: false, message: "Please sign in again"}, {status: 401});
+    }
+    try {
+        const decoded = verifyToken(token)
+        if (!decoded) {
+            return Response.json({message: "please relogin", status: 400}, {status: 400})
+        }
+        const {userId} = decoded;
+        const res = await deleteAttendanceRecordWithLog(+attendanceId, +userId);
+        return Response.json(res, {status: res.status});
+    } catch (e) {
+        console.log(e, "e")
+        return Response.json({message: "please relogin", status: 400}, {status: 400})
+    }
 
 }

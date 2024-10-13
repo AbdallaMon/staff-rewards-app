@@ -8,6 +8,7 @@ import {Button} from "@mui/material";
 import Link from "next/link";
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
 import {useRouter, useSearchParams} from "next/navigation";
+import PageControlForm from "@/app/UiComponents/FormComponents/Forms/OpenOrClosePage";
 
 export default function EmployeesRequest() {
     const {
@@ -76,8 +77,8 @@ export default function EmployeesRequest() {
     };
     return (
           <div>
-              <div className={"grid grid-cols-1 md:grid-cols-4 gap-5  items-center justify-between"}>
-                  
+              <div className={"grid grid-cols-1 md:grid-cols-4 gap-5 px-0.5  items-center justify-between"}>
+
                   <Link href="/dashboard/staff-requests/rejected" sx={{
                       mt: 2,
                       display: "flex",
@@ -107,6 +108,7 @@ export default function EmployeesRequest() {
                   </Link>
                   <FilterSelect options={centers} label={"Centers"} onChange={handleCenterChange}
                                 loading={centerLoading} value={selectedCenter}/>
+                  <PageControlForm/>
               </div>
 
               <AdminTable

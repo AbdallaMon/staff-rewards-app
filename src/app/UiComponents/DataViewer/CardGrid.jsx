@@ -119,6 +119,7 @@ export default function AdminTable({
             return dayjs(value).format('YYYY-MM-DD');
         }
         if (type === "modules") {
+            if (!value) return "0%"
             return value + "%"
         }
         return value;

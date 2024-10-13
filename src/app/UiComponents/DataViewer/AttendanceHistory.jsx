@@ -25,6 +25,8 @@ import {FaChevronDown, FaCheckCircle, FaTimesCircle} from 'react-icons/fa';
 import dayjs from 'dayjs';
 import DateComponent from '@/app/UiComponents/FormComponents/MUIInputs/DateChangerComponent';
 import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
+import AssignmentAnswer from "@/app/UiComponents/FormComponents/AssignmentAnswer";
+import DrawerWithContent from "@/app/UiComponents/Models/DrawerWithContent";
 
 const AttendanceHistory = ({userId}) => {
     const [data, setData] = useState(null);
@@ -35,7 +37,6 @@ const AttendanceHistory = ({userId}) => {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const limit = 20;
-
     const updateFilters = (newFilters) => {
         setFilters((prevFilters) => ({
             ...prevFilters,
@@ -86,7 +87,6 @@ const AttendanceHistory = ({userId}) => {
 
         fetchData();
     }, [userId, filters, page]);
-
     return (
           <Container>
               {loading && <FullScreenLoader/>}
@@ -146,8 +146,27 @@ const AttendanceHistory = ({userId}) => {
                                                   <FaTimesCircle color="red"/>}
                                             </Typography>
                                         </Grid>
-                                    </Grid>
+                                        <Grid item xs={6}>
+                                            <Typography className={"flex items-center gap-2"}>
+                                                Rating: {dayAttendance.userAssignment?.totalRating || "NA"}{dayAttendance.userAssignment && "%"}
+                                            </Typography>
+                                        </Grid>
+                                        {dayAttendance.userAssignment &&
+                                              <Grid item xs={6}>
+                                                  <DrawerWithContent component={AssignmentAnswer}
+                                                                     extraData={{
+                                                                         staff: true,
+                                                                         dayAttendanceId: dayAttendance.id,
+                                                                         userAssignmentId: dayAttendance.userAssignment.id,
+                                                                         employeeId: userId,
+                                                                         label: "View assessment details",
+                                                                         isEdit: true
+                                                                     }}
+                                                  />
 
+                                              </Grid>
+                                        }
+                                    </Grid>
                                     <Accordion sx={{mt: 3}} defaultExpanded>
                                         <AccordionSummary expandIcon={<FaChevronDown/>}>
                                             <Typography> Shifts</Typography>

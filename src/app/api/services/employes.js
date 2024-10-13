@@ -6,6 +6,8 @@ import {Prisma} from "@prisma/client";
 import {handlePrismaError} from "@/app/api/utlis/prismaError";
 import bcrypt from "bcrypt";
 import {Buffer} from "buffer";
+import jwt from "jsonwebtoken";
+import {getPageControl} from "@/app/api/services/admin";
 
 export async function createEmployeeRequest(data) {
     try {
@@ -14,6 +16,11 @@ export async function createEmployeeRequest(data) {
         data.emailConfirmed = false;
         data.accountStatus = "PENDING"
         data.role = "EMPLOYEE"
+        const page = await getPageControl('REGISTER');
+        let isOpen = page.data.status === "OPEN";
+        if (!isOpen) {
+            return {message: "Registration is currently closed.", status: 400}
+        }
         if (data.password) {
             const hashedPassword = bcrypt.hashSync(data.password, 8);
             delete data.confirmPassword;
@@ -114,6 +121,28 @@ export async function checkIfEmailAlreadyConfirmed(userId, confirmed) {
     }
 }
 
+export async function getEmployeeCommitmentDataById(employeeId) {
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: {id: parseInt(employeeId)},
+            select: {
+                name: true,
+                emiratesId: true, phone: true, email: true
+                , duty: {
+                    select: {
+                        name: true
+
+                    }
+                }
+            }
+        });
+        return {data: user, status: 200}
+    } catch (e) {
+        return handlePrismaError(e)
+    }
+}
+
 export async function getEmployeeById(employeeId) {
     try {
 
@@ -141,7 +170,7 @@ export async function getEmployeeById(employeeId) {
     }
 }
 
-export async function updateEmployee(employeeId, data) {
+export async function updateEmployee(employeeId, data, userDecoded, cookieStore, SECRET_KEY) {
     try {
         if (data.ibanBank) {
             data.ibanBank = "AE" + data.ibanBank;
@@ -152,9 +181,43 @@ export async function updateEmployee(employeeId, data) {
             data,
             select: {
                 id: true,
-                [selected]: true, // Select the first key from the data object
+                [selected]: true,
             },
         });
+        if (userDecoded) {
+            delete userDecoded.iat
+            delete userDecoded.exp
+        }
+        if (data.signature) {
+            const token = jwt.sign({
+                ...userDecoded
+                , signature: data.signature
+            }, SECRET_KEY, {
+                expiresIn: '4h',
+            });
+            cookieStore.set({
+                name: "token",
+                value: token,
+                httpOnly: true,
+                secure: true,
+                path: "/",
+            });
+        }
+        if (data.commitment) {
+            const token = jwt.sign({
+                ...userDecoded,
+                commitment: data.commitment
+            }, SECRET_KEY, {
+                expiresIn: '4h',
+            });
+            cookieStore.set({
+                name: "token",
+                value: token,
+                httpOnly: true,
+                secure: true,
+                path: "/",
+            });
+        }
         return {data: data, status: 200, message: "updated successfully", user}
 
     } catch (e) {
@@ -174,8 +237,6 @@ export async function getEmployeeAttendance(employeeId, filters, page, limit) {
             const endOfDay = new Date(date);
             endOfDay.setHours(23, 59, 59, 999);
 
-            console.log(startOfDay, endOfDay, "startOfDay, endOfDay");
-
             where.date = {
                 gte: startOfDay,
                 lte: endOfDay,
@@ -184,8 +245,6 @@ export async function getEmployeeAttendance(employeeId, filters, page, limit) {
 
         const skip = (page - 1) * limit;
         const take = limit;
-
-        console.log(skip, take, "Pagination values");
 
         // Fetch the filtered attendances with pagination
         const dayAttendances = await prisma.dayAttendance.findMany({
@@ -197,21 +256,23 @@ export async function getEmployeeAttendance(employeeId, filters, page, limit) {
                         dutyRewards: true,
                     },
                 },
+                userAssignment: {
+                    select: {totalRating: true, id: true}
+                }
             },
             skip,
             take,
+            orderBy: {
+                date: 'desc',
+            },
         });
 
-        console.log(dayAttendances, "Fetched dayAttendances");
 
         const totalRecords = await prisma.dayAttendance.count({where});
         const totalPages = Math.ceil(totalRecords / limit);
 
-        console.log(totalRecords, totalPages, "totalRecords and totalPages");
-
-        // Fetch all shifts
         const allShifts = await prisma.shift.findMany({
-            where: {archived: false},
+            where: {archived: false,},
         });
 
         const enhancedDayAttendances = dayAttendances.map((dayAttendance) => {
@@ -298,3 +359,4 @@ export async function updateDayAttendanceAttachment(dayAttendanceId, data) {
         return handlePrismaError(e)
     }
 }
+

@@ -71,6 +71,7 @@ const ShiftAssignmentModal = ({shifts, setData, label, href, item, handleAfterSu
             duty: attendAdditionalDuty && selectedAdditionalDuty ? selectedAdditionalDuty : filters.duty,
             date: item.date,
             examType: item.examType,
+            confirmRate
         };
 
         const result = await handleRequestSubmit(formData, setLoading, href, false, "Assigning shifts...");
@@ -99,8 +100,6 @@ const ShiftAssignmentModal = ({shifts, setData, label, href, item, handleAfterSu
 
     return (
           <>
-
-
               <Button variant="contained" color="secondary" onClick={handleOpen}>
                   {label}
               </Button>

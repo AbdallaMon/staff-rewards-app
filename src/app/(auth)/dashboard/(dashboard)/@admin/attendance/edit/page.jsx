@@ -4,17 +4,19 @@ import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
 import SearchComponent from "@/app/UiComponents/FormComponents/SearchComponent";
 import React, {useEffect, useState} from "react";
-import dayjs from "dayjs";
 import AttendanceDetailDrawer from "@/app/UiComponents/DataViewer/AttendanceDetailDrawer";
-import RangeDateComponent from "@/app/UiComponents/FormComponents/MUIInputs/RangeDateComponent";
-import DateComponent from "@/app/UiComponents/FormComponents/MUIInputs/DateChangerComponent";
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
 import {useRouter, useSearchParams} from "next/navigation";
-import {useSelector} from "react-redux";
 import DateFilterComponent from "@/app/UiComponents/FormComponents/DateFilterComponent";
+import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import {PdfReport, UserRatingReport} from "@/app/UiComponents/Templatese/PdfAssigmentsReport";
+import "dayjs/locale/en-gb";
+import dayjs from "dayjs";
+
+dayjs.locale("en-gb");
 
 export default function Attendance() {
-    let user = useSelector((state) => state.auth);
 
     const {
         data,
@@ -91,12 +93,8 @@ export default function Attendance() {
         setSelectedAttendanceId(attendanceId);
         setDrawerOpen(true);
     };
-    console.log(data, "data")
     return (
           <div>
-              <Typography variant="h3" color="primary" p={2}>
-                  Edit attendance
-              </Typography>
               <Box sx={{
                   display: 'flex', gap: 2, mb: 0, p: 2, justifyContent: "space-between", flexDirection: {
                       xs: "column",
@@ -118,7 +116,6 @@ export default function Attendance() {
                         filters={filters}
                   />
                   <div className={"w-fit"}>
-
                       <FilterSelect
                             options={centers}
                             label={"Centers"}
@@ -128,6 +125,12 @@ export default function Attendance() {
                       />
                   </div>
               </Box>
+              <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="en-gb">
+                  <div className={"flex gap-5 justify-center items-center flex-wrap"}>
+                      <UserRatingReport centers={centers} loadingCenters={centerLoading}/>
+                      <PdfReport centers={centers} loadingCenters={centerLoading}/>
+                  </div>
+              </LocalizationProvider>
               <AdminTable
                     data={data}
                     columns={columns}

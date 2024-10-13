@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import {cookies} from "next/headers";
 import bcrypt from "bcrypt";
 import prisma from "../../../../lib/pirsma/prisma";
+import {Buffer} from "buffer";
 
 const SECRET_KEY = process.env.SECRET_KEY;
 
@@ -20,7 +21,10 @@ export async function POST(request) {
                 centerAdmin: true,
                 password: true,
                 emailConfirmed: true,
-                accountStatus: true
+                accountStatus: true,
+                totalRating: true,
+                signature: true
+                , commitment: true
             }
         });
         if (!user) {
@@ -71,11 +75,15 @@ export async function POST(request) {
                 message: "Your email is not confirmed please follow the link we sent to u after register to confirm your email",
             });
         }
+        // console.log(user, "user")
         const token = jwt.sign({
             userId: user.id,
             userRole: user.role,
             centerId: user.centerAdmin?.id,
-            accountStatus: user.accountStatus
+            accountStatus: user.accountStatus,
+            totalRating: user.totalRating
+            , signature: user.signature
+            , commitment: user.commitment
         }, SECRET_KEY, {
             expiresIn: '4h',
         });
@@ -93,6 +101,7 @@ export async function POST(request) {
             user,
         });
     } catch (error) {
+        console.log(error, "error")
         return Response.json({
             status: 500,
             message: "Error signing in user " + error.message,

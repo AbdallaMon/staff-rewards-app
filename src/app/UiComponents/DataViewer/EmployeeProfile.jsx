@@ -33,6 +33,7 @@ import {useToastContext} from "@/providers/ToastLoadingProvider";
 import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
 import SignatureComponent from "@/app/UiComponents/FormComponents/Signature";
 import BankDetailsWithSignature from "@/app/UiComponents/Templatese/BankdetailsWithSignature";
+import CommitmentPdf from "@/app/UiComponents/Templatese/CommitmentPdf";
 
 const Input = styled('input')({
     display: 'none',
@@ -87,7 +88,6 @@ const ProfilePage = ({userId}) => {
                 setUser(user.data);
                 setLoading(false);
             } catch (e) {
-                console.log(e, "user profile error")
                 setFetchError(e.message)
             }
         };
@@ -297,6 +297,18 @@ const ProfilePage = ({userId}) => {
                                                 </Tooltip>
                                             </Box>
                                       )}
+                                  </DataBox>
+                                  <DataBox>
+                                      <Typography variant="body1" color="secondary">Commitment:</Typography>
+                                      {user.commitment ?
+                                            <Link href={user.commitment} target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  sx={{ml: 1}}>View Commitment PDF</Link>
+                                            : <>
+                                                {user.signature ? <CommitmentPdf user={user}
+                                                                                 setUser={setUser}/> : "You must upload your signature"}
+                                            </>
+                                      }
                                   </DataBox>
                                   <SignatureComponent user={user} setUser={setUser}/>
                               </ProfileSection>

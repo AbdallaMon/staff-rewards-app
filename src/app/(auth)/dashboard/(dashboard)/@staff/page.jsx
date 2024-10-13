@@ -8,7 +8,7 @@ import {RewardsChart} from '@/app/UiComponents/DataViewer/ChartWrapper';
 const Dashboard = () => {
     const user = useSelector((state) => state.auth);
     const userId = user.data.id;
-
+    console.log(user, "user")
     const [totalRewards, setTotalRewards] = useState(null);
     const [totalShifts, setTotalShifts] = useState(null);
     const [totalHours, setTotalHours] = useState(null);
@@ -70,6 +70,15 @@ const Dashboard = () => {
               <Grid container spacing={3}>
                   <Grid item xs={12} md={6}>
                       <Box boxShadow={3} p={3} borderRadius={2} bgcolor="#f5f5f5">
+                          <Typography variant="h6" gutterBottom fontWeight="bold" color="secondary">Total Attendance
+                              Rating</Typography>
+                          <Typography variant="h5" fontWeight="medium">
+                              {user?.data?.totalRating ? user.data.totalRating + "%" : "N/A"}
+                          </Typography>
+                      </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                      <Box boxShadow={3} p={3} borderRadius={2} bgcolor="#f5f5f5">
                           <Typography variant="h6" gutterBottom fontWeight="bold" color="secondary">Total Rewards this
                               year</Typography>
                           {loadingRewards ? (
@@ -112,6 +121,8 @@ const Dashboard = () => {
                                 <Typography variant="h5" fontWeight="medium">{totalDays} days</Typography>
                           )}
                       </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
                   </Grid>
                   <Grid item xs={12} md={6}>
                       <AttendancesChart userId={userId}/>

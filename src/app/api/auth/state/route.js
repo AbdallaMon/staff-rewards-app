@@ -16,9 +16,11 @@ export async function GET() {
                 id: userId,
                 role: userRole,
                 centerId: decoded.centerId,
-                emailConfirmed: decoded.emailConfirmed
+                emailConfirmed: decoded.emailConfirmed,
+                totalRating: decoded.totalRating,
+                commitment: decoded.commitment,
+                signature: decoded.signature
             }
-
             return Response.json({
                 message: "User authenticated and confirmed",
                 user,

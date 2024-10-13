@@ -22,6 +22,7 @@ model User {
   center               Center?   @relation(fields: [centerId], references: [id], name: "CenterEmployees")
   bankName             String?
   bankUserName         String?
+  commitment String?
   ibanBank             String?   @unique @db.VarChar(34)
   ibanBankPhoto        String?
   graduationName       String?
@@ -203,6 +204,22 @@ model QuestionAnswer {
   updatedAt       DateTime            @default(now())
 }
 
+model PageAvailability {
+  id        Int        @id @default(autoincrement())
+  page      PageName   @unique
+  status    PageStatus @default(CLOSED)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+enum PageName {
+  REGISTER
+}
+
+enum PageStatus {
+  OPEN
+  CLOSED
+}
 
 model StudentAttendance {
   id        Int      @id @default(autoincrement())
@@ -261,6 +278,7 @@ model Calendar {
   updatedAt    DateTime      @default(now())
   deletedAt    DateTime?
 }
+
 
 enum Gender {
   MALE

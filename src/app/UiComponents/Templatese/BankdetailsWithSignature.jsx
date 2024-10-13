@@ -153,7 +153,6 @@ const BankDetailsWithSignature = ({user, setUser, onSubmit}) => {
               <SignatureDialog
                     user={user}
                     open={signatureDialog}
-
                     onClose={() => setSignatureDialog(false)}
                     onSignatureSaved={(url) => {
                         setSignatureUrl(url);

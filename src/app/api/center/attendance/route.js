@@ -31,7 +31,7 @@ export async function GET(request) {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const {userId, shiftIds, duty, date, examType} = body;
+        const {userId, shiftIds, duty, date, examType, confirmRate} = body;
         const token = getCookieValue("token")
 
         if (!token) {
@@ -50,7 +50,8 @@ export async function POST(request) {
             duty,
             date,
             centerId,
-            examType
+            examType,
+            confirmRate
         });
 
         return Response.json(result, {status: result.status});

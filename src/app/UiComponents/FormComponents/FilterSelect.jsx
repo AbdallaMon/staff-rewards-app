@@ -1,15 +1,15 @@
 import React from 'react';
-import { FormControl, InputLabel, Select, MenuItem, CircularProgress, Box } from '@mui/material';
+import {FormControl, InputLabel, Select, MenuItem, CircularProgress, Box} from '@mui/material';
 
-const FilterSelect = ({ label, options, value, onChange, loading }) => {
+const FilterSelect = ({label, options, value, onChange, loading, fullWidth}) => {
     return (
           <div className={"w-full flex justify-end px-2"}>
 
-              <FormControl  variant="outlined" margin="normal" sx={{
-                  mb:2,
+              <FormControl variant="outlined" margin="normal" sx={{
+                  mb: 2,
                   width: {
                       xs: '100%',
-                      sm: 200,
+                      sm: !fullWidth ? 200 : "100%",
                   },
               }}>
                   <InputLabel>{label}</InputLabel>
@@ -22,7 +22,7 @@ const FilterSelect = ({ label, options, value, onChange, loading }) => {
                             if (loading) {
                                 return (
                                       <Box display="flex" alignItems="center">
-                                          <CircularProgress size={20} sx={{ marginRight: 2 }} />
+                                          <CircularProgress size={20} sx={{marginRight: 2}}/>
                                           <span>Loading...</span>
                                       </Box>
                                 );
@@ -32,7 +32,7 @@ const FilterSelect = ({ label, options, value, onChange, loading }) => {
                   >
                       <MenuItem value="">All</MenuItem>
                       {options.map((option) => (
-                            <MenuItem key={option.id} value={option.id} >
+                            <MenuItem key={option.id} value={option.id}>
                                 {option.name}
                             </MenuItem>
                       ))}

@@ -22,6 +22,7 @@ import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 import {isTodayOrYesterday} from "@/helpers/functions/utlity";
 import AssignmentAnswer from "@/app/UiComponents/FormComponents/AssignmentAnswer";
+import {useSelector} from "react-redux";
 
 const fetchAttendanceById = async (dayAttendanceId, center, admin) => {
     let href = center ? `/api/center/attendance/${dayAttendanceId}` : `/api/finincal/attendance/${dayAttendanceId}`
@@ -45,6 +46,7 @@ const AttendanceDetailDrawer = ({
                                     userAssignment,
                                     isFinancial = false
                                 }) => {
+    let auth = useSelector((state) => state.auth);
     const [attendanceData, setAttendanceData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -113,7 +115,7 @@ const AttendanceDetailDrawer = ({
         }
     };
     const handleSubmit = async () => {
-        let href = center ? `center/attendance/${dayAttendanceId}` : `finincal/attendance/${dayAttendanceId}?userId=${finincalId}`;
+        let href = center ? `center/attendance/${dayAttendanceId}?userId=${auth.data.id}` : `finincal/attendance/${dayAttendanceId}?userId=${finincalId}`;
         if (admin) {
             href = `admin/attendance/${dayAttendanceId}`
         }

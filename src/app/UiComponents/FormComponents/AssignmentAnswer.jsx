@@ -18,7 +18,15 @@ import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 import dayjs from "dayjs";
 
-const AssignmentAnswers = ({dayAttendanceId, admin = false, isEdit = false, userAssignmentId, setData, onClose}) => {
+const AssignmentAnswers = ({
+                               dayAttendanceId,
+                               staff = false,
+                               admin = false,
+                               isEdit = false,
+                               userAssignmentId,
+                               setData,
+                               onClose, employeeId
+                           }) => {
     const [questions, setQuestions] = useState([]);
     const [questionAnswers, setQuestionAnswers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -35,7 +43,7 @@ const AssignmentAnswers = ({dayAttendanceId, admin = false, isEdit = false, user
             try {
                 setLoading(true);
                 const extraParam = isEdit ? "?isArchive=true&" : "";
-                const url = admin ? `admin/attendance/${dayAttendanceId}/assignments${extraParam}` : `center/attendance/${dayAttendanceId}/assignments${extraParam}`
+                const url = admin ? `admin/attendance/${dayAttendanceId}/assignments${extraParam}` : staff ? `employee/private/${employeeId}/attendance/${dayAttendanceId}/assignments${extraParam}` : `center/attendance/${dayAttendanceId}/assignments${extraParam}`
                 const assignmentRequest = await getData({
                     url,
                     setLoading,
@@ -48,24 +56,37 @@ const AssignmentAnswers = ({dayAttendanceId, admin = false, isEdit = false, user
 
                 let formattedAnswers = [];
                 if (isEdit && userAssignmentId) {
-                    const url = admin ? `admin/assignments/user/${userAssignmentId}` : `center/assignments/${userAssignmentId}`
+                    const url = admin ? `admin/assignments/user/${userAssignmentId}` : staff ? `employee/private/${employeeId}/assignments/user/${userAssignmentId}` : `center/assignments/${userAssignmentId}`
                     const userAssignmentRequest = await getData({
                         url,
                         setLoading,
                     });
+                    console.log(userAssignmentRequest.data, 'userAssignmentId')
                     const userAssignmentAnswers = userAssignmentRequest.data.questionAnswers;
-                    formattedAnswers = assignmentQuestions.questions.map((question) => {
-                        const matchedAnswer = userAssignmentAnswers.find((answer) => answer.questionId === question.id);
-                        return matchedAnswer
-                              ? {
-                                  questionId: question.id,
-                                  selectedChoice: matchedAnswer.choice,
-                                  comment: matchedAnswer.comment || "",
-                                  questionPoint: question.totalPoints,
-                                  choicePoints: matchedAnswer.choice.points,
-                              }
-                              : null;
-                    });
+                    if (!admin && !staff) {
+                        formattedAnswers = assignmentQuestions.questions.map((question) => {
+                            const matchedAnswer = userAssignmentAnswers.find((answer) => answer.questionId === question.id);
+                            return matchedAnswer
+                                  ? {
+                                      questionId: question.id,
+                                      selectedChoice: matchedAnswer.choice,
+                                      comment: matchedAnswer.comment || "",
+                                      questionPoint: question.totalPoints,
+                                      choicePoints: matchedAnswer.choice.points,
+                                  }
+                                  : null;
+                        });
+                    } else {
+                        formattedAnswers = userAssignmentAnswers.map((item) => {
+                            return {
+                                questionId: item.question.id,
+                                selectedChoice: item.choice,
+                                comment: item.comment || "",
+                                questionPoint: item.question.totalPoints,
+                                choicePoints: item.choice.points,
+                            }
+                        })
+                    }
                 } else {
                     formattedAnswers = assignmentQuestions.questions.map((question) => ({
                         questionId: question.id,
@@ -77,6 +98,7 @@ const AssignmentAnswers = ({dayAttendanceId, admin = false, isEdit = false, user
                 }
                 const oldTotals = calculateTotals(formattedAnswers, true);
                 setOldTotals(oldTotals);
+                console.log(formattedAnswers, "form")
                 setQuestions(assignmentQuestions.questions);
                 setQuestionAnswers(formattedAnswers);
             } catch (error) {
@@ -219,7 +241,7 @@ const AssignmentAnswers = ({dayAttendanceId, admin = false, isEdit = false, user
                                   </Grid>
 
                                   <Grid item xs={12}>
-                                      {!admin ? (
+                                      {(!admin && !staff) ? (
                                             <RadioGroup
                                                   value={questionAnswers[index].selectedChoice ? questionAnswers[index].selectedChoice.id : null}
                                                   onChange={(e) =>
@@ -241,13 +263,13 @@ const AssignmentAnswers = ({dayAttendanceId, admin = false, isEdit = false, user
                                             </RadioGroup>
                                       ) : (
                                             <Typography variant="body1" sx={{color: '#555', marginBottom: 1}}>
-                                                Selected: {questionAnswers[index].selectedChoice?.text || "N/A"}
+                                                Answer: {questionAnswers[index].selectedChoice?.text || "N/A"}
                                             </Typography>
                                       )}
                                   </Grid>
 
                                   <Grid item xs={12}>
-                                      {admin ? (
+                                      {(admin || staff) ? (
                                             <Typography variant="body2" sx={{color: '#777', marginTop: 2}}>
                                                 Comment: {questionAnswers[index].comment || "No comment"}
                                             </Typography>
@@ -280,7 +302,7 @@ const AssignmentAnswers = ({dayAttendanceId, admin = false, isEdit = false, user
                   Total Rating: {userTotalRating ? `${userTotalRating}%` : "N/A"}
               </Typography>
 
-              {!admin && (
+              {(!admin && !staff) && (
                     <Button variant="contained" color="primary" onClick={handleSubmit} sx={{marginTop: 4}}>
                         Save Assignment
                     </Button>

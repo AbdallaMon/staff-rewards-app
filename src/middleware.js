@@ -11,11 +11,8 @@ export async function middleware(request) {
     const token = cookieStore.get("token")?.value;
     try {
         if (!token) throw new Error('Token not found');
-
         const {payload} = await jwtVerify(token, SECRET_KEY);
-
         const {userRole} = payload;
-
         if (
               (url.pathname.startsWith('/api/admin') && userRole !== 'ADMIN') ||
               (url.pathname.startsWith('/api/center') && userRole !== 'CENTER') ||

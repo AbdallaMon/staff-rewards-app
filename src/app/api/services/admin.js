@@ -5,6 +5,7 @@ import {url} from "@/app/constants";
 import {handlePrismaError} from "@/app/api/utlis/prismaError";
 import jwt from "jsonwebtoken";
 import {generateResetToken} from "@/app/api/utlis/utility";
+import dayjs from "dayjs";
 // Helper function to handle Prisma errors
 
 
@@ -1233,3 +1234,203 @@ export async function removeDutyFromAnAssigment(assignmentId, dutyId) {
     }
 }
 
+
+export async function getUserRatingReport(data) {
+    const {date, centerId, examType} = data;
+
+    try {
+        if (date === "null") {
+            throw new Error("You have to select a date");
+        }
+        console.log(date, "date")
+        const where = {
+            date: {
+                gte: dayjs(date).startOf('day').toDate(),  // Start of the selected day in local time
+                lte: dayjs(date).endOf('day').toDate()  // End of the selected day in local time
+            }
+        };
+
+
+        if (centerId) where.centerId = +centerId;
+        if (examType) where.examType = examType;
+
+        const dayAttendances = await prisma.dayAttendance.findMany({
+            where,
+            include: {
+                user: {
+                    select: {name: true, totalRating: true}
+                },
+                center: {
+                    select: {
+                        name: true
+                    }
+                },
+                userAssignment: {
+                    select: {totalRating: true}
+                },
+                attendances: {
+                    select: {
+                        dutyRewards: {
+                            select: {
+                                duty: {
+                                    select: {name: true}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Map the result to extract one duty per attendance
+        const formattedResults = dayAttendances.map(dayAttendance => ({
+            user: dayAttendance.user,
+            userAssignment: dayAttendance.userAssignment,
+            duty: dayAttendance.attendances[0]?.dutyRewards[0]?.duty?.name || "N/A", // Extract the first duty from the attendance
+            examType: dayAttendance.examType
+            , center: dayAttendance.center.name,
+            date: dayAttendance.date
+        }));
+
+        return {status: 200, data: formattedResults};
+    } catch (e) {
+        return handlePrismaError(e);
+    }
+}
+
+export async function getUserAssignmentReport(data) {
+    const {date, centerId, examType} = data;
+
+    try {
+        if (date === "null") {
+            throw new Error("You have to select a date");
+        }
+
+
+        const where = {
+            date: {
+                gte: dayjs(date).startOf('day').toDate(),  // Start of the selected day in local time
+                lte: dayjs(date).endOf('day').toDate()  // End of the selected day in local time
+            },
+            userAssignment: {
+                isNot: null, // This ensures only records with userAssignment are returned
+            },
+        };
+
+
+        if (centerId) where.centerId = +centerId;
+        if (examType) where.examType = examType;
+
+        // Fetch DayAttendances with related user assignment, questions, choices, etc.
+        const dayAttendances = await prisma.dayAttendance.findMany({
+            where,
+            include: {
+                user: {
+                    select: {
+                        name: true,
+                        totalRating: true
+                    }
+                },
+                userAssignment: {
+                    select: {
+                        totalRating: true,
+                        totalScore: true,
+                        totalPoints: true,
+                        questionAnswers: {
+                            include: {
+                                question: {
+                                    select: {
+                                        title: true,
+                                        totalPoints: true,
+                                    }
+                                },
+                                choice: {
+                                    select: {
+                                        text: true,
+                                        points: true,
+                                    }
+                                },
+                            },
+                        },
+                    },
+                },
+                center: {
+                    select: {name: true}
+                },
+                attendances: {
+                    include: {
+                        dutyRewards: {
+                            select: {
+                                duty: {
+                                    select: {name: true}
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+        });
+
+        // Format the data to only include relevant information for the report
+        const reportData = dayAttendances.map((dayAttendance) => {
+            const dutyName = dayAttendance.attendances.length > 0
+                  ? dayAttendance.attendances[0].dutyRewards[0].duty.name
+                  : "N/A";
+
+            return {
+                date: dayAttendance.date,
+                examType: dayAttendance.examType || "N/A",
+                user: dayAttendance.user,
+                center: dayAttendance.center?.name || "N/A",
+                duty: dutyName,
+                userAssignment: dayAttendance.userAssignment
+                      ? {
+                          totalRating: dayAttendance.userAssignment.totalRating,
+                          totalScore: dayAttendance.userAssignment.totalScore,
+                          totalPoints: dayAttendance.userAssignment.totalPoints,
+                          questionAnswers: dayAttendance.userAssignment.questionAnswers.map((qa) => ({
+                              questionTitle: qa.question.title,
+                              questionPoints: qa.question.totalPoints,
+                              choiceText: qa.choice.text,
+                              comment: qa.comment || "N/A",
+                          })),
+                      }
+                      : null,
+            };
+        });
+
+        return {status: 200, data: reportData};
+
+    } catch (error) {
+        return {status: 500, message: error.message || "Error generating user assignment report"};
+    }
+}
+
+
+// pages control
+export async function getPageControl(page) {
+    try {
+        const pageStatus = await prisma.pageAvailability.findUnique({
+            where: {page},
+        });
+        return {status: 200, data: pageStatus};
+    } catch (error) {
+        return {status: 500, message: error.message};
+    }
+}
+
+// Update page control data
+export async function updatePageControl(page, data) {
+    try {
+        const pageStatus = await prisma.pageControl.update({
+            where: {page},
+            data: {
+                status: data.status || undefined,
+            },
+        });
+        return {status: 200, data: pageStatus, message: "Page status changed successfully"};
+    } catch (error) {
+        console.log(error, "error")
+        return {status: 500, message: error.message};
+    }
+}
