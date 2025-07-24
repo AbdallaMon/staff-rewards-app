@@ -4,11 +4,11 @@ import {Box, Container, Grid, Typography, CircularProgress} from '@mui/material'
 import {useSelector} from 'react-redux';
 import {AttendancesChart} from '@/app/UiComponents/DataViewer/ChartWrapper';
 import {RewardsChart} from '@/app/UiComponents/DataViewer/ChartWrapper';
+import DateFilterComponent from "@/app/UiComponents/FormComponents/DateFilterComponent";
 
 const Dashboard = () => {
     const user = useSelector((state) => state.auth);
     const userId = user.data.id;
-    console.log(user, "user")
     const [totalRewards, setTotalRewards] = useState(null);
     const [totalShifts, setTotalShifts] = useState(null);
     const [totalHours, setTotalHours] = useState(null);
@@ -17,9 +17,22 @@ const Dashboard = () => {
     const [loadingShifts, setLoadingShifts] = useState(true);
     const [loadingHours, setLoadingHours] = useState(true);
     const [loadingDays, setLoadingDays] = useState(true);
-
+    const [filters, setFilters] = useState();
     useEffect(() => {
-        fetch(`/api/employee/private/${userId}/dashboard?totalRewards=true`)
+        let url = `/api/employee/private/${userId}/dashboard?`
+        if (filters) {
+            if (filters.date) {
+                url += `date=${filters.date}&`;
+            } else if (filters.startDate && filters.endDate) {
+                url += `startDate=${filters.startDate}&endDate=${filters.endDate}&`;
+            }
+        }
+        setLoadingRewards(true)
+        setLoadingShifts(true);
+        setLoadingHours(true);
+        setLoadingDays(true);
+
+        fetch(`${url}totalRewards=true`)
               .then((response) => response.json())
               .then((data) => {
                   setTotalRewards(data.totalRewards);
@@ -30,7 +43,7 @@ const Dashboard = () => {
                   setLoadingRewards(false);
               });
 
-        fetch(`/api/employee/private/${userId}/dashboard?totalShifts=true`)
+        fetch(`${url}totalShifts=true`)
               .then((response) => response.json())
               .then((data) => {
                   setTotalShifts(data.totalShifts);
@@ -41,7 +54,7 @@ const Dashboard = () => {
                   setLoadingShifts(false);
               });
 
-        fetch(`/api/employee/private/${userId}/dashboard?totalHours=true`)
+        fetch(`${url}totalHours=true`)
               .then((response) => response.json())
               .then((data) => {
                   setTotalHours(data.totalHours);
@@ -52,7 +65,7 @@ const Dashboard = () => {
                   setLoadingHours(false);
               });
 
-        fetch(`/api/employee/private/${userId}/dashboard?totalDays=true`)
+        fetch(`${url}totalDays=true`)
               .then((response) => response.json())
               .then((data) => {
                   setTotalDays(data.totalDays);
@@ -62,11 +75,24 @@ const Dashboard = () => {
                   console.error('Error fetching days data:', error);
                   setLoadingDays(false);
               });
-    }, [userId]);
+    }, [userId, filters]);
 
     return (
           <Container>
-              <Typography variant="h4" gutterBottom fontWeight="bold" color="primary">Employee Dashboard</Typography>
+              <Grid container spacing={3} sx={{mt: 3}}>
+                  <Grid item xs={12} md={4}>
+                      <Typography variant="h4" gutterBottom fontWeight="bold" color="primary">Employee
+                          Dashboard</Typography>
+                  </Grid>
+                  <Grid item xs={12} md={8}>
+                      <Box display="flex" alignItems="center" justifyContent="flex-end" mb={2}>
+                          <DateFilterComponent
+                                setFilters={setFilters}
+                                filters={filters}
+                          />
+                      </Box>
+                  </Grid>
+              </Grid>
               <Grid container spacing={3}>
                   <Grid item xs={12} md={6}>
                       <Box boxShadow={3} p={3} borderRadius={2} bgcolor="#f5f5f5">
@@ -79,8 +105,8 @@ const Dashboard = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                       <Box boxShadow={3} p={3} borderRadius={2} bgcolor="#f5f5f5">
-                          <Typography variant="h6" gutterBottom fontWeight="bold" color="secondary">Total Rewards this
-                              year</Typography>
+                          <Typography variant="h6" gutterBottom fontWeight="bold" color="secondary">Total
+                              Rewards </Typography>
                           {loadingRewards ? (
                                 <CircularProgress/>
                           ) : (
@@ -91,7 +117,7 @@ const Dashboard = () => {
                   <Grid item xs={12} md={6}>
                       <Box boxShadow={3} p={3} borderRadius={2} bgcolor="#f5f5f5">
                           <Typography variant="h6" gutterBottom fontWeight="bold" color="secondary">Total Attended
-                              Shifts this year</Typography>
+                              Shifts </Typography>
                           {loadingShifts ? (
                                 <CircularProgress/>
                           ) : (
@@ -102,7 +128,7 @@ const Dashboard = () => {
                   <Grid item xs={12} md={6}>
                       <Box boxShadow={3} p={3} borderRadius={2} bgcolor="#f5f5f5">
                           <Typography variant="h6" gutterBottom fontWeight="bold" color="secondary">Total Hours Attended
-                              this year</Typography>
+                          </Typography>
                           {loadingHours ? (
                                 <CircularProgress/>
                           ) : (
@@ -114,7 +140,7 @@ const Dashboard = () => {
 
                       <Box boxShadow={3} p={3} borderRadius={2} bgcolor="#f5f5f5">
                           <Typography variant="h6" gutterBottom fontWeight="bold" color="secondary">Total Days Attended
-                              this year</Typography>
+                          </Typography>
                           {loadingDays ? (
                                 <CircularProgress/>
                           ) : (
@@ -125,10 +151,10 @@ const Dashboard = () => {
                   <Grid item xs={12} md={6}>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                      <AttendancesChart userId={userId}/>
+                      <AttendancesChart userId={userId} filters={filters}/>
                   </Grid>
                   <Grid item xs={12} md={6}>
-                      <RewardsChart userId={userId}/> {/* Include the new RewardsChart */}
+                      <RewardsChart userId={userId} filters={filters}/>
                   </Grid>
               </Grid>
           </Container>

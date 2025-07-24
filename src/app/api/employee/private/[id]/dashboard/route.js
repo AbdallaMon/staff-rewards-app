@@ -11,8 +11,25 @@ export async function GET(request, response) {
     const totalDays = searchParams.get('totalDays') === 'true';
     const totalRewardsBreakdown = searchParams.get('totalRewardsBreakdown') === 'true'; // New parameter for total rewards breakdown
 
-    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
-    const endOfYear = new Date(new Date().getFullYear(), 11, 31);
+    const startDate = searchParams.get('startDate') ? new Date(searchParams.get('startDate')) : null;
+    const endDate = searchParams.get('endDate') ? new Date(searchParams.get('endDate')) : null;
+    const date = searchParams.get('date') ? new Date(searchParams.get('date')) : null;
+    const dates = {};
+    if (date) {
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+        dates.date = {
+            gte: startOfDay,
+            lte: endOfDay,
+        };
+    } else if (startDate && endDate) {
+        dates.date = {
+            gte: startDate,
+            lte: endDate,
+        };
+    }
 
     try {
         let response = {};
@@ -22,10 +39,7 @@ export async function GET(request, response) {
             const totalShiftsCount = await prisma.attendance.count({
                 where: {
                     userId,
-                    date: {
-                        gte: startOfYear,
-                        lte: endOfYear,
-                    },
+                    ...(dates.date && {date: dates.date}),
                 },
             });
             response.totalShifts = totalShiftsCount;
@@ -36,10 +50,8 @@ export async function GET(request, response) {
             const dayAttendances = await prisma.dayAttendance.findMany({
                 where: {
                     userId,
-                    date: {
-                        gte: startOfYear,
-                        lte: endOfYear,
-                    },
+                    ...(dates.date && {date: dates.date}),
+
                 },
                 include: {
                     attendances: {
@@ -83,20 +95,16 @@ export async function GET(request, response) {
                 where: {
                     userId,
                     isPaid: true,
-                    date: {
-                        gte: startOfYear,
-                        lte: endOfYear,
-                    },
+                    ...(dates.date && {date: dates.date}),
+
                 },
             });
             const notPaid = await prisma.dayAttendance.count({
                 where: {
                     userId,
                     isPaid: false,
-                    date: {
-                        gte: startOfYear,
-                        lte: endOfYear,
-                    },
+                    ...(dates.date && {date: dates.date}),
+
                 },
             });
             response.paidDayAttendances = {paid, notPaid};
@@ -106,10 +114,8 @@ export async function GET(request, response) {
             const totalHoursWorked = await prisma.attendance.findMany({
                 where: {
                     userId,
-                    date: {
-                        gte: startOfYear,
-                        lte: endOfYear,
-                    },
+                    ...(dates.date && {date: dates.date}),
+
                 },
                 include: {
                     shift: true,
@@ -123,10 +129,8 @@ export async function GET(request, response) {
             const totalDaysAttended = await prisma.dayAttendance.count({
                 where: {
                     userId,
-                    date: {
-                        gte: startOfYear,
-                        lte: endOfYear,
-                    },
+                    ...(dates.date && {date: dates.date}),
+
                 },
             });
             response.totalDays = totalDaysAttended;

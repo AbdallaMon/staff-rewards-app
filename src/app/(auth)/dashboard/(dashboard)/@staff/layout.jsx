@@ -1,7 +1,7 @@
 "use client"
 
 import {Alert, AlertTitle, Box, Button, Typography} from '@mui/material';
-import CommitmentPdf from "@/app/UiComponents/Templatese/CommitmentPdf";
+import CommitmentPDF from "@/app/UiComponents/Templatese/CommitmentPDF";
 import SignatureComponent from "@/app/UiComponents/FormComponents/Signature";
 import React, {useEffect, useState} from "react";
 import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
@@ -50,7 +50,7 @@ function CommitmentApprove({user, setUser}) {
                         <Typography variant="h6" gutterBottom>
                             Review and Approve Your Commitment
                         </Typography>
-                        <CommitmentPdf user={user} setUser={setUser} get={true}/>
+                        <CommitmentPDF user={user} setUser={setUser} get={true}/>
                         <Typography variant="body2" color="textSecondary" sx={{mt: 1}}>
                             Make sure all the information is accurate before submitting.
                         </Typography>

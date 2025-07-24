@@ -2,21 +2,31 @@
 
 import AdminTable from "@/app/UiComponents/DataViewer/CardGrid";
 import useDataFetcher from "@/helpers/hooks/useDataFetcher";
-import { useState } from "react";
+import {useState} from "react";
 import UserDetailDrawer from "@/app/UiComponents/DataViewer/UserDetailsDrawer";
 import {Button} from "@mui/material";
 
 export default function EmployeesRequest() {
-    const { data, loading, setData, page, setPage, limit, setLimit, total, setTotal } = useDataFetcher("admin/employees/rejected", false);
+    const {
+        data,
+        loading,
+        setData,
+        page,
+        setPage,
+        limit,
+        setLimit,
+        total,
+        setTotal
+    } = useDataFetcher("admin/employees/rejected", false);
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const columns = [
-        { name: "name", label: "Name" },
-        { name: "email", label: "Email" },
-        { name: "center.name", label: "Center" },
-        { name: "emiratesId", label: "Emirates ID" },
-        { name: "duty.name", label: "Duty" },
-        { name: "rejectedReason", label: "Rejected Reason" },
+        {name: "name", label: "Name"},
+        {name: "email", label: "Email"},
+        {name: "center.name", label: "Center"},
+        {name: "emiratesId", label: "Emirates ID"},
+        {name: "duty.name", label: "Duty"},
+        {name: "rejectedReason", label: "Rejected Reason"},
     ];
 
     const handleRowClick = (userId) => {
@@ -42,7 +52,7 @@ export default function EmployeesRequest() {
                     total={total}
                     setTotal={setTotal}
                     loading={loading}
-                    extraComponent={({ item }) => (
+                    extraComponent={({item}) => (
                           <Button onClick={() => handleRowClick(item.id)}>Edit Request</Button>
                     )}
               />
@@ -53,6 +63,8 @@ export default function EmployeesRequest() {
                           onClose={handleCloseDrawer}
                           renderExtraButtons
                           setData={setData}
+                          admin={true}
+
                     />
               )}
           </div>

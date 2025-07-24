@@ -356,6 +356,7 @@ export async function updateDayAttendanceAttachment(dayAttendanceId, data) {
         )
         return {status: 200, message: "uploaded successfully", data}
     } catch (e) {
+        console.log(e, "error in update day attendance")
         return handlePrismaError(e)
     }
 }

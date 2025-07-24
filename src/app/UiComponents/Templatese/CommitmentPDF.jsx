@@ -1,4 +1,5 @@
-import React, {useState, useCallback, useEffect} from 'react';
+"use client"
+import React, {useState, useEffect} from 'react';
 import {
     Box,
     Button,
@@ -19,7 +20,7 @@ import {IoMdClose} from "react-icons/io";
 import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import dayjs from "dayjs"; // If using toast loading context
 
-const CommitmentPdf = ({user, setUser, get}) => {
+const CommitmentPDF = ({user, setUser, get}) => {
     const [pdfBlob, setPdfBlob] = useState(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const {setLoading: setToastLoading} = useToastContext();
@@ -463,4 +464,4 @@ const ApprovalSection = ({handleApprove, confirmChecked, setConfirmChecked}) => 
           </Button>
       </div>
 );
-export default CommitmentPdf;
+export default CommitmentPDF;

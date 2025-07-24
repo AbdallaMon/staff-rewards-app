@@ -19,8 +19,6 @@ export async function deleteFileFromPath(filePath) {
         const name = parsedUrl.searchParams.get('name');
         // Construct the WebDAV path for deletion
         const deleteUrl = `${nextcloudUrlBase}/${name}`;
-        console.log('Constructed Delete URL:', filePath);
-
         // Make a DELETE request to the Nextcloud URL to delete the file
         const response = await axios.delete(deleteUrl, {
             auth: {
@@ -28,8 +26,6 @@ export async function deleteFileFromPath(filePath) {
                 password: nextcloudPassword,
             },
         });
-
-        console.log('Delete response:', response.data);
 
         return NextResponse.json({message: 'File deleted successfully'});
     } catch (error) {

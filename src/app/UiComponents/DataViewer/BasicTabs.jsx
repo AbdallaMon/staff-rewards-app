@@ -57,6 +57,7 @@ const adminLinks = [
 const reportLinks = [
     {label: "Attendances", href: "/dashboard"},
     {label: "Edit attendance", href: "/dashboard/attendances/edit"},
+    {label: "staff", href: "/dashboard/staff"},
     {label: "Attendances reports", href: "/dashboard/reports/attendances"},
     {label: "Attendances approval reports", href: "/dashboard/reports/approval"},
     {label: "Bank details Approval", href: "/dashboard/reports/bank"},

@@ -16,6 +16,7 @@ import ChartDataLabels from 'chartjs-plugin-datalabels';
 import FilterSelect from "@/app/UiComponents/FormComponents/FilterSelect";
 import {useRouter, useSearchParams} from "next/navigation";
 import Link from "next/link";
+import DateFilterComponent from "@/app/UiComponents/FormComponents/DateFilterComponent";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartDataLabels);
 
@@ -124,6 +125,7 @@ const AdminDashboard = () => {
     const searchParams = useSearchParams();
     const selectedCenter = searchParams.get("centerId");
     const router = useRouter();
+    const [filters, setFilters] = useState();
 
     const handleCenterChange = (event) => {
         const centerId = event.target.value;
@@ -143,26 +145,25 @@ const AdminDashboard = () => {
         setCenters(result.data || []);
         setCenterLoading(false);
     };
-
     useEffect(() => {
         fetchCenters();
     }, []);
 
     useEffect(() => {
-        const url = `/api/admin/dashboard?${
+        let url = `/api/admin/dashboard?${
               selectedCenter ? `centerId=${selectedCenter}&` : ""
         }`;
-        fetchData(`${url}totalCenters=true`)
-              .then((data) => {
-                  setLoadingCenters(true);
-                  setTotalCenters(data.totalCenters);
-                  setLoadingCenters(false);
-              })
-              .catch((error) => {
-                  console.error("Error fetching centers data:", error);
-                  setLoadingCenters(false);
-              });
-
+        if (filters) {
+            if (filters.date) {
+                url += `date=${filters.date}&`;
+            } else if (filters.startDate && filters.endDate) {
+                url += `startDate=${filters.startDate}&endDate=${filters.endDate}&`;
+            }
+        }
+        setLoadingRewards(true);
+        setLoadingPaidRewards(true);
+        setLoadingUnpaidRewards(true);
+        setLoadingUsers(true)
         fetchData(`${url}totalUsers=true`)
               .then((data) => {
                   setLoadingUsers(true);
@@ -176,7 +177,6 @@ const AdminDashboard = () => {
 
         fetchData(`${url}userStatus=true`)
               .then((data) => {
-                  setLoadingUsers(true);
                   setActiveUsers(data.activeUsers);
                   setUncompletedUsers(data.uncompletedUsers);
                   setPendingUsers(data.pendingUsers);
@@ -187,9 +187,33 @@ const AdminDashboard = () => {
                   setLoadingUsers(false);
               });
 
+        if (!filters && !selectedCenter) {
+            fetchData(`${url}totalCenters=true`)
+                  .then((data) => {
+                      setLoadingCenters(true);
+                      setTotalCenters(data.totalCenters);
+                      setLoadingCenters(false);
+                  })
+                  .catch((error) => {
+                      console.error("Error fetching centers data:", error);
+                      setLoadingCenters(false);
+                  });
+        }
+        if (!filters) {
+            fetchData(`${url}examsSummary=true`)
+                  .then((data) => {
+                      setLoadingExams(true);
+                      setComingExams(data.comingExams);
+                      setOldExams(data.oldExams);
+                      setLoadingExams(false);
+                  })
+                  .catch((error) => {
+                      console.error("Error fetching exams data:", error);
+                      setLoadingExams(false);
+                  });
+        }
         fetchData(`${url}totalRewards=true`)
               .then((data) => {
-                  setLoadingRewards(true);
                   setTotalRewards(data.totalRewards);
                   setLoadingRewards(false);
               })
@@ -200,7 +224,6 @@ const AdminDashboard = () => {
 
         fetchData(`${url}paidRewards=true`)
               .then((data) => {
-                  setLoadingPaidRewards(true);
                   setPaidRewards(data.paidRewards);
                   setLoadingPaidRewards(false);
               })
@@ -220,18 +243,7 @@ const AdminDashboard = () => {
                   setLoadingUnpaidRewards(false);
               });
 
-        fetchData(`${url}examsSummary=true`)
-              .then((data) => {
-                  setLoadingExams(true);
-                  setComingExams(data.comingExams);
-                  setOldExams(data.oldExams);
-                  setLoadingExams(false);
-              })
-              .catch((error) => {
-                  console.error("Error fetching exams data:", error);
-                  setLoadingExams(false);
-              });
-    }, [selectedCenter]);
+    }, [selectedCenter, filters]);
 
     const userStatusChartData = {
         labels: ["Active Users", "Uncompleted Users", "Pending Users"],
@@ -271,8 +283,16 @@ const AdminDashboard = () => {
                       Go to Financial Dashboard
                   </Button>
               </Link>
-              <Grid container spacing={3}>
-                  <Grid item xs={12}>
+              <Grid container spacing={3} sx={{mt: 3}}>
+                  <Grid item xs={12} md={8}>
+                      <Box display="flex" alignItems="center">
+                          <DateFilterComponent
+                                setFilters={setFilters}
+                                filters={filters}
+                          />
+                      </Box>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
                       <FilterSelect
                             options={centers}
                             label={"Centers"}

@@ -13,10 +13,26 @@ export async function GET(request, response) {
     const unpaidRewards = searchParams.get('unpaidRewards') ? true : false;
     const examsSummary = searchParams.get('examsSummary') ? true : false;
     const userStatus = searchParams.get('userStatus') ? true : false
-    const currentYear = new Date().getFullYear();
-    const startOfYear = new Date(currentYear, 0, 1);
-    const endOfYear = new Date(currentYear, 11, 31);
-    const today = new Date();
+    const startDate = searchParams.get('startDate') ? new Date(searchParams.get('startDate')) : null;
+    const endDate = searchParams.get('endDate') ? new Date(searchParams.get('endDate')) : null;
+    const date = searchParams.get('date') ? new Date(searchParams.get('date')) : null;
+    const dates = {};
+    if (date) {
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+        dates.date = {
+            gte: startOfDay,
+            lte: endOfDay,
+        };
+    } else if (startDate && endDate) {
+        dates.date = {
+            gte: startDate,
+            lte: endDate,
+        };
+    }
+
     try {
         const responseData = {};
 
@@ -37,10 +53,7 @@ export async function GET(request, response) {
             responseData.totalAttendances = await prisma.attendance.count({
                 where: {
                     ...(centerId && {centerId}),
-                    date: {
-                        gte: startOfYear,
-                        lte: endOfYear
-                    },
+                    ...(dates.date && {date: dates.date}),
                 }
             });
         }
@@ -49,10 +62,7 @@ export async function GET(request, response) {
             responseData.totalDayAttendances = await prisma.dayAttendance.count({
                 where: {
                     ...(centerId && {centerId}),
-                    date: {
-                        gte: startOfYear,
-                        lte: endOfYear
-                    },
+                    ...(dates.date && {date: dates.date}),
                 }
             });
         }
@@ -62,10 +72,7 @@ export async function GET(request, response) {
                 _sum: {amount: true},
                 where: {
                     ...(centerId && {attendance: {centerId}}),
-                    date: {
-                        gte: startOfYear,
-                        lte: endOfYear
-                    },
+                    ...(dates.date && {date: dates.date}),
                 }
             });
             responseData.totalRewards = rewards._sum.amount || 0;
@@ -82,10 +89,7 @@ export async function GET(request, response) {
 
                         }
                     },
-                    date: {
-                        gte: startOfYear,
-                        lte: endOfYear
-                    },
+                    ...(dates.date && {date: dates.date}),
                 }
             });
             responseData.paidRewards = rewards._sum.amount || 0;
@@ -101,10 +105,7 @@ export async function GET(request, response) {
                             ...(centerId && {centerId}),
                         }
                     },
-                    date: {
-                        gte: startOfYear,
-                        lte: endOfYear
-                    },
+                    ...(dates.date && {date: dates.date}),
                 }
             });
             responseData.unpaidRewards = rewards._sum.amount || 0;
@@ -113,29 +114,25 @@ export async function GET(request, response) {
         if (totalCalendars) {
             responseData.totalCalendars = await prisma.calendar.count({
                 where: {
-                    date: {
-                        gte: startOfYear,
-                        lte: endOfYear
-                    }
+                    ...(dates.date && {date: dates.date}),
                 }
             });
         }
         if (examsSummary) {
+            const today = new Date();
             const comingExams = await prisma.calendar.count({
                 where: {
                     date: {
                         gte: today,
-                        lte: endOfYear,
+
                     },
                 },
             });
-
             const oldExams = await prisma.calendar.count({
                 where: {
                     date: {
                         lte: today,
-                        gte: startOfYear,
-                    },
+                    }
                 },
             });
 

@@ -9,6 +9,9 @@
     "lint": "next lint",
     "postinstall": "npx prisma generate"
   },
+  "engines": {
+    "node": ">=19 <20"
+  },
   "dependencies": {
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
@@ -21,6 +24,7 @@
     "axios": "^1.7.3",
     "bcrypt": "^5.1.1",
     "buffer": "^6.0.3",
+    "canvas": "^2.11.2",
     "chart.js": "^4.4.3",
     "chartjs-plugin-datalabels": "^2.2.0",
     "crypto": "^1.0.1",

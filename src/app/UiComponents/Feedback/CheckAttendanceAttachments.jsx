@@ -86,7 +86,6 @@ export default function CheckAttendanceAttachments({children}) {
               false,
               "POST"
         );
-
         if (res.status === 200) {
             const newData = dayAttendances.filter((day) => +day.id !== +selectedAttendance.id);
             setDayAttendances(newData);

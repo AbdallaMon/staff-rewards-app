@@ -29,7 +29,7 @@ const DateFilterComponent = ({setFilters, filters}) => {
     };
 
     return (
-          <Box display="flex" alignItems="center" width="fit-content">
+          <Box display="flex" alignItems="center" width="fit-content" flexWrap="wrap" gap={2}>
               <ButtonGroup variant="outlined" sx={{mr: 2}}>
                   <Button
                         onClick={() => setFilterType("day")}
@@ -60,16 +60,16 @@ const DateFilterComponent = ({setFilters, filters}) => {
                               handleEndDateChange={(newDate) => setEndDate(newDate)}
                         />
                   )}
+                  <IconButton
+                        aria-label="reset"
+                        color="secondary"
+                        onClick={resetFilters}
+                        sx={{ml: 2}}
+                  >
+                      <FaTimes/>
+                  </IconButton>
               </Box>
 
-              <IconButton
-                    aria-label="reset"
-                    color="secondary"
-                    onClick={resetFilters}
-                    sx={{ml: 2}}
-              >
-                  <FaTimes/>
-              </IconButton>
           </Box>
     );
 };

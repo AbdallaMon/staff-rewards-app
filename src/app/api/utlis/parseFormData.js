@@ -16,8 +16,9 @@ async function parseFormData(req, withDelete) {
         const nextcloudUrlBase = process.env.NEXTCLOUD_URL;
         const nextcloudUsername = process.env.NEXTCLOUD_USERNAME;
         const nextcloudPassword = process.env.NEXTCLOUD_PASSWORD;
+
         for (const [key, value] of formData.entries()) {
-            if (value instanceof File) {
+            if (value && typeof value.arrayBuffer === 'function' && value.name) {
                 if (key === 'deletedUrl') continue;
 
                 const uniqueName = uuidv4() + '-' + value.name;
@@ -72,7 +73,10 @@ async function parseFormData(req, withDelete) {
 
         return results;
     } catch (e) {
-        console.error(e);
+        console.error("An error occurred during file upload:");
+        console.error("Error message:", e.message);
+        console.error("Error stack:", e.stack);
+        console.error("Form data keys:", Array.from(formData.keys()));
         throw new Error('File upload error');
     }
 }

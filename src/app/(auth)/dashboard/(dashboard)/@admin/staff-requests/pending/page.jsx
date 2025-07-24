@@ -62,6 +62,7 @@ export default function EmployeesRequest() {
                           onClose={handleCloseDrawer}
                           renderExtraButtons
                           setData={setData}
+                          admin={true}
                     />
               )}
           </div>

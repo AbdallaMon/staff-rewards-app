@@ -33,7 +33,7 @@ import {useToastContext} from "@/providers/ToastLoadingProvider";
 import FullScreenLoader from "@/app/UiComponents/Feedback/FullscreenLoader";
 import SignatureComponent from "@/app/UiComponents/FormComponents/Signature";
 import BankDetailsWithSignature from "@/app/UiComponents/Templatese/BankdetailsWithSignature";
-import CommitmentPdf from "@/app/UiComponents/Templatese/CommitmentPdf";
+import CommitmentPDF from "@/app/UiComponents/Templatese/CommitmentPDF";
 
 const Input = styled('input')({
     display: 'none',
@@ -305,7 +305,7 @@ const ProfilePage = ({userId}) => {
                                                   rel="noopener noreferrer"
                                                   sx={{ml: 1}}>View Commitment PDF</Link>
                                             : <>
-                                                {user.signature ? <CommitmentPdf user={user}
+                                                {user.signature ? <CommitmentPDF user={user}
                                                                                  setUser={setUser}/> : "You must upload your signature"}
                                             </>
                                       }

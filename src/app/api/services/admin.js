@@ -1422,7 +1422,7 @@ export async function getPageControl(page) {
 // Update page control data
 export async function updatePageControl(page, data) {
     try {
-        const pageStatus = await prisma.pageControl.update({
+        const pageStatus = await prisma.pageAvailability.update({
             where: {page},
             data: {
                 status: data.status || undefined,

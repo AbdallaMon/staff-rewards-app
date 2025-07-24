@@ -24,13 +24,19 @@ import {handleRequestSubmit} from "@/helpers/functions/handleSubmit";
 import {useToastContext} from "@/providers/ToastLoadingProvider";
 import {simpleModalStyle} from "@/app/constants";
 
-const fetchUserById = async (userId, isCenter) => {
-    const response = await fetch(`/api/${isCenter ? "center" : "admin"}/employees/${userId}`);
+const fetchUserById = async (userId, isCenter, financial) => {
+    let response;
+    if (financial) {
+        response = await fetch(`/api/finincal/employees/${userId}`)
+    } else {
+
+        response = await fetch(`/api/${isCenter ? "center" : "admin"}/employees/${userId}`);
+    }
     const result = await response.json();
     return result;
 };
 
-const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData, isCenter, admin}) => {
+const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData, isCenter, admin, financial}) => {
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -45,7 +51,7 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData, i
         if (userId) {
             setLoading(true);
             setError(null);
-            fetchUserById(userId, isCenter).then(response => {
+            fetchUserById(userId, isCenter, financial).then(response => {
                 if (response.status === 200) {
                     setUserData(response.data);
                 } else {
@@ -165,20 +171,24 @@ const UserDetailDrawer = ({userId, open, onClose, renderExtraButtons, setData, i
                                 <Grid container spacing={2}>
                                     <Grid item xs={12} md={6}>
                                         <Box sx={{display: 'flex', alignItems: 'center', mb: 2}}>
-                                            {userData.photo ? (
-                                                  <Avatar
-                                                        src={userData.photo}
-                                                        sx={{
-                                                            width: 120,
-                                                            height: 120,
-                                                            cursor: 'pointer',
-                                                            marginRight: 2
-                                                        }}
-                                                        onClick={() => handleImageClick(userData.photo)}
-                                                  />
-                                            ) : (
-                                                  <Typography>No User Photo</Typography>
-                                            )}
+                                            {admin &&
+                                                  <>
+                                                      {userData.photo ? (
+                                                            <Avatar
+                                                                  src={userData.photo}
+                                                                  sx={{
+                                                                      width: 120,
+                                                                      height: 120,
+                                                                      cursor: 'pointer',
+                                                                      marginRight: 2
+                                                                  }}
+                                                                  onClick={() => handleImageClick(userData.photo)}
+                                                            />
+                                                      ) : (
+                                                            <Typography>No User Photo</Typography>
+                                                      )}
+                                                  </>
+                                            }
                                             <List>
                                                 <ListItem>
                                                     <ListItemText primary="Name" secondary={userData.name || "N/A"}/>

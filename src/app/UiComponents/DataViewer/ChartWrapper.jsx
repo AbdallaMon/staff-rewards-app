@@ -54,12 +54,23 @@ const ChartWrapper = ({children, loading}) => (
       </Box>
 );
 
-export const AttendancesChart = ({userId}) => {
+export const AttendancesChart = ({userId, filters}) => {
     const [data, setData] = useState({labels: ['Paid', 'Not Paid'], datasets: []});
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchData(`/api/employee/private/${userId}/dashboard?paidDayAttendances=true`)
+        let url = `/api/employee/private/${userId}/dashboard?`
+        if (filters) {
+            if (filters.date) {
+                url += `date=${filters.date}&`;
+            } else if (filters.startDate && filters.endDate) {
+                url += `startDate=${filters.startDate}&endDate=${filters.endDate}&`;
+            }
+
+        }
+        setLoading(true);
+
+        fetchData(`${url}paidDayAttendances=true`)
               .then((data) => {
                   setData({
                       labels: ['Paid', 'Not Paid'],
@@ -75,7 +86,7 @@ export const AttendancesChart = ({userId}) => {
                   console.error('Error fetching attendances data:', error);
                   setLoading(false);
               });
-    }, [userId]);
+    }, [userId, filters]);
 
     return (
           <ChartWrapper loading={loading}>
@@ -85,12 +96,22 @@ export const AttendancesChart = ({userId}) => {
     );
 };
 
-export const RewardsChart = ({userId}) => {
+export const RewardsChart = ({userId, filters}) => {
     const [data, setData] = useState({labels: ['Paid', 'Not Paid'], datasets: []});
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchData(`/api/employee/private/${userId}/dashboard?totalRewardsBreakdown=true`)
+        let url = `/api/employee/private/${userId}/dashboard?`
+        if (filters) {
+            if (filters.date) {
+                url += `date=${filters.date}&`;
+            } else if (filters.startDate && filters.endDate) {
+                url += `startDate=${filters.startDate}&endDate=${filters.endDate}&`;
+            }
+            setLoading(true);
+
+        }
+        fetchData(`${url}totalRewardsBreakdown=true`)
               .then((data) => {
                   setData({
                       labels: ['Paid', 'Not Paid'],
@@ -106,7 +127,7 @@ export const RewardsChart = ({userId}) => {
                   console.error('Error fetching rewards data:', error);
                   setLoading(false);
               });
-    }, [userId]);
+    }, [userId, filters]);
 
     return (
           <ChartWrapper loading={loading}>
